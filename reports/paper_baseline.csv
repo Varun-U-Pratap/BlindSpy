@@ -1,0 +1,57 @@
+task,class,algorithm,timeout_s,metric,value,source,uncertainty,page,location
+A1,VPN,C4.5,15,precision,0.89,stated_in_text,0,412,Sec 5.1
+A1,VPN,C4.5,120,precision,0.86,stated_in_text,0,412,Sec 5.1
+A1,Non-VPN,C4.5,15,precision,0.906,stated_in_text,0,412,Sec 5.1
+A1,Non-VPN,C4.5,120,precision,0.887,stated_in_text,0,412,Sec 5.1
+A1,VPN,KNN,15,precision,0.848,stated_in_text,0,412,Sec 5.1
+A1,VPN,KNN,120,precision,0.815,stated_in_text,0,412,Sec 5.1
+A1,Non-VPN,KNN,15,precision,0.846,stated_in_text,0,412,Sec 5.1
+A1,Non-VPN,KNN,120,precision,0.837,stated_in_text,0,412,Sec 5.1
+A2-VPN,AVERAGE,C4.5,15,precision,0.84,stated_in_text,0,412,Sec 5.1 (average over classes)
+A2-NonVPN,AVERAGE,C4.5,15,precision,0.89,stated_in_text,0,412,Sec 5.1 (average over classes)
+B,VPN-BROWSING,C4.5,15,precision,0.771,stated_in_text,0,413,Sec 5.2
+B,VPN-BROWSING,C4.5,120,precision,0.809,stated_in_text,0,413,Sec 5.2
+B,VPN-MAIL,C4.5,15,precision,0.739,stated_in_text,0,413,Sec 5.2
+B,VPN-MAIL,C4.5,120,precision,0.786,stated_in_text,0,413,Sec 5.2
+B,MAIL,C4.5,15,precision,0.671,stated_in_text,0,413,Sec 5.2
+B,MAIL,C4.5,120,precision,0.79,stated_in_text,0,413,Sec 5.2
+B,VPN-BROWSING,KNN,15,precision,0.691,stated_in_text,0,413,Sec 5.2
+B,VPN-BROWSING,KNN,120,precision,0.743,stated_in_text,0,413,Sec 5.2
+B,VPN-CHAT,KNN,15,precision,0.501,stated_in_text,0,413,Sec 5.2
+B,VPN-CHAT,KNN,120,precision,0.501,stated_in_text,0,413,Sec 5.2
+B,VPN-MAIL,KNN,15,precision,0.688,stated_in_text,0,413,Sec 5.2
+B,VPN-MAIL,KNN,120,precision,0.688,stated_in_text,0,413,Sec 5.2
+B,AVERAGE_BEST_TIMEOUT,C4.5,best,precision,0.783,stated_in_text,0,413,Sec 5.2 (highest average over timeouts)
+B,AVERAGE_BEST_TIMEOUT,KNN,best,precision,0.711,stated_in_text,0,413,Sec 5.2 (highest average over timeouts)
+A1,VPN,C4.5,15,precision,0.89,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,15,precision,0.848,read_from_chart,0.01,410,Fig 2a
+A1,VPN,C4.5,30,precision,0.868,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,30,precision,0.835,read_from_chart,0.01,410,Fig 2a
+A1,VPN,C4.5,60,precision,0.856,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,60,precision,0.812,read_from_chart,0.01,410,Fig 2a
+A1,VPN,C4.5,120,precision,0.863,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,120,precision,0.815,read_from_chart,0.01,410,Fig 2a
+A1,VPN,C4.5,15,recall,0.917,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,15,recall,0.861,read_from_chart,0.01,410,Fig 2a
+A1,VPN,C4.5,30,recall,0.901,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,30,recall,0.862,read_from_chart,0.01,410,Fig 2a
+A1,VPN,C4.5,60,recall,0.827,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,60,recall,0.795,read_from_chart,0.01,410,Fig 2a
+A1,VPN,C4.5,120,recall,0.902,read_from_chart,0.01,410,Fig 2a
+A1,VPN,KNN,120,recall,0.86,read_from_chart,0.01,410,Fig 2a
+A1,Non-VPN,C4.5,15,precision,0.906,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,15,precision,0.846,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,C4.5,30,precision,0.885,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,30,precision,0.84,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,C4.5,60,precision,0.864,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,60,precision,0.838,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,C4.5,120,precision,0.887,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,120,precision,0.837,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,C4.5,15,recall,0.877,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,15,recall,0.832,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,C4.5,30,recall,0.846,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,30,recall,0.808,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,C4.5,60,recall,0.888,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,60,recall,0.851,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,C4.5,120,recall,0.843,read_from_chart,0.01,410,Fig 2b
+A1,Non-VPN,KNN,120,recall,0.787,read_from_chart,0.01,410,Fig 2b
