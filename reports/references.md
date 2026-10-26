@@ -23,3 +23,17 @@
     Over-sampling Technique," *Journal of Artificial Intelligence Research*, vol. 16,
     pp. 321–357, 2002.
 11. J. R. Quinlan, *C4.5: Programs for Machine Learning*. Morgan Kaufmann, 1993.
+12. S. Bagui, X. Fang, E. Kalaimannan, S. C. Bagui, and J. Sheehan, "Comparison of
+    machine-learning algorithms for classification of VPN network traffic flow using
+    time-related features," *Journal of Cyber Security Technology*, vol. 1, no. 2,
+    pp. 108–126, 2017, doi: 10.1080/23742917.2017.1321891.
+13. W. Isnan, Y. Fatmi, R. Darni, and V. Aulia, "Flow-Based Encrypted Network Traffic
+    Classification Using Random Forest for Network Access Control," *Intechno Journal:
+    Information Technology Journal*, vol. 8, no. 1, 2026,
+    doi: 10.24076/intechnojournal.2026v8i1.2922.
+14. S. Jorgensen et al., "Extensible Machine Learning for Encrypted Network Traffic
+    Application Labeling via Uncertainty Quantification," *IEEE Transactions on
+    Artificial Intelligence*, 2023, doi: 10.1109/TAI.2023.3244168 (arXiv:2205.05628).
+15. G. Draper-Gil, A. H. Lashkari, M. S. I. Mamun, and A. A. Ghorbani, "Characterization
+    of Encrypted and VPN Traffic Using Time-Related Features" (poster), UNB Research
+    Expo, 2016. [Online]. Available: https://www.cs.unb.ca/research-expo/expos/2016/
