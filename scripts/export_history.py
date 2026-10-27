@@ -1,8 +1,9 @@
-"""Build reports/EXPERIMENT_LOG.md from the official runner's experiment files.
+"""Build reports/EXPERIMENT_LOG.md and reports/history.csv for the official runner.
 
-Each experiment lives in reports/experiments/<runner>/E##.md (written by people).
-This script combines the official runner's files, newest first. Exporting every
-MLflow run to reports/history.csv and drawing the report graphs is added in Phase 4.
+Each experiment lives in reports/experiments/<runner>/E##.md (written by people); this
+script combines the official runner's files, newest first. It also writes every MLflow run
+of the official store (mlruns/<runner>/mlflow.db) to reports/history.csv, one row per run,
+so report tables are generated, never typed. The report graphs are added in Phase 4.
 
 Usage: uv run python scripts/export_history.py
 """
@@ -10,7 +11,16 @@ Usage: uv run python scripts/export_history.py
 import re
 from pathlib import Path
 
+import mlflow
+import pandas as pd
+
 from blindspy.tracking import ROOT, load_yaml
+
+FIRST_COLUMNS = [
+    "run_id", "run_name", "status", "start_time", "end_time",
+    "tags.experiment_id", "tags.protocol", "tags.rows_source", "params.task", "params.timeout",
+    "params.model", "tags.data_version", "tags.git_commit", "tags.git_dirty", "tags.git_pushed",
+]  # fmt: skip
 
 HEADER = (
     "# Experiment log\n\n"
@@ -35,12 +45,42 @@ def build_log(folder: Path, runner: str) -> str:
     return "".join(parts)
 
 
+def history_frame(tracking_uri: str, experiment: str) -> pd.DataFrame:
+    """Every run of the experiment, oldest first: identity columns, then params, tags and
+    metrics (MLflow's own mlflow.* tags dropped)."""
+    mlflow.set_tracking_uri(tracking_uri)
+    runs = mlflow.search_runs(experiment_names=[experiment], output_format="pandas")
+    if runs.empty:
+        return pd.DataFrame(columns=FIRST_COLUMNS)
+    runs = runs.rename(columns={"tags.mlflow.runName": "run_name"})
+    runs = runs.drop(columns=[c for c in runs.columns if c.startswith("tags.mlflow.")])
+    runs = runs.drop(columns=["experiment_id", "artifact_uri"], errors="ignore")
+    for col in ("start_time", "end_time"):
+        runs[col] = pd.to_datetime(runs[col]).dt.strftime("%Y-%m-%d %H:%M:%S")
+    first = [c for c in FIRST_COLUMNS if c in runs.columns]
+    groups = [sorted(c for c in runs.columns if c.startswith(p) and c not in first)
+              for p in ("params.", "tags.", "metrics.")]  # fmt: skip
+    rest = [c for c in runs.columns if c not in first and not any(c in g for g in groups)]
+    runs = runs[first + rest + groups[0] + groups[1] + groups[2]]
+    return runs.sort_values(["start_time", "run_name"]).reset_index(drop=True)
+
+
 def main() -> None:
-    runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
+    base = load_yaml(ROOT / "configs" / "base.yaml")
+    runner = base["official_runner"]
     folder = ROOT / "reports" / "experiments" / runner
     out = ROOT / "reports" / "EXPERIMENT_LOG.md"
     out.write_text(build_log(folder, runner))
     print(f"Wrote {out.relative_to(ROOT)} from {len(experiment_files(folder))} experiment files")
+
+    db = ROOT / "mlruns" / runner / "mlflow.db"
+    if not db.exists():
+        print(f"No MLflow store at {db.relative_to(ROOT)}; history.csv not written")
+        return
+    hist = history_frame(f"sqlite:///{db}", base["mlflow_experiment"])
+    csv = ROOT / "reports" / "history.csv"
+    hist.to_csv(csv, index=False)
+    print(f"Wrote {csv.relative_to(ROOT)}: {len(hist)} runs, {hist.shape[1]} columns")
 
 
 if __name__ == "__main__":

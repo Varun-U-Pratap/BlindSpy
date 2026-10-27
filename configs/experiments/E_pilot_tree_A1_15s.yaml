@@ -1,0 +1,11 @@
+# First end-to-end run (plan Phase 2): A1 at 15 s, decision tree. Checked by hand in the
+# MLflow UI before any baseline run. Not one of the 80 baseline runs.
+experiment_id: E_pilot
+run_name: E_pilot-tree-A1-15s
+kind: train
+task: A1
+timeout: 15
+model: tree
+params:
+  criterion: entropy
+save_model: true

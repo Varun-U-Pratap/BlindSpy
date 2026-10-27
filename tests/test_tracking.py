@@ -41,3 +41,23 @@ def test_runner_required(tmp_path):
         load_runner(tmp_path)
     (tmp_path / "configs" / "local.yaml").write_text("runner: someone\n")
     assert load_runner(tmp_path) == "someone"
+
+
+def test_history_csv_one_row_per_run(tmp_path):
+    import mlflow
+
+    uri = f"sqlite:///{tmp_path / 'mlflow.db'}"
+    mlflow.set_tracking_uri(uri)
+    mlflow.create_experiment("x", artifact_location=(tmp_path / "a").as_uri())
+    mlflow.set_experiment("x")
+    for i in range(2):
+        with mlflow.start_run(
+            run_name=f"E0{i + 1}-tree-A1-15s", tags={"experiment_id": f"E0{i + 1}"}
+        ):
+            mlflow.log_params({"task": "A1", "model": "tree"})
+            mlflow.log_metric("val_f1_macro", 0.5 + i / 10)
+    hist = export_history.history_frame(uri, "x")
+    assert len(hist) == 2 and list(hist["run_name"]) == ["E01-tree-A1-15s", "E02-tree-A1-15s"]
+    assert hist.columns[0] == "run_id" and "metrics.val_f1_macro" in hist.columns
+    assert not any(c.startswith("tags.mlflow.") for c in hist.columns)
+    assert list(hist["metrics.val_f1_macro"]) == [0.5, 0.6]

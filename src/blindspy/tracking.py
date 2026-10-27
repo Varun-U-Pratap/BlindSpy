@@ -1,8 +1,10 @@
 """MLflow helpers: per-runner store, run identity tags, git state checks."""
 
 import hashlib
+import json
 import os
 import platform
+import resource
 import subprocess
 from pathlib import Path
 
@@ -119,3 +121,41 @@ def identity_tags(runner: str, experiment_id: str, config_path: Path, git: dict)
         "uv_lock_sha256": file_sha256(ROOT / "uv.lock"),
         "config_file": str(Path(config_path).resolve().relative_to(ROOT)),
     }
+
+
+def package_versions() -> dict:
+    import importlib.metadata as md
+
+    names = ["scikit-learn", "numpy", "pandas", "mlflow", "pyarrow", "joblib"]
+    return {f"pkg.{n}": md.version(n) for n in names}
+
+
+def data_tags(task: str, timeout: int, rows: str, data_version: str, root: Path = ROOT) -> dict:
+    """Data version and hashes for a run: the version's Parquet + split hashes, or, for the
+    published rows (paper benchmark), the raw ARFF file's hash from data/manifest.json."""
+    if rows == "published":
+        files = json.loads((root / "data" / "manifest.json").read_text())["files"]
+        f = next(f for f in files if f["task"] == task and f["timeout"] == timeout)
+        return {"data_version": "published", "data_sha256": f["sha256"], "data_file": f["file"]}
+    manifest = root / "data" / "processed" / data_version / "manifest.json"
+    entry = json.loads(manifest.read_text())["tasks"][f"{task}_{timeout}s"]
+    return {
+        "data_version": data_version,
+        "data_sha256": entry["parquet_sha256"],
+        "data_split_sha256": entry["split_sha256"],
+        "data_file": f"data/processed/{data_version}/{entry['parquet']}",
+    }
+
+
+def log_result(result: dict, files_dir: Path) -> None:
+    """Log a train.py result (params, metrics, tags) and every file it wrote."""
+    mlflow.log_params(result["params"])
+    mlflow.log_metrics(result["metrics"])
+    mlflow.set_tags(result["tags"])
+    mlflow.log_dict(result["info"], "eval/summary.json")
+    mlflow.log_artifacts(str(files_dir))
+    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+    # ru_maxrss is bytes on macOS, kilobytes on Linux
+    mlflow.log_metric(
+        "process_max_rss_mb", rss / (2**20 if platform.system() == "Darwin" else 2**10)
+    )
