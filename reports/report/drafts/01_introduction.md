@@ -57,13 +57,16 @@ the split (k-fold vs a single hold-out), the class setup (binary, 7-class or 14-
 duplicates are removed, and whether flows from different timeout versions are mixed. Each of these
 can move accuracy by several points, so we compare only under matched protocols.
 
-**The Isnan et al. data.** A check made before the project started indicates that the Kaggle file
-used by Isnan et al. is the eight A2 files (VPN and non-VPN at all four timeouts) stacked together
-and relabelled into 14 classes: 5,151 + 5,631 + 8,965 + 9,793 + 6,917 + 7,734 + 8,580 + 6,935 =
-59,706 rows, of which 40,987 are unique, exactly their count. If confirmed, most of their
-"duplicates" are the same flows repeated across timeout versions, and a random 80/20 split of the
-stacked file lets the same flow (built with a different timeout) appear in both training and test
-data. [Confirmed counts: E00. Reproduction and corrected protocol: E16.]
+**The Isnan et al. data.** The Kaggle file used by Isnan et al. is the eight A2 files (VPN and
+non-VPN at all four timeouts) stacked together: compared as a multiset, its 59,706 rows equal the
+rows of those files (5,151 + 5,631 + 8,965 + 9,793 + 6,917 + 7,734 + 8,580 + 6,935), with no row
+left over and the same labels. It has 40,987 unique rows, exactly their count. 7,093 distinct
+flows appear in two to four timeout files, while only 3,676 rows are duplicates within one file
+(E00). So most of their 18,719 "duplicates" are the same flows repeated across timeout versions,
+and a random 80/20 split of the stacked file lets the same flow (built with a different timeout)
+appear in both training and test data. The file also uses the A2 feature set (`total_fiat` and
+`total_biat` in place of the paper's `std_fiat` and `std_biat`; Section 2). [Reproduction and
+corrected protocol: E16.]
 
 ## 1.5 Contributions
 
