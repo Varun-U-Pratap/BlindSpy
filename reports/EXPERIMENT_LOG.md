@@ -75,8 +75,8 @@ Holdout (validation macro F1, data v1, 15 / 30 / 60 / 120 s; tree from E02 for r
   of 100 would have stopped early).
 - Generalisation gap |CV - validation| <= 0.042 for all three; CV std <= 0.025.
 - Cost (median over 16 configs): KNN trains in 0.02 s, but predicts 1,000 flows in 7.9 ms and
-  stores the training set (1.2 MB median, 2.4 MB max). Logistic Regression: 0.12 s, 0.36 ms,
-  3.8 KB. SVM: 0.64 s (2.9 s max), 211 ms (599 ms max), 1.2 MB (4.3 MB max). Peak fit memory
+  stores the training set (1.2 MB median, 2.3 MB max). Logistic Regression: 0.12 s, 0.36 ms,
+  3.8 KB. SVM: 0.64 s (2.9 s max), 211 ms (599 ms max), 1.1 MB (4.2 MB max). Peak fit memory
   is 3.0-3.6 MB (tracemalloc). For the SVM this is a lower bound, since libsvm's own memory isn't
   counted.
 
@@ -92,7 +92,7 @@ Paper benchmark, IBk (1-NN, min-max scaling):
   so extra copies add errors.
 
 Storage check (plan: every official model saved):
-- Phase 2 store after these runs (146 runs incl. smoke and pilot): artifacts 137.8 MB,
+- Phase 2 store after these runs (147 runs incl. 1 smoke and 2 pilot runs): artifacts 137.8 MB,
   mlflow.db 5.8 MB. Per model type (table "Storage"): majority 1.4 MB for 16 runs, Logistic
   Regression 1.6 MB, tree 5.5 MB, KNN 23.1 MB, SVM 27.4 MB; benchmark tree 11.7 MB and IBk
   66.7 MB for 32 runs each. Largest single run: 4.3 MB (SVM).
@@ -124,6 +124,20 @@ it with joblib compression level 3 from Phase 3 on. Compression is lossless: a c
 reloads and predicts identically. The 300-tree Random Forest above drops from 171.9 MB to 22.4 MB,
 so the projected total is about 2-3 GB instead of about 18 GB. Phase 2 models stay as saved.
 Metrics, plots, configs and commits are kept for every run either way.
+
+**Corrections and additions (recheck, 2026-10-28).**
+- Model file sizes: KNN max 2.3 MB (was written 2.4), SVM median 1.1 MB and max 4.2 MB (was
+  1.2 / 4.3; 4.3 MB is the SVM's largest whole run folder, not its model file). The run count
+  is 147 (80 + 64 + 2 pilot + 1 smoke), not 146.
+- Training times in these runs were measured with tracemalloc switched on. In a recheck (B 15 s,
+  median of 5 fits) this slowed fitting by x1.00 for the SVM, x1.19 for Logistic Regression and
+  x2.3 for KNN (0.012 s -> 0.027 s). The KNN and Logistic Regression training times above are
+  overestimates by those factors; the ranking of models by cost doesn't change. From Phase 3 on,
+  time and memory come from separate fits.
+- `process_max_rss_mb` is the high-water mark of the whole batch process, not a per-run figure.
+  It is not used anywhere and is no longer logged.
+- The paper comparison is now also one table per task, for both row sources, with our per-class
+  10-fold precision and recall and the paper's value where it gives one.
 
 ### E02 — Decision tree (C4.5 approximation) and the paper benchmark for C4.5 (2026-10-28, utsav-s-r)
 
@@ -179,7 +193,7 @@ Holdout (validation macro F1, data v1):
 - 5-fold CV agrees with validation: |CV mean - validation| <= 0.054, CV std 0.005-0.023.
 - A1 ROC-AUC 0.858-0.890 (a single tree gives few distinct scores, so the curve is coarse).
 - Macro vs weighted F1 gap 0.000 (A1) to 0.069 (B 60 s). Best class by F1: VOIP or VPN-VOIP
-  (0.92-0.99) in every multi-class config; worst: VPN-CHAT, CHAT, STREAMING or MAIL (0.42-0.71).
+  (0.92-0.99) in every multi-class config; worst: VPN-CHAT, CHAT, STREAMING, MAIL or VPN-MAIL (0.42-0.71).
 - Top confusion pair in B at every timeout: BROWSING vs VPN-BROWSING (29-45 validation flows each
   way): the tree knows the flow is browsing but not whether it went through the VPN. In A2 the
   confusions are among CHAT, FT and BROWSING.
@@ -224,6 +238,18 @@ the hypothesis about inflation was wrong and why. Next: E04-E06 in Phase 3 must 
 validation macro F1.
 
 MLflow runs: E02-tree-* (holdout), E02-paper-j48-* (benchmark, tag protocol=paper_10fold)
+
+**Corrections and additions (recheck, 2026-10-28).**
+- The worst-class list above now includes VPN-MAIL (B 15 s, F1 0.55); it was left out.
+- Training times in these runs were measured with tracemalloc switched on, which slows fitting
+  (tree x1.05 in a recheck on B 15 s, median of 5 fits). The tree's 0.12 s median is therefore a
+  slight overestimate. From Phase 3 on, time and memory come from separate fits.
+- `process_max_rss_mb` in these runs is the high-water mark of the whole batch process (it only
+  grows from run to run), not a per-run figure. It is not used anywhere and is no longer logged.
+- The plan asks for the paper comparison as one table per task. Our per-class 10-fold precision
+  and recall are now tabled for every task and both row sources, with the paper's value beside
+  ours where it gives one ("C" chart, "T" text). The 8 A1 values that the paper both draws and
+  states are marked as such (`reports/baseline_tables.md`, `notebooks/02_baselines.ipynb`).
 
 ### E01 — Majority-class baseline, all tasks and timeouts (2026-10-28, utsav-s-r)
 

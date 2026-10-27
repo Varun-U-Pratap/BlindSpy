@@ -124,3 +124,25 @@ def test_paper_benchmark_pools_10_fold_predictions(tmp_path):
     m = logged["metrics"]
     assert "bench_precision.C0" in m and "bench_recall.C1" in m and "fold_f1_macro_std" in m
     assert logged["params"]["n_rows"] == 200 and logged["params"]["cv_folds"] == 10
+
+
+def test_training_time_is_measured_without_tracemalloc():
+    """The timed fit runs with tracemalloc off (it slows fitting); peak memory comes from a
+    second fit of a clone with tracemalloc on, and the first fit is the model kept."""
+    import tracemalloc
+
+    from sklearn.base import BaseEstimator, ClassifierMixin
+
+    seen = []
+
+    class Probe(ClassifierMixin, BaseEstimator):
+        def fit(self, X, y):
+            seen.append(tracemalloc.is_tracing())
+            self.classes_ = np.unique(y)
+            return self
+
+    X, y = toy(2)
+    pipe = Pipeline([("model", Probe())])
+    seconds, peak = train._fit_measured(pipe, X, y)
+    assert seen == [False, True]
+    assert hasattr(pipe[-1], "classes_") and seconds >= 0 and peak >= 0
