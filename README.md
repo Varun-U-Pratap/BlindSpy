@@ -83,10 +83,13 @@ parameter, one metric and `smoke.png`.
   `reports/EXPERIMENT_LOG.md` from the official runner's files and writes every MLflow run of
   that store to `reports/history.csv`.
 
-## Reproduce a baseline (Phase 2, tag `v0.1-baseline`)
+## Reproduce a baseline (Phase 2, tag `v0.1.1-baseline`)
 
-Each run is one YAML file in `configs/experiments/` (written by `scripts/make_configs.py`).
-Rerunning one gives the same scores as the official run (seed 42, data v1):
+Phase 2 has two tags with identical scores: `v0.1-baseline` (the first 80 baseline runs) and
+`v0.1.1-baseline` (the rerun of all 144 Phase 2 configs with corrected timing, which the
+result tables use). Each run is one YAML file in `configs/experiments/` (written by
+`scripts/make_configs.py`). Rerunning one gives the same scores as the official run (seed 42,
+data v1):
 
 ```bash
 uv run python scripts/run_experiment.py configs/experiments/E02_tree_A1_15s.yaml
