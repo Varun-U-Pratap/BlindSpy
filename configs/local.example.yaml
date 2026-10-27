@@ -1,0 +1,2 @@
+# Copy to configs/local.yaml (git-ignored) and set your GitHub username.
+runner: your-github-username
