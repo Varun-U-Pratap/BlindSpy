@@ -2,7 +2,7 @@ import importlib.util
 
 import pytest
 
-from blindspy.tracking import ROOT, check_git_state
+from blindspy.tracking import ROOT, check_git_state, load_runner
 
 spec = importlib.util.spec_from_file_location("export_history", ROOT / "scripts/export_history.py")
 export_history = importlib.util.module_from_spec(spec)
@@ -30,3 +30,14 @@ def test_experiment_log_newest_first_and_skips_template(tmp_path):
     log = export_history.build_log(tmp_path, "r")
     assert log.index("### E10") < log.index("### E02")
     assert "\nx\n" not in log
+
+
+def test_runner_required(tmp_path):
+    (tmp_path / "configs").mkdir()
+    with pytest.raises(SystemExit, match="local.yaml not found"):
+        load_runner(tmp_path)
+    (tmp_path / "configs" / "local.yaml").write_text("runner: your-github-username\n")
+    with pytest.raises(SystemExit, match="must set runner"):
+        load_runner(tmp_path)
+    (tmp_path / "configs" / "local.yaml").write_text("runner: someone\n")
+    assert load_runner(tmp_path) == "someone"
