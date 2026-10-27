@@ -1,0 +1,18 @@
+# Shared defaults for every run. Changing anything that alters the cleaned data
+# requires a new data_version (see reports/DATA_CHANGELOG.md).
+seed: 42
+split:
+  train: 0.70
+  val: 0.15
+  test: 0.15
+cv_folds: 5
+data_version: null   # set to v1 when the first cleaned version is built (Phase 1)
+official_runner: utsav-s-r
+mlflow_experiment: blindspy
+paths:
+  raw: datasets/CSVs
+  processed: data/processed
+  manifest: data/manifest.json
+  mlruns: mlruns
+  experiments_notes: reports/experiments
+  figures: reports/figures
