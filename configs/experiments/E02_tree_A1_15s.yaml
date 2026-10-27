@@ -1,0 +1,9 @@
+experiment_id: E02
+run_name: E02-tree-A1-15s
+kind: train
+task: A1
+timeout: 15
+model: tree
+params:
+  criterion: entropy
+save_model: true

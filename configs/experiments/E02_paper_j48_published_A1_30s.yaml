@@ -1,0 +1,12 @@
+experiment_id: E02
+run_name: E02-paper-j48-published-A1-30s
+kind: paper_benchmark
+task: A1
+timeout: 30
+model: tree
+params:
+  criterion: entropy
+  min_samples_leaf: 2
+rows: published
+folds: 10
+save_model: true

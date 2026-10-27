@@ -1,0 +1,9 @@
+experiment_id: E02
+run_name: E02-tree-A2-VPN-30s
+kind: train
+task: A2-VPN
+timeout: 30
+model: tree
+params:
+  criterion: entropy
+save_model: true

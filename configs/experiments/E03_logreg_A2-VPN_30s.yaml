@@ -1,0 +1,9 @@
+experiment_id: E03
+run_name: E03-logreg-A2-VPN-30s
+kind: train
+task: A2-VPN
+timeout: 30
+model: logreg
+params:
+  max_iter: 1000
+save_model: true
