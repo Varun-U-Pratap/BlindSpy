@@ -59,8 +59,10 @@ results are reported in their own table. scikit-learn's decision tree with the e
 a close substitute for C4.5 [11], not an exact copy, and is called a C4.5 approximation.
 
 **Session-aware check.** Flows from one recording session may fall on both sides of a random
-split and inflate scores. If the data identifies sessions, the best models are also evaluated with
-a group-aware split that keeps each session on one side. [E11, depending on E00.]
+split and inflate scores. A group-aware split would keep each session on one side, but the ARFF
+files hold only the 23 timing features and the label: no capture-file name, address, port or
+timestamp identifies a session (E00). E11 therefore cannot run, and this is listed as a
+limitation (Section 7).
 
 ## 3.4 Models
 
