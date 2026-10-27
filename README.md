@@ -80,7 +80,23 @@ parameter, one metric and `smoke.png`.
   Other runners get the same text as a warning and the run continues.
 - One notes file per experiment: `reports/experiments/<runner>/E##.md` (copy `E_TEMPLATE.md`;
   creating the file claims the ID). `uv run python scripts/export_history.py` builds
-  `reports/EXPERIMENT_LOG.md` from the official runner's files.
+  `reports/EXPERIMENT_LOG.md` from the official runner's files and writes every MLflow run of
+  that store to `reports/history.csv`.
+
+## Reproduce a baseline (Phase 2, tag `v0.1-baseline`)
+
+Each run is one YAML file in `configs/experiments/` (written by `scripts/make_configs.py`).
+Rerunning one gives the same scores as the official run (seed 42, data v1):
+
+```bash
+uv run python scripts/run_experiment.py configs/experiments/E02_tree_A1_15s.yaml
+```
+
+The run trains on the training split with 5-fold cross-validation, scores the validation split
+(the test split is never used) and logs everything, including the model file, to your MLflow
+store. `E02_paper_j48_<rows>_<task>_<timeout>s.yaml` and `E03_paper_ibk_…` rerun the paper's
+10-fold benchmark. To rebuild the result tables from the official history:
+`uv run python scripts/results_tables.py` (writes `reports/baseline_tables.md`).
 
 ## Development
 

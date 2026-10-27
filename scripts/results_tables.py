@@ -118,7 +118,14 @@ def main() -> None:
         "",
         "Peak fit memory is measured with Python's tracemalloc, which counts NumPy arrays",
         "but not memory allocated inside compiled libraries (for example libsvm), so SVM",
-        "memory is a lower bound. Each run also logs the process's maximum RSS.",
+        "memory is a lower bound. In these Phase 2 runs the timed fit also ran with",
+        "tracemalloc on, which slows fitting: in a recheck (B 15 s, median of 5 fits) by",
+        "x1.05 for the tree, x1.00 for the SVM, x1.19 for Logistic Regression and x2.3 for",
+        "KNN (0.012 s -> 0.027 s). So the training times above are slight overestimates;",
+        "from Phase 3 on, time and memory come from separate fits. The metric",
+        "process_max_rss_mb in these runs is the high-water mark of the whole batch",
+        "process (it only grows from run to run), not a per-run figure; it is not used",
+        "and is no longer logged.",
     ]
 
     out += [
@@ -127,6 +134,19 @@ def main() -> None:
         "",
         R.md(R.paper_a1(bench, paper)),
     ]
+    for rows in ("published", "v1"):
+        for task in R.CORE_TASKS:
+            out += [
+                "",
+                f"## Paper benchmark per task: {task}, rows {rows} "
+                "(10-fold precision and recall per class)",
+                "",
+                "Ours, with the paper's value in brackets where the paper gives one (C = read",
+                "from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class",
+                "values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.",
+                "",
+                R.md(R.paper_task_table(bench, paper, task, rows)),
+            ]
     out += [
         "",
         "## Paper benchmark: A2 and B (values stated in the paper's text)",

@@ -4,7 +4,6 @@ import hashlib
 import json
 import os
 import platform
-import resource
 import subprocess
 from pathlib import Path
 
@@ -154,8 +153,3 @@ def log_result(result: dict, files_dir: Path) -> None:
     mlflow.set_tags(result["tags"])
     mlflow.log_dict(result["info"], "eval/summary.json")
     mlflow.log_artifacts(str(files_dir))
-    rss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
-    # ru_maxrss is bytes on macOS, kilobytes on Linux
-    mlflow.log_metric(
-        "process_max_rss_mb", rss / (2**20 if platform.system() == "Darwin" else 2**10)
-    )

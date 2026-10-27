@@ -136,6 +136,9 @@ def _bench_cell(bench: pd.DataFrame, algo: str, rows: str, task: str, t: int) ->
 def paper_a1(bench: pd.DataFrame, paper: pd.DataFrame) -> pd.DataFrame:
     """A1: every chart value of the paper next to ours (published rows and v1)."""
     p = paper[(paper["task"] == "A1") & (paper["source"] == "read_from_chart")]
+    text = paper[(paper["task"] == "A1") & (paper["source"] == "stated_in_text")]
+    stated = set(zip(text["algorithm"], text["class"], text["timeout_s"].astype(int),
+                     text["metric"], strict=True))  # fmt: skip
     rows = []
     for _, q in p.iterrows():
         algo = "j48" if q["algorithm"] == "C4.5" else "ibk"
@@ -145,11 +148,44 @@ def paper_a1(bench: pd.DataFrame, paper: pd.DataFrame) -> pd.DataFrame:
         v1 = _bench_cell(bench, algo, "v1", "A1", t)[key]
         rows.append({
             "algorithm": q["algorithm"], "class": q["class"], "timeout": t,
-            "metric": q["metric"], "paper": q["value"], "paper_source": "chart +-0.01",
+            "metric": q["metric"], "paper": q["value"],
+            "paper_source": "chart +-0.01 and text" if (q["algorithm"], q["class"], t, q["metric"])
+            in stated else "chart +-0.01",
             "ours_published": round(pub, 3), "ours_v1": round(v1, 3),
             "diff_published": round(pub - q["value"], 3), "diff_v1": round(v1 - q["value"], 3),
         })  # fmt: skip
     return pd.DataFrame(rows).sort_values(["algorithm", "class", "metric", "timeout"])
+
+
+def paper_task_table(
+    bench: pd.DataFrame, paper: pd.DataFrame, task: str, rows: str
+) -> pd.DataFrame:
+    """One task: our per-class precision and recall (10-fold, pooled) for both algorithms and
+    every timeout, with the paper's value beside ours wherever the paper gives one
+    ("C" = read from a chart, +-0.01; "T" = stated in the text; "C+T" = both)."""
+    src = {}
+    for _, q in paper[paper["task"] == task].iterrows():
+        k = (q["algorithm"], q["class"], str(q["timeout_s"]), q["metric"])
+        tag = "T" if q["source"] == "stated_in_text" else "C"
+        src[k] = (q["value"], "C+T" if k in src and src[k][1] != tag else tag)
+    classes = json.loads(_bench_cell(bench, "j48", rows, task, 15)["params.class_counts.all"])
+    out = []
+    for cls in [*sorted(classes), "AVERAGE (macro)"]:
+        for metric in ("precision", "recall"):
+            row = {"class": cls, "metric": metric}
+            for algo, name in BENCH_ALGO.items():
+                for t in TIMEOUTS:
+                    r = _bench_cell(bench, algo, rows, task, t)
+                    key = f"metrics.bench_{metric}_macro" if cls.startswith("AVERAGE") else (
+                        f"metrics.bench_{metric}.{cls}")  # fmt: skip
+                    cell = f"{r[key]:.3f}"
+                    p = src.get((name, "AVERAGE" if cls.startswith("AVERAGE") else cls, str(t),
+                                 metric))  # fmt: skip
+                    if p:
+                        cell += f" (paper {p[0]:.3f} {p[1]})"
+                    row[f"{name} {t} s"] = cell
+            out.append(row)
+    return pd.DataFrame(out)
 
 
 def _weighted_precision(r: pd.Series) -> float:

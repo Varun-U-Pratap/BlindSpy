@@ -32,11 +32,16 @@ def _xy(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
 
 
 def _fit_measured(pipe, X, y) -> tuple[float, float]:
-    """Fit pipe; return (seconds, peak MB of Python-tracked memory during the fit)."""
-    tracemalloc.start()
+    """Fit pipe; return (seconds, peak MB of Python-tracked memory during a fit).
+
+    tracemalloc slows fitting (up to 2.3x for KNN), so the timed fit runs without it and
+    peak memory comes from a second fit of a clone. pipe keeps the timed fit.
+    """
     t0 = time.perf_counter()
     pipe.fit(X, y)
     seconds = time.perf_counter() - t0
+    tracemalloc.start()
+    clone(pipe).fit(X, y)
     peak = tracemalloc.get_traced_memory()[1] / 2**20
     tracemalloc.stop()
     return seconds, peak

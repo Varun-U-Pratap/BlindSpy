@@ -119,7 +119,7 @@ What the tables show:
   kernel separates the standard-scaled features poorly. A log transform or a robust scaler is
   tested in E04.
 - **Easiest and hardest classes.** VoIP is the easiest type (tree F1 0.92-0.99 for VOIP and
-  VPN-VOIP). The weakest are CHAT, VPN-CHAT, STREAMING and MAIL (tree F1 0.42-0.71).
+  VPN-VOIP). The weakest are CHAT, VPN-CHAT, STREAMING, MAIL and VPN-MAIL (tree F1 0.42-0.71).
 - **Most frequent confusion.** In task B the largest confusion for the tree and KNN, at every
   timeout, is BROWSING vs VPN-BROWSING in both directions (tree: 29-45 validation flows each way).
   The model recognises browsing, but not whether it went through the VPN.
@@ -127,8 +127,10 @@ What the tables show:
   (Section 2.8), and the 60 s files hold differently shaped VOIP and FT flows (E00 addendum), so this
   is not read as an effect of the timeout.
 - **Cost.** All baselines train in under 3 s. To predict 1,000 flows, the tree needs 0.30 ms
-  (median), KNN 7.9 ms and the SVM 211 ms. Model files range from about 1 KB (majority, Logistic
-  Regression) to 4.3 MB (SVM).
+  (median), KNN 7.9 ms and the SVM 211 ms. Model files range from 1.4 KB (majority) and
+  4-5 KB (Logistic Regression) to 4.2 MB (SVM). Training times were measured with Python's memory
+  tracer switched on, which slows fitting (x1.05 tree, x1.00 SVM, x1.19 Logistic Regression,
+  x2.3 KNN in a recheck), so they are slight overestimates; the ranking doesn't change.
 
 Per-class extremes for the tree (E02): macro vs weighted F1, their gap, the generalisation gap, and
 the best and worst class by F1 and by recall:
@@ -206,7 +208,14 @@ Cost per model over the 16 configs:
 
 Peak fit memory is measured with Python's tracemalloc, which counts NumPy arrays
 but not memory allocated inside compiled libraries (for example libsvm), so SVM
-memory is a lower bound. Each run also logs the process's maximum RSS.
+memory is a lower bound. In these Phase 2 runs the timed fit also ran with
+tracemalloc on, which slows fitting: in a recheck (B 15 s, median of 5 fits) by
+x1.05 for the tree, x1.00 for the SVM, x1.19 for Logistic Regression and x2.3 for
+KNN (0.012 s -> 0.027 s). So the training times above are slight overestimates;
+from Phase 3 on, time and memory come from separate fits. The metric
+process_max_rss_mb in these runs is the high-water mark of the whole batch
+process (it only grows from run to run), not a per-run figure; it is not used
+and is no longer logged.
 
 The same tables for KNN, Logistic Regression and SVM-RBF, plus accuracy, balanced accuracy,
 weighted F1 and A1 ROC-AUC for every run, are in `reports/baseline_tables.md` (Appendix).
@@ -239,40 +248,123 @@ A1, paper (Figure 2, read to +-0.01) vs ours (`diff` = ours - paper):
 
 | algorithm | class | timeout | metric | paper | paper_source | ours_published | ours_v1 | diff_published | diff_v1 |
 |---|---|---|---|---|---|---|---|---|---|
-| C4.5 | Non-VPN | 15 | precision | 0.906 | chart +-0.01 | 0.886 | 0.882 | -0.02 | -0.024 |
+| C4.5 | Non-VPN | 15 | precision | 0.906 | chart +-0.01 and text | 0.886 | 0.882 | -0.02 | -0.024 |
 | C4.5 | Non-VPN | 30 | precision | 0.885 | chart +-0.01 | 0.866 | 0.866 | -0.019 | -0.019 |
 | C4.5 | Non-VPN | 60 | precision | 0.864 | chart +-0.01 | 0.86 | 0.876 | -0.004 | 0.012 |
-| C4.5 | Non-VPN | 120 | precision | 0.887 | chart +-0.01 | 0.87 | 0.863 | -0.017 | -0.024 |
+| C4.5 | Non-VPN | 120 | precision | 0.887 | chart +-0.01 and text | 0.87 | 0.863 | -0.017 | -0.024 |
 | C4.5 | Non-VPN | 15 | recall | 0.877 | chart +-0.01 | 0.882 | 0.903 | 0.005 | 0.026 |
 | C4.5 | Non-VPN | 30 | recall | 0.846 | chart +-0.01 | 0.857 | 0.886 | 0.011 | 0.04 |
 | C4.5 | Non-VPN | 60 | recall | 0.888 | chart +-0.01 | 0.889 | 0.898 | 0.001 | 0.01 |
 | C4.5 | Non-VPN | 120 | recall | 0.843 | chart +-0.01 | 0.853 | 0.89 | 0.01 | 0.047 |
-| C4.5 | VPN | 15 | precision | 0.89 | chart +-0.01 | 0.892 | 0.908 | 0.002 | 0.018 |
+| C4.5 | VPN | 15 | precision | 0.89 | chart +-0.01 and text | 0.892 | 0.908 | 0.002 | 0.018 |
 | C4.5 | VPN | 30 | precision | 0.868 | chart +-0.01 | 0.874 | 0.888 | 0.006 | 0.02 |
 | C4.5 | VPN | 60 | precision | 0.856 | chart +-0.01 | 0.857 | 0.867 | 0.001 | 0.011 |
-| C4.5 | VPN | 120 | precision | 0.863 | chart +-0.01 | 0.868 | 0.877 | 0.005 | 0.014 |
+| C4.5 | VPN | 120 | precision | 0.863 | chart +-0.01 and text | 0.868 | 0.877 | 0.005 | 0.014 |
 | C4.5 | VPN | 15 | recall | 0.917 | chart +-0.01 | 0.896 | 0.888 | -0.021 | -0.029 |
 | C4.5 | VPN | 30 | recall | 0.901 | chart +-0.01 | 0.881 | 0.867 | -0.02 | -0.034 |
 | C4.5 | VPN | 60 | recall | 0.827 | chart +-0.01 | 0.821 | 0.84 | -0.006 | 0.013 |
 | C4.5 | VPN | 120 | recall | 0.902 | chart +-0.01 | 0.884 | 0.849 | -0.018 | -0.053 |
-| KNN | Non-VPN | 15 | precision | 0.846 | chart +-0.01 | 0.821 | 0.846 | -0.025 | 0.0 |
+| KNN | Non-VPN | 15 | precision | 0.846 | chart +-0.01 and text | 0.821 | 0.846 | -0.025 | 0.0 |
 | KNN | Non-VPN | 30 | precision | 0.84 | chart +-0.01 | 0.805 | 0.83 | -0.035 | -0.01 |
 | KNN | Non-VPN | 60 | precision | 0.838 | chart +-0.01 | 0.831 | 0.854 | -0.007 | 0.016 |
-| KNN | Non-VPN | 120 | precision | 0.837 | chart +-0.01 | 0.794 | 0.83 | -0.043 | -0.007 |
+| KNN | Non-VPN | 120 | precision | 0.837 | chart +-0.01 and text | 0.794 | 0.83 | -0.043 | -0.007 |
 | KNN | Non-VPN | 15 | recall | 0.832 | chart +-0.01 | 0.857 | 0.848 | 0.025 | 0.016 |
 | KNN | Non-VPN | 30 | recall | 0.808 | chart +-0.01 | 0.839 | 0.831 | 0.031 | 0.023 |
 | KNN | Non-VPN | 60 | recall | 0.851 | chart +-0.01 | 0.857 | 0.849 | 0.006 | -0.002 |
 | KNN | Non-VPN | 120 | recall | 0.787 | chart +-0.01 | 0.827 | 0.825 | 0.04 | 0.038 |
-| KNN | VPN | 15 | precision | 0.848 | chart +-0.01 | 0.863 | 0.859 | 0.015 | 0.011 |
+| KNN | VPN | 15 | precision | 0.848 | chart +-0.01 and text | 0.863 | 0.859 | 0.015 | 0.011 |
 | KNN | VPN | 30 | precision | 0.835 | chart +-0.01 | 0.85 | 0.836 | 0.015 | 0.001 |
 | KNN | VPN | 60 | precision | 0.812 | chart +-0.01 | 0.816 | 0.811 | 0.004 | -0.001 |
-| KNN | VPN | 120 | precision | 0.815 | chart +-0.01 | 0.836 | 0.813 | 0.021 | -0.002 |
+| KNN | VPN | 120 | precision | 0.815 | chart +-0.01 and text | 0.836 | 0.813 | 0.021 | -0.002 |
 | KNN | VPN | 15 | recall | 0.861 | chart +-0.01 | 0.83 | 0.857 | -0.031 | -0.004 |
 | KNN | VPN | 30 | recall | 0.862 | chart +-0.01 | 0.818 | 0.835 | -0.044 | -0.027 |
 | KNN | VPN | 60 | recall | 0.795 | chart +-0.01 | 0.784 | 0.817 | -0.011 | 0.022 |
 | KNN | VPN | 120 | recall | 0.86 | chart +-0.01 | 0.803 | 0.818 | -0.057 | -0.042 |
 
 ![Paper vs ours, A1](../../figures/paper_vs_ours_A1.png)
+
+The plan asks for the comparison as one table per task. The tables below give our 10-fold
+precision and recall for every class, both algorithms and all timeouts, on the published rows
+(closest to the paper's input), with the paper's value in brackets wherever the paper gives one
+(C = read from its chart, +-0.01; T = stated in its text). The same tables on data v1 are in
+`reports/baseline_tables.md`.
+
+A2-VPN:
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| VPN-BROWSING | precision | 0.872 | 0.878 | 0.873 | 0.878 | 0.830 | 0.874 | 0.881 | 0.795 |
+| VPN-BROWSING | recall | 0.884 | 0.916 | 0.918 | 0.906 | 0.846 | 0.893 | 0.902 | 0.888 |
+| VPN-CHAT | precision | 0.661 | 0.647 | 0.568 | 0.532 | 0.511 | 0.490 | 0.427 | 0.576 |
+| VPN-CHAT | recall | 0.687 | 0.628 | 0.562 | 0.473 | 0.651 | 0.667 | 0.658 | 0.562 |
+| VPN-FT | precision | 0.792 | 0.744 | 0.676 | 0.649 | 0.773 | 0.764 | 0.714 | 0.674 |
+| VPN-FT | recall | 0.770 | 0.690 | 0.610 | 0.605 | 0.735 | 0.689 | 0.648 | 0.595 |
+| VPN-MAIL | precision | 0.808 | 0.891 | 0.778 | 0.864 | 0.766 | 0.912 | 0.753 | 0.859 |
+| VPN-MAIL | recall | 0.762 | 0.887 | 0.715 | 0.852 | 0.766 | 0.947 | 0.734 | 0.904 |
+| VPN-P2P | precision | 0.827 | 0.831 | 0.793 | 0.810 | 0.736 | 0.806 | 0.727 | 0.771 |
+| VPN-P2P | recall | 0.863 | 0.870 | 0.848 | 0.862 | 0.517 | 0.585 | 0.527 | 0.567 |
+| VPN-STREAMING | precision | 0.922 | 0.926 | 0.875 | 0.838 | 0.906 | 0.876 | 0.838 | 0.815 |
+| VPN-STREAMING | recall | 0.891 | 0.876 | 0.782 | 0.752 | 0.914 | 0.856 | 0.787 | 0.759 |
+| VPN-VOIP | precision | 0.990 | 0.992 | 0.939 | 0.973 | 0.990 | 0.993 | 0.911 | 0.984 |
+| VPN-VOIP | recall | 0.979 | 0.975 | 0.914 | 0.925 | 0.987 | 0.981 | 0.907 | 0.951 |
+| AVERAGE (macro) | precision | 0.839 (paper 0.840 T) | 0.844 | 0.786 | 0.792 | 0.788 | 0.816 | 0.750 | 0.782 |
+| AVERAGE (macro) | recall | 0.834 | 0.835 | 0.764 | 0.768 | 0.774 | 0.803 | 0.738 | 0.747 |
+
+A2-NonVPN:
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| BROWSING | precision | 0.904 | 0.915 | 0.897 | 0.928 | 0.866 | 0.883 | 0.865 | 0.922 |
+| BROWSING | recall | 0.930 | 0.934 | 0.922 | 0.948 | 0.880 | 0.912 | 0.872 | 0.932 |
+| CHAT | precision | 0.813 | 0.769 | 0.738 | 0.656 | 0.558 | 0.508 | 0.483 | 0.331 |
+| CHAT | recall | 0.798 | 0.793 | 0.753 | 0.694 | 0.692 | 0.662 | 0.661 | 0.599 |
+| FT | precision | 0.810 | 0.794 | 0.793 | 0.796 | 0.812 | 0.769 | 0.847 | 0.791 |
+| FT | recall | 0.853 | 0.824 | 0.873 | 0.851 | 0.670 | 0.629 | 0.734 | 0.571 |
+| MAIL | precision | 0.849 | 0.754 | 0.866 | 0.859 | 0.709 | 0.734 | 0.762 | 0.709 |
+| MAIL | recall | 0.835 | 0.605 | 0.786 | 0.789 | 0.735 | 0.716 | 0.723 | 0.697 |
+| P2P | precision | 0.971 | 0.943 | 0.948 | 0.946 | 0.907 | 0.897 | 0.893 | 0.914 |
+| P2P | recall | 0.955 | 0.916 | 0.919 | 0.929 | 0.890 | 0.883 | 0.897 | 0.911 |
+| STREAMING | precision | 0.837 | 0.769 | 0.757 | 0.768 | 0.782 | 0.759 | 0.655 | 0.657 |
+| STREAMING | recall | 0.701 | 0.664 | 0.567 | 0.558 | 0.685 | 0.617 | 0.504 | 0.524 |
+| VOIP | precision | 0.992 | 0.990 | 0.973 | 0.989 | 0.990 | 0.980 | 0.968 | 0.931 |
+| VOIP | recall | 0.988 | 0.979 | 0.946 | 0.941 | 0.987 | 0.977 | 0.954 | 0.929 |
+| AVERAGE (macro) | precision | 0.882 (paper 0.890 T) | 0.848 | 0.853 | 0.849 | 0.803 | 0.790 | 0.782 | 0.751 |
+| AVERAGE (macro) | recall | 0.866 | 0.817 | 0.824 | 0.816 | 0.791 | 0.771 | 0.764 | 0.738 |
+
+B:
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| BROWSING | precision | 0.771 | 0.790 | 0.779 | 0.800 | 0.690 | 0.748 | 0.746 | 0.807 |
+| BROWSING | recall | 0.820 | 0.831 | 0.827 | 0.847 | 0.700 | 0.758 | 0.741 | 0.794 |
+| CHAT | precision | 0.677 | 0.620 | 0.631 | 0.510 | 0.349 | 0.292 | 0.336 | 0.164 |
+| CHAT | recall | 0.727 | 0.667 | 0.667 | 0.554 | 0.567 | 0.536 | 0.586 | 0.488 |
+| FT | precision | 0.717 | 0.666 | 0.807 | 0.687 | 0.744 | 0.685 | 0.809 | 0.683 |
+| FT | recall | 0.653 | 0.614 | 0.743 | 0.535 | 0.622 | 0.552 | 0.717 | 0.487 |
+| MAIL | precision | 0.633 (paper 0.671 T) | 0.617 | 0.741 | 0.680 (paper 0.790 T) | 0.618 | 0.712 | 0.674 | 0.548 |
+| MAIL | recall | 0.651 | 0.617 | 0.727 | 0.665 | 0.643 | 0.642 | 0.645 | 0.616 |
+| P2P | precision | 0.880 | 0.851 | 0.842 | 0.874 | 0.749 | 0.743 | 0.760 | 0.818 |
+| P2P | recall | 0.893 | 0.845 | 0.863 | 0.891 | 0.732 | 0.724 | 0.752 | 0.804 |
+| STREAMING | precision | 0.713 | 0.657 | 0.496 | 0.510 | 0.679 | 0.630 | 0.536 | 0.477 |
+| STREAMING | recall | 0.670 | 0.623 | 0.472 | 0.495 | 0.629 | 0.532 | 0.440 | 0.394 |
+| VOIP | precision | 0.983 | 0.976 | 0.912 | 0.934 | 0.980 | 0.974 | 0.923 | 0.895 |
+| VOIP | recall | 0.981 | 0.971 | 0.905 | 0.903 | 0.983 | 0.972 | 0.903 | 0.895 |
+| VPN-BROWSING | precision | 0.773 (paper 0.771 T) | 0.800 | 0.797 | 0.807 (paper 0.809 T) | 0.689 (paper 0.691 T) | 0.738 | 0.760 | 0.742 (paper 0.743 T) |
+| VPN-BROWSING | recall | 0.768 | 0.778 | 0.802 | 0.799 | 0.711 | 0.759 | 0.780 | 0.703 |
+| VPN-CHAT | precision | 0.616 | 0.607 | 0.557 | 0.534 | 0.510 (paper 0.501 T) | 0.503 | 0.460 | 0.466 (paper 0.501 T) |
+| VPN-CHAT | recall | 0.571 | 0.560 | 0.477 | 0.444 | 0.507 | 0.471 | 0.442 | 0.476 |
+| VPN-FT | precision | 0.759 | 0.717 | 0.639 | 0.661 | 0.693 | 0.664 | 0.584 | 0.549 |
+| VPN-FT | recall | 0.712 | 0.661 | 0.532 | 0.539 | 0.637 | 0.593 | 0.528 | 0.580 |
+| VPN-MAIL | precision | 0.770 (paper 0.739 T) | 0.828 | 0.702 | 0.804 (paper 0.786 T) | 0.687 (paper 0.688 T) | 0.843 | 0.599 | 0.820 (paper 0.688 T) |
+| VPN-MAIL | recall | 0.670 | 0.808 | 0.608 | 0.802 | 0.644 | 0.902 | 0.554 | 0.878 |
+| VPN-P2P | precision | 0.615 | 0.620 | 0.547 | 0.629 | 0.591 | 0.666 | 0.593 | 0.669 |
+| VPN-P2P | recall | 0.767 | 0.771 | 0.745 | 0.806 | 0.428 | 0.498 | 0.441 | 0.514 |
+| VPN-STREAMING | precision | 0.885 | 0.871 | 0.863 | 0.875 | 0.836 | 0.774 | 0.774 | 0.713 |
+| VPN-STREAMING | recall | 0.823 | 0.812 | 0.766 | 0.772 | 0.848 | 0.772 | 0.782 | 0.703 |
+| VPN-VOIP | precision | 0.986 | 0.980 | 0.893 | 0.942 | 0.978 | 0.963 | 0.807 | 0.921 |
+| VPN-VOIP | recall | 0.973 | 0.968 | 0.845 | 0.889 | 0.972 | 0.965 | 0.809 | 0.912 |
+| AVERAGE (macro) | precision | 0.770 | 0.757 | 0.729 | 0.732 | 0.700 | 0.710 | 0.669 | 0.662 |
+| AVERAGE (macro) | recall | 0.763 | 0.752 | 0.713 | 0.710 | 0.687 | 0.691 | 0.651 | 0.660 |
 
 For A2 and B the paper's Figure 3 draws two unlabelled lines per timeout, which can't be assigned
 to C4.5 or KNN. So only the values the paper states in its text are compared. The paper doesn't
@@ -399,7 +491,7 @@ being trained on, and this benchmark shows it changes 10-fold scores by only abo
 
 ## 4.4 Storage after the baselines
 
-Every official run saves its trained model (the plan's rule). After the 146 runs so far, the MLflow
+Every official run saves its trained model (the plan's rule). After the 147 runs so far (80 baselines, 64 benchmark, 2 pilot, 1 setup check), the MLflow
 store holds 137.8 MB of artifacts and a 5.8 MB database; the largest single run is 4.3 MB (SVM).
 Per model type:
 

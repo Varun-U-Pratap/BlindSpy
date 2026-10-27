@@ -382,44 +382,259 @@ the paper benchmark (10-fold CV on the whole file). Data version: v1.
 
 Peak fit memory is measured with Python's tracemalloc, which counts NumPy arrays
 but not memory allocated inside compiled libraries (for example libsvm), so SVM
-memory is a lower bound. Each run also logs the process's maximum RSS.
+memory is a lower bound. In these Phase 2 runs the timed fit also ran with
+tracemalloc on, which slows fitting: in a recheck (B 15 s, median of 5 fits) by
+x1.05 for the tree, x1.00 for the SVM, x1.19 for Logistic Regression and x2.3 for
+KNN (0.012 s -> 0.027 s). So the training times above are slight overestimates;
+from Phase 3 on, time and memory come from separate fits. The metric
+process_max_rss_mb in these runs is the high-water mark of the whole batch
+process (it only grows from run to run), not a per-run figure; it is not used
+and is no longer logged.
 
 ## Paper benchmark: A1 (paper Figure 2 values, read to +-0.01)
 
 | algorithm | class | timeout | metric | paper | paper_source | ours_published | ours_v1 | diff_published | diff_v1 |
 |---|---|---|---|---|---|---|---|---|---|
-| C4.5 | Non-VPN | 15 | precision | 0.906 | chart +-0.01 | 0.886 | 0.882 | -0.02 | -0.024 |
+| C4.5 | Non-VPN | 15 | precision | 0.906 | chart +-0.01 and text | 0.886 | 0.882 | -0.02 | -0.024 |
 | C4.5 | Non-VPN | 30 | precision | 0.885 | chart +-0.01 | 0.866 | 0.866 | -0.019 | -0.019 |
 | C4.5 | Non-VPN | 60 | precision | 0.864 | chart +-0.01 | 0.86 | 0.876 | -0.004 | 0.012 |
-| C4.5 | Non-VPN | 120 | precision | 0.887 | chart +-0.01 | 0.87 | 0.863 | -0.017 | -0.024 |
+| C4.5 | Non-VPN | 120 | precision | 0.887 | chart +-0.01 and text | 0.87 | 0.863 | -0.017 | -0.024 |
 | C4.5 | Non-VPN | 15 | recall | 0.877 | chart +-0.01 | 0.882 | 0.903 | 0.005 | 0.026 |
 | C4.5 | Non-VPN | 30 | recall | 0.846 | chart +-0.01 | 0.857 | 0.886 | 0.011 | 0.04 |
 | C4.5 | Non-VPN | 60 | recall | 0.888 | chart +-0.01 | 0.889 | 0.898 | 0.001 | 0.01 |
 | C4.5 | Non-VPN | 120 | recall | 0.843 | chart +-0.01 | 0.853 | 0.89 | 0.01 | 0.047 |
-| C4.5 | VPN | 15 | precision | 0.89 | chart +-0.01 | 0.892 | 0.908 | 0.002 | 0.018 |
+| C4.5 | VPN | 15 | precision | 0.89 | chart +-0.01 and text | 0.892 | 0.908 | 0.002 | 0.018 |
 | C4.5 | VPN | 30 | precision | 0.868 | chart +-0.01 | 0.874 | 0.888 | 0.006 | 0.02 |
 | C4.5 | VPN | 60 | precision | 0.856 | chart +-0.01 | 0.857 | 0.867 | 0.001 | 0.011 |
-| C4.5 | VPN | 120 | precision | 0.863 | chart +-0.01 | 0.868 | 0.877 | 0.005 | 0.014 |
+| C4.5 | VPN | 120 | precision | 0.863 | chart +-0.01 and text | 0.868 | 0.877 | 0.005 | 0.014 |
 | C4.5 | VPN | 15 | recall | 0.917 | chart +-0.01 | 0.896 | 0.888 | -0.021 | -0.029 |
 | C4.5 | VPN | 30 | recall | 0.901 | chart +-0.01 | 0.881 | 0.867 | -0.02 | -0.034 |
 | C4.5 | VPN | 60 | recall | 0.827 | chart +-0.01 | 0.821 | 0.84 | -0.006 | 0.013 |
 | C4.5 | VPN | 120 | recall | 0.902 | chart +-0.01 | 0.884 | 0.849 | -0.018 | -0.053 |
-| KNN | Non-VPN | 15 | precision | 0.846 | chart +-0.01 | 0.821 | 0.846 | -0.025 | 0.0 |
+| KNN | Non-VPN | 15 | precision | 0.846 | chart +-0.01 and text | 0.821 | 0.846 | -0.025 | 0.0 |
 | KNN | Non-VPN | 30 | precision | 0.84 | chart +-0.01 | 0.805 | 0.83 | -0.035 | -0.01 |
 | KNN | Non-VPN | 60 | precision | 0.838 | chart +-0.01 | 0.831 | 0.854 | -0.007 | 0.016 |
-| KNN | Non-VPN | 120 | precision | 0.837 | chart +-0.01 | 0.794 | 0.83 | -0.043 | -0.007 |
+| KNN | Non-VPN | 120 | precision | 0.837 | chart +-0.01 and text | 0.794 | 0.83 | -0.043 | -0.007 |
 | KNN | Non-VPN | 15 | recall | 0.832 | chart +-0.01 | 0.857 | 0.848 | 0.025 | 0.016 |
 | KNN | Non-VPN | 30 | recall | 0.808 | chart +-0.01 | 0.839 | 0.831 | 0.031 | 0.023 |
 | KNN | Non-VPN | 60 | recall | 0.851 | chart +-0.01 | 0.857 | 0.849 | 0.006 | -0.002 |
 | KNN | Non-VPN | 120 | recall | 0.787 | chart +-0.01 | 0.827 | 0.825 | 0.04 | 0.038 |
-| KNN | VPN | 15 | precision | 0.848 | chart +-0.01 | 0.863 | 0.859 | 0.015 | 0.011 |
+| KNN | VPN | 15 | precision | 0.848 | chart +-0.01 and text | 0.863 | 0.859 | 0.015 | 0.011 |
 | KNN | VPN | 30 | precision | 0.835 | chart +-0.01 | 0.85 | 0.836 | 0.015 | 0.001 |
 | KNN | VPN | 60 | precision | 0.812 | chart +-0.01 | 0.816 | 0.811 | 0.004 | -0.001 |
-| KNN | VPN | 120 | precision | 0.815 | chart +-0.01 | 0.836 | 0.813 | 0.021 | -0.002 |
+| KNN | VPN | 120 | precision | 0.815 | chart +-0.01 and text | 0.836 | 0.813 | 0.021 | -0.002 |
 | KNN | VPN | 15 | recall | 0.861 | chart +-0.01 | 0.83 | 0.857 | -0.031 | -0.004 |
 | KNN | VPN | 30 | recall | 0.862 | chart +-0.01 | 0.818 | 0.835 | -0.044 | -0.027 |
 | KNN | VPN | 60 | recall | 0.795 | chart +-0.01 | 0.784 | 0.817 | -0.011 | 0.022 |
 | KNN | VPN | 120 | recall | 0.86 | chart +-0.01 | 0.803 | 0.818 | -0.057 | -0.042 |
+
+## Paper benchmark per task: A1, rows published (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| Non-VPN | precision | 0.886 (paper 0.906 C+T) | 0.866 (paper 0.885 C) | 0.860 (paper 0.864 C) | 0.870 (paper 0.887 C+T) | 0.821 (paper 0.846 C+T) | 0.805 (paper 0.840 C) | 0.831 (paper 0.838 C) | 0.794 (paper 0.837 C+T) |
+| Non-VPN | recall | 0.882 (paper 0.877 C) | 0.857 (paper 0.846 C) | 0.889 (paper 0.888 C) | 0.853 (paper 0.843 C) | 0.857 (paper 0.832 C) | 0.839 (paper 0.808 C) | 0.857 (paper 0.851 C) | 0.827 (paper 0.787 C) |
+| VPN | precision | 0.892 (paper 0.890 C+T) | 0.874 (paper 0.868 C) | 0.857 (paper 0.856 C) | 0.868 (paper 0.863 C+T) | 0.863 (paper 0.848 C+T) | 0.850 (paper 0.835 C) | 0.816 (paper 0.812 C) | 0.836 (paper 0.815 C+T) |
+| VPN | recall | 0.896 (paper 0.917 C) | 0.881 (paper 0.901 C) | 0.821 (paper 0.827 C) | 0.884 (paper 0.902 C) | 0.830 (paper 0.861 C) | 0.818 (paper 0.862 C) | 0.784 (paper 0.795 C) | 0.803 (paper 0.860 C) |
+| AVERAGE (macro) | precision | 0.889 | 0.870 | 0.858 | 0.869 | 0.842 | 0.827 | 0.823 | 0.815 |
+| AVERAGE (macro) | recall | 0.889 | 0.869 | 0.855 | 0.868 | 0.843 | 0.828 | 0.821 | 0.815 |
+
+## Paper benchmark per task: A2-VPN, rows published (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| VPN-BROWSING | precision | 0.872 | 0.878 | 0.873 | 0.878 | 0.830 | 0.874 | 0.881 | 0.795 |
+| VPN-BROWSING | recall | 0.884 | 0.916 | 0.918 | 0.906 | 0.846 | 0.893 | 0.902 | 0.888 |
+| VPN-CHAT | precision | 0.661 | 0.647 | 0.568 | 0.532 | 0.511 | 0.490 | 0.427 | 0.576 |
+| VPN-CHAT | recall | 0.687 | 0.628 | 0.562 | 0.473 | 0.651 | 0.667 | 0.658 | 0.562 |
+| VPN-FT | precision | 0.792 | 0.744 | 0.676 | 0.649 | 0.773 | 0.764 | 0.714 | 0.674 |
+| VPN-FT | recall | 0.770 | 0.690 | 0.610 | 0.605 | 0.735 | 0.689 | 0.648 | 0.595 |
+| VPN-MAIL | precision | 0.808 | 0.891 | 0.778 | 0.864 | 0.766 | 0.912 | 0.753 | 0.859 |
+| VPN-MAIL | recall | 0.762 | 0.887 | 0.715 | 0.852 | 0.766 | 0.947 | 0.734 | 0.904 |
+| VPN-P2P | precision | 0.827 | 0.831 | 0.793 | 0.810 | 0.736 | 0.806 | 0.727 | 0.771 |
+| VPN-P2P | recall | 0.863 | 0.870 | 0.848 | 0.862 | 0.517 | 0.585 | 0.527 | 0.567 |
+| VPN-STREAMING | precision | 0.922 | 0.926 | 0.875 | 0.838 | 0.906 | 0.876 | 0.838 | 0.815 |
+| VPN-STREAMING | recall | 0.891 | 0.876 | 0.782 | 0.752 | 0.914 | 0.856 | 0.787 | 0.759 |
+| VPN-VOIP | precision | 0.990 | 0.992 | 0.939 | 0.973 | 0.990 | 0.993 | 0.911 | 0.984 |
+| VPN-VOIP | recall | 0.979 | 0.975 | 0.914 | 0.925 | 0.987 | 0.981 | 0.907 | 0.951 |
+| AVERAGE (macro) | precision | 0.839 (paper 0.840 T) | 0.844 | 0.786 | 0.792 | 0.788 | 0.816 | 0.750 | 0.782 |
+| AVERAGE (macro) | recall | 0.834 | 0.835 | 0.764 | 0.768 | 0.774 | 0.803 | 0.738 | 0.747 |
+
+## Paper benchmark per task: A2-NonVPN, rows published (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| BROWSING | precision | 0.904 | 0.915 | 0.897 | 0.928 | 0.866 | 0.883 | 0.865 | 0.922 |
+| BROWSING | recall | 0.930 | 0.934 | 0.922 | 0.948 | 0.880 | 0.912 | 0.872 | 0.932 |
+| CHAT | precision | 0.813 | 0.769 | 0.738 | 0.656 | 0.558 | 0.508 | 0.483 | 0.331 |
+| CHAT | recall | 0.798 | 0.793 | 0.753 | 0.694 | 0.692 | 0.662 | 0.661 | 0.599 |
+| FT | precision | 0.810 | 0.794 | 0.793 | 0.796 | 0.812 | 0.769 | 0.847 | 0.791 |
+| FT | recall | 0.853 | 0.824 | 0.873 | 0.851 | 0.670 | 0.629 | 0.734 | 0.571 |
+| MAIL | precision | 0.849 | 0.754 | 0.866 | 0.859 | 0.709 | 0.734 | 0.762 | 0.709 |
+| MAIL | recall | 0.835 | 0.605 | 0.786 | 0.789 | 0.735 | 0.716 | 0.723 | 0.697 |
+| P2P | precision | 0.971 | 0.943 | 0.948 | 0.946 | 0.907 | 0.897 | 0.893 | 0.914 |
+| P2P | recall | 0.955 | 0.916 | 0.919 | 0.929 | 0.890 | 0.883 | 0.897 | 0.911 |
+| STREAMING | precision | 0.837 | 0.769 | 0.757 | 0.768 | 0.782 | 0.759 | 0.655 | 0.657 |
+| STREAMING | recall | 0.701 | 0.664 | 0.567 | 0.558 | 0.685 | 0.617 | 0.504 | 0.524 |
+| VOIP | precision | 0.992 | 0.990 | 0.973 | 0.989 | 0.990 | 0.980 | 0.968 | 0.931 |
+| VOIP | recall | 0.988 | 0.979 | 0.946 | 0.941 | 0.987 | 0.977 | 0.954 | 0.929 |
+| AVERAGE (macro) | precision | 0.882 (paper 0.890 T) | 0.848 | 0.853 | 0.849 | 0.803 | 0.790 | 0.782 | 0.751 |
+| AVERAGE (macro) | recall | 0.866 | 0.817 | 0.824 | 0.816 | 0.791 | 0.771 | 0.764 | 0.738 |
+
+## Paper benchmark per task: B, rows published (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| BROWSING | precision | 0.771 | 0.790 | 0.779 | 0.800 | 0.690 | 0.748 | 0.746 | 0.807 |
+| BROWSING | recall | 0.820 | 0.831 | 0.827 | 0.847 | 0.700 | 0.758 | 0.741 | 0.794 |
+| CHAT | precision | 0.677 | 0.620 | 0.631 | 0.510 | 0.349 | 0.292 | 0.336 | 0.164 |
+| CHAT | recall | 0.727 | 0.667 | 0.667 | 0.554 | 0.567 | 0.536 | 0.586 | 0.488 |
+| FT | precision | 0.717 | 0.666 | 0.807 | 0.687 | 0.744 | 0.685 | 0.809 | 0.683 |
+| FT | recall | 0.653 | 0.614 | 0.743 | 0.535 | 0.622 | 0.552 | 0.717 | 0.487 |
+| MAIL | precision | 0.633 (paper 0.671 T) | 0.617 | 0.741 | 0.680 (paper 0.790 T) | 0.618 | 0.712 | 0.674 | 0.548 |
+| MAIL | recall | 0.651 | 0.617 | 0.727 | 0.665 | 0.643 | 0.642 | 0.645 | 0.616 |
+| P2P | precision | 0.880 | 0.851 | 0.842 | 0.874 | 0.749 | 0.743 | 0.760 | 0.818 |
+| P2P | recall | 0.893 | 0.845 | 0.863 | 0.891 | 0.732 | 0.724 | 0.752 | 0.804 |
+| STREAMING | precision | 0.713 | 0.657 | 0.496 | 0.510 | 0.679 | 0.630 | 0.536 | 0.477 |
+| STREAMING | recall | 0.670 | 0.623 | 0.472 | 0.495 | 0.629 | 0.532 | 0.440 | 0.394 |
+| VOIP | precision | 0.983 | 0.976 | 0.912 | 0.934 | 0.980 | 0.974 | 0.923 | 0.895 |
+| VOIP | recall | 0.981 | 0.971 | 0.905 | 0.903 | 0.983 | 0.972 | 0.903 | 0.895 |
+| VPN-BROWSING | precision | 0.773 (paper 0.771 T) | 0.800 | 0.797 | 0.807 (paper 0.809 T) | 0.689 (paper 0.691 T) | 0.738 | 0.760 | 0.742 (paper 0.743 T) |
+| VPN-BROWSING | recall | 0.768 | 0.778 | 0.802 | 0.799 | 0.711 | 0.759 | 0.780 | 0.703 |
+| VPN-CHAT | precision | 0.616 | 0.607 | 0.557 | 0.534 | 0.510 (paper 0.501 T) | 0.503 | 0.460 | 0.466 (paper 0.501 T) |
+| VPN-CHAT | recall | 0.571 | 0.560 | 0.477 | 0.444 | 0.507 | 0.471 | 0.442 | 0.476 |
+| VPN-FT | precision | 0.759 | 0.717 | 0.639 | 0.661 | 0.693 | 0.664 | 0.584 | 0.549 |
+| VPN-FT | recall | 0.712 | 0.661 | 0.532 | 0.539 | 0.637 | 0.593 | 0.528 | 0.580 |
+| VPN-MAIL | precision | 0.770 (paper 0.739 T) | 0.828 | 0.702 | 0.804 (paper 0.786 T) | 0.687 (paper 0.688 T) | 0.843 | 0.599 | 0.820 (paper 0.688 T) |
+| VPN-MAIL | recall | 0.670 | 0.808 | 0.608 | 0.802 | 0.644 | 0.902 | 0.554 | 0.878 |
+| VPN-P2P | precision | 0.615 | 0.620 | 0.547 | 0.629 | 0.591 | 0.666 | 0.593 | 0.669 |
+| VPN-P2P | recall | 0.767 | 0.771 | 0.745 | 0.806 | 0.428 | 0.498 | 0.441 | 0.514 |
+| VPN-STREAMING | precision | 0.885 | 0.871 | 0.863 | 0.875 | 0.836 | 0.774 | 0.774 | 0.713 |
+| VPN-STREAMING | recall | 0.823 | 0.812 | 0.766 | 0.772 | 0.848 | 0.772 | 0.782 | 0.703 |
+| VPN-VOIP | precision | 0.986 | 0.980 | 0.893 | 0.942 | 0.978 | 0.963 | 0.807 | 0.921 |
+| VPN-VOIP | recall | 0.973 | 0.968 | 0.845 | 0.889 | 0.972 | 0.965 | 0.809 | 0.912 |
+| AVERAGE (macro) | precision | 0.770 | 0.757 | 0.729 | 0.732 | 0.700 | 0.710 | 0.669 | 0.662 |
+| AVERAGE (macro) | recall | 0.763 | 0.752 | 0.713 | 0.710 | 0.687 | 0.691 | 0.651 | 0.660 |
+
+## Paper benchmark per task: A1, rows v1 (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| Non-VPN | precision | 0.882 (paper 0.906 C+T) | 0.866 (paper 0.885 C) | 0.876 (paper 0.864 C) | 0.863 (paper 0.887 C+T) | 0.846 (paper 0.846 C+T) | 0.830 (paper 0.840 C) | 0.854 (paper 0.838 C) | 0.830 (paper 0.837 C+T) |
+| Non-VPN | recall | 0.903 (paper 0.877 C) | 0.886 (paper 0.846 C) | 0.898 (paper 0.888 C) | 0.890 (paper 0.843 C) | 0.848 (paper 0.832 C) | 0.831 (paper 0.808 C) | 0.849 (paper 0.851 C) | 0.825 (paper 0.787 C) |
+| VPN | precision | 0.908 (paper 0.890 C+T) | 0.888 (paper 0.868 C) | 0.867 (paper 0.856 C) | 0.877 (paper 0.863 C+T) | 0.859 (paper 0.848 C+T) | 0.836 (paper 0.835 C) | 0.811 (paper 0.812 C) | 0.813 (paper 0.815 C+T) |
+| VPN | recall | 0.888 (paper 0.917 C) | 0.867 (paper 0.901 C) | 0.840 (paper 0.827 C) | 0.849 (paper 0.902 C) | 0.857 (paper 0.861 C) | 0.835 (paper 0.862 C) | 0.817 (paper 0.795 C) | 0.818 (paper 0.860 C) |
+| AVERAGE (macro) | precision | 0.895 | 0.877 | 0.872 | 0.870 | 0.852 | 0.833 | 0.832 | 0.822 |
+| AVERAGE (macro) | recall | 0.896 | 0.877 | 0.869 | 0.869 | 0.852 | 0.833 | 0.833 | 0.822 |
+
+## Paper benchmark per task: A2-VPN, rows v1 (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| VPN-BROWSING | precision | 0.863 | 0.884 | 0.872 | 0.872 | 0.832 | 0.872 | 0.874 | 0.853 |
+| VPN-BROWSING | recall | 0.901 | 0.919 | 0.919 | 0.915 | 0.840 | 0.894 | 0.900 | 0.859 |
+| VPN-CHAT | precision | 0.656 | 0.632 | 0.565 | 0.517 | 0.602 | 0.630 | 0.586 | 0.558 |
+| VPN-CHAT | recall | 0.670 | 0.652 | 0.615 | 0.555 | 0.624 | 0.656 | 0.598 | 0.577 |
+| VPN-FT | precision | 0.773 | 0.738 | 0.662 | 0.698 | 0.770 | 0.757 | 0.685 | 0.646 |
+| VPN-FT | recall | 0.760 | 0.713 | 0.618 | 0.642 | 0.743 | 0.693 | 0.633 | 0.618 |
+| VPN-MAIL | precision | 0.779 | 0.805 | 0.740 | 0.746 | 0.718 | 0.783 | 0.713 | 0.651 |
+| VPN-MAIL | recall | 0.720 | 0.748 | 0.657 | 0.689 | 0.750 | 0.792 | 0.704 | 0.649 |
+| VPN-P2P | precision | 0.815 | 0.857 | 0.813 | 0.858 | 0.737 | 0.783 | 0.722 | 0.751 |
+| VPN-P2P | recall | 0.769 | 0.808 | 0.800 | 0.818 | 0.700 | 0.784 | 0.729 | 0.763 |
+| VPN-STREAMING | precision | 0.913 | 0.903 | 0.872 | 0.841 | 0.893 | 0.857 | 0.842 | 0.772 |
+| VPN-STREAMING | recall | 0.886 | 0.872 | 0.797 | 0.766 | 0.916 | 0.866 | 0.782 | 0.772 |
+| VPN-VOIP | precision | 0.991 | 0.991 | 0.949 | 0.973 | 0.989 | 0.991 | 0.908 | 0.981 |
+| VPN-VOIP | recall | 0.984 | 0.978 | 0.916 | 0.932 | 0.990 | 0.986 | 0.903 | 0.966 |
+| AVERAGE (macro) | precision | 0.827 (paper 0.840 T) | 0.830 | 0.782 | 0.786 | 0.792 | 0.810 | 0.761 | 0.745 |
+| AVERAGE (macro) | recall | 0.813 | 0.813 | 0.760 | 0.759 | 0.795 | 0.810 | 0.750 | 0.744 |
+
+## Paper benchmark per task: A2-NonVPN, rows v1 (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| BROWSING | precision | 0.902 | 0.908 | 0.898 | 0.929 | 0.861 | 0.882 | 0.864 | 0.923 |
+| BROWSING | recall | 0.930 | 0.939 | 0.924 | 0.946 | 0.880 | 0.910 | 0.875 | 0.935 |
+| CHAT | precision | 0.819 | 0.779 | 0.745 | 0.664 | 0.677 | 0.664 | 0.631 | 0.586 |
+| CHAT | recall | 0.832 | 0.786 | 0.765 | 0.703 | 0.678 | 0.650 | 0.650 | 0.586 |
+| FT | precision | 0.850 | 0.804 | 0.849 | 0.803 | 0.807 | 0.769 | 0.841 | 0.781 |
+| FT | recall | 0.842 | 0.801 | 0.861 | 0.791 | 0.782 | 0.738 | 0.815 | 0.746 |
+| MAIL | precision | 0.829 | 0.730 | 0.865 | 0.825 | 0.677 | 0.730 | 0.718 | 0.663 |
+| MAIL | recall | 0.773 | 0.597 | 0.809 | 0.810 | 0.706 | 0.701 | 0.720 | 0.690 |
+| P2P | precision | 0.971 | 0.936 | 0.928 | 0.938 | 0.900 | 0.881 | 0.899 | 0.915 |
+| P2P | recall | 0.963 | 0.916 | 0.932 | 0.928 | 0.893 | 0.877 | 0.891 | 0.913 |
+| STREAMING | precision | 0.837 | 0.814 | 0.776 | 0.800 | 0.788 | 0.739 | 0.640 | 0.652 |
+| STREAMING | recall | 0.751 | 0.733 | 0.611 | 0.655 | 0.742 | 0.682 | 0.579 | 0.605 |
+| VOIP | precision | 0.994 | 0.996 | 0.972 | 0.963 | 0.990 | 0.985 | 0.967 | 0.933 |
+| VOIP | recall | 0.988 | 0.980 | 0.962 | 0.946 | 0.988 | 0.982 | 0.973 | 0.928 |
+| AVERAGE (macro) | precision | 0.886 (paper 0.890 T) | 0.852 | 0.862 | 0.846 | 0.814 | 0.807 | 0.794 | 0.779 |
+| AVERAGE (macro) | recall | 0.869 | 0.822 | 0.838 | 0.826 | 0.810 | 0.791 | 0.786 | 0.772 |
+
+## Paper benchmark per task: B, rows v1 (10-fold precision and recall per class)
+
+Ours, with the paper's value in brackets where the paper gives one (C = read
+from a chart, +-0.01; T = stated in the text). The paper's Figure 3 per-class
+values for A2 and B can't be assigned to C4.5 or KNN, so they are not shown.
+
+| class | metric | C4.5 15 s | C4.5 30 s | C4.5 60 s | C4.5 120 s | KNN 15 s | KNN 30 s | KNN 60 s | KNN 120 s |
+|---|---|---|---|---|---|---|---|---|---|
+| BROWSING | precision | 0.777 | 0.786 | 0.785 | 0.806 | 0.696 | 0.751 | 0.749 | 0.798 |
+| BROWSING | recall | 0.812 | 0.844 | 0.826 | 0.835 | 0.702 | 0.763 | 0.749 | 0.786 |
+| CHAT | precision | 0.688 | 0.637 | 0.629 | 0.520 | 0.546 | 0.515 | 0.555 | 0.508 |
+| CHAT | recall | 0.728 | 0.680 | 0.707 | 0.590 | 0.560 | 0.519 | 0.572 | 0.519 |
+| FT | precision | 0.721 | 0.660 | 0.817 | 0.666 | 0.733 | 0.665 | 0.806 | 0.646 |
+| FT | recall | 0.777 | 0.711 | 0.845 | 0.752 | 0.732 | 0.633 | 0.806 | 0.657 |
+| MAIL | precision | 0.625 (paper 0.671 T) | 0.638 | 0.709 | 0.613 (paper 0.790 T) | 0.613 | 0.615 | 0.653 | 0.546 |
+| MAIL | recall | 0.672 | 0.571 | 0.731 | 0.684 | 0.626 | 0.623 | 0.620 | 0.580 |
+| P2P | precision | 0.889 | 0.857 | 0.858 | 0.887 | 0.740 | 0.741 | 0.764 | 0.810 |
+| P2P | recall | 0.910 | 0.871 | 0.870 | 0.894 | 0.730 | 0.734 | 0.752 | 0.809 |
+| STREAMING | precision | 0.692 | 0.608 | 0.512 | 0.520 | 0.673 | 0.607 | 0.518 | 0.476 |
+| STREAMING | recall | 0.716 | 0.659 | 0.570 | 0.588 | 0.676 | 0.592 | 0.466 | 0.458 |
+| VOIP | precision | 0.984 | 0.973 | 0.915 | 0.950 | 0.981 | 0.975 | 0.917 | 0.901 |
+| VOIP | recall | 0.986 | 0.975 | 0.929 | 0.928 | 0.984 | 0.971 | 0.920 | 0.910 |
+| VPN-BROWSING | precision | 0.760 (paper 0.771 T) | 0.800 | 0.786 | 0.760 (paper 0.809 T) | 0.695 (paper 0.691 T) | 0.737 | 0.756 | 0.700 (paper 0.743 T) |
+| VPN-BROWSING | recall | 0.771 | 0.784 | 0.793 | 0.767 | 0.713 | 0.755 | 0.780 | 0.703 |
+| VPN-CHAT | precision | 0.600 | 0.583 | 0.569 | 0.505 | 0.509 (paper 0.501 T) | 0.498 | 0.444 | 0.494 (paper 0.501 T) |
+| VPN-CHAT | recall | 0.587 | 0.557 | 0.515 | 0.465 | 0.516 | 0.495 | 0.460 | 0.500 |
+| VPN-FT | precision | 0.762 | 0.729 | 0.634 | 0.640 | 0.672 | 0.642 | 0.568 | 0.555 |
+| VPN-FT | recall | 0.716 | 0.669 | 0.550 | 0.558 | 0.633 | 0.594 | 0.535 | 0.567 |
+| VPN-MAIL | precision | 0.718 (paper 0.739 T) | 0.705 | 0.630 | 0.682 (paper 0.786 T) | 0.633 (paper 0.688 T) | 0.582 | 0.497 | 0.521 (paper 0.688 T) |
+| VPN-MAIL | recall | 0.613 | 0.641 | 0.515 | 0.589 | 0.590 | 0.600 | 0.481 | 0.503 |
+| VPN-P2P | precision | 0.734 | 0.768 | 0.708 | 0.779 | 0.599 | 0.660 | 0.611 | 0.664 |
+| VPN-P2P | recall | 0.662 | 0.671 | 0.650 | 0.709 | 0.602 | 0.673 | 0.603 | 0.676 |
+| VPN-STREAMING | precision | 0.907 | 0.857 | 0.866 | 0.877 | 0.839 | 0.765 | 0.754 | 0.712 |
+| VPN-STREAMING | recall | 0.838 | 0.805 | 0.787 | 0.738 | 0.857 | 0.775 | 0.792 | 0.683 |
+| VPN-VOIP | precision | 0.985 | 0.984 | 0.902 | 0.945 | 0.977 | 0.958 | 0.814 | 0.918 |
+| VPN-VOIP | recall | 0.973 | 0.970 | 0.849 | 0.906 | 0.975 | 0.970 | 0.817 | 0.911 |
+| AVERAGE (macro) | precision | 0.774 | 0.756 | 0.737 | 0.725 | 0.707 | 0.694 | 0.672 | 0.661 |
+| AVERAGE (macro) | recall | 0.769 | 0.744 | 0.724 | 0.714 | 0.707 | 0.693 | 0.668 | 0.662 |
 
 ## Paper benchmark: A2 and B (values stated in the paper's text)
 
