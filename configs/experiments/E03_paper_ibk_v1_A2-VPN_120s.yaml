@@ -1,0 +1,11 @@
+experiment_id: E03
+run_name: E03-paper-ibk-v1-A2-VPN-120s
+kind: paper_benchmark
+task: A2-VPN
+timeout: 120
+model: knn_minmax
+params:
+  n_neighbors: 1
+rows: v1
+folds: 10
+save_model: true

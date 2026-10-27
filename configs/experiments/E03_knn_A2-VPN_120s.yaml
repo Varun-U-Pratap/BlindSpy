@@ -1,0 +1,9 @@
+experiment_id: E03
+run_name: E03-knn-A2-VPN-120s
+kind: train
+task: A2-VPN
+timeout: 120
+model: knn
+params:
+  n_neighbors: 5
+save_model: true

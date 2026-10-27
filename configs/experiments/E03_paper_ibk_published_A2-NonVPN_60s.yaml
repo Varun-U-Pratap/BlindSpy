@@ -1,0 +1,11 @@
+experiment_id: E03
+run_name: E03-paper-ibk-published-A2-NonVPN-60s
+kind: paper_benchmark
+task: A2-NonVPN
+timeout: 60
+model: knn_minmax
+params:
+  n_neighbors: 1
+rows: published
+folds: 10
+save_model: true

@@ -1,0 +1,10 @@
+experiment_id: E03
+run_name: E03-svm_rbf-A1-30s
+kind: train
+task: A1
+timeout: 30
+model: svm_rbf
+params:
+  C: 1.0
+  gamma: scale
+save_model: true
