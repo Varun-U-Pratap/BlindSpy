@@ -119,6 +119,12 @@ heavy-tailed features. Storage: the user decides on joblib compression before Ph
 
 MLflow runs: E03-knn-*, E03-logreg-*, E03-svm_rbf-* (holdout), E03-paper-ibk-* (benchmark)
 
+**Addendum (2026-10-28): storage decision.** The user chose to keep every official model and save
+it with joblib compression level 3 from Phase 3 on. Compression is lossless: a compressed model
+reloads and predicts identically. The 300-tree Random Forest above drops from 171.9 MB to 22.4 MB,
+so the projected total is about 2-3 GB instead of about 18 GB. Phase 2 models stay as saved.
+Metrics, plots, configs and commits are kept for every run either way.
+
 ### E02 — Decision tree (C4.5 approximation) and the paper benchmark for C4.5 (2026-10-28, utsav-s-r)
 
 Hypothesis (holdout baseline): an unpruned entropy decision tree, the closest scikit-learn
