@@ -105,6 +105,9 @@ def test_train_run_logs_everything(tmp_path, monkeypatch):
     assert logged["params"]["n_train"] == 280 and logged["params"]["n_val"] == 60
     assert (tmp_path / "model" / "model.joblib").stat().st_size == m["model_size_bytes"]
     assert json.loads((tmp_path / "data" / "class_counts.json").read_text())["val"]
+    assert json.loads(logged["params"]["class_counts.train"]) == y[:280].value_counts().to_dict()
+    assert (tmp_path / "eval" / "feature_importance.csv").exists()
+    assert logged["tags"]["feature_importance"] == "impurity"
     # the test part is never used: changing it changes nothing
     parts2 = (parts[0], parts[1], parts[2].assign(label="C0"))
     again = train.train_and_score(cfg, parts2, seed=42, cv_folds=5, out_dir=tmp_path / "b")
