@@ -37,3 +37,7 @@
 15. G. Draper-Gil, A. H. Lashkari, M. S. I. Mamun, and A. A. Ghorbani, "Characterization
     of Encrypted and VPN Traffic Using Time-Related Features" (poster), UNB Research
     Expo, 2016. [Online]. Available: https://www.cs.unb.ca/research-expo/expos/2016/
+16. University of Waikato, "Weka 3 API documentation (stable)": classes
+    `weka.classifiers.trees.J48`, `weka.classifiers.lazy.IBk`, `weka.core.EuclideanDistance`
+    and `weka.core.NormalizableDistance`. [Online]. Available:
+    https://weka.sourceforge.io/doc.stable/ (accessed 28 Oct 2026).
