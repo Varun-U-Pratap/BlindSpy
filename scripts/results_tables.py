@@ -141,6 +141,13 @@ def main() -> None:
         "## Paper benchmark: duplicates (10-fold macro F1, published rows vs data v1)",
         "",
         R.md(R.dedup_effect(bench)),
+        "",
+        "## What the removed duplicates are (raw files)",
+        "",
+        "Share of removed rows whose features also occur with another label, and packets per",
+        "flow. A1 120 s packet counts use its published (corrupt) flowPktsPerSecond.",
+        "",
+        R.md(R.duplicate_profile()),
     ]
 
     st, total = storage(pd.concat([b, bench]), runner)
@@ -160,7 +167,7 @@ def main() -> None:
         "## Threshold checks (pre-stated in E01-E03)",
         "",
         "```json",
-        json.dumps(v, indent=1),
+        json.dumps(v, indent=1, default=lambda x: x.item()),
         "```",
         "",
     ]

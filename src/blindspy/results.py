@@ -297,3 +297,31 @@ def md(df: pd.DataFrame) -> str:
                 cells.append(str(v))
         lines.append("| " + " | ".join(cells) + " |")
     return "\n".join(lines)
+
+
+def duplicate_profile() -> pd.DataFrame:
+    """What the exact duplicates removed in v1 look like (reads the raw ARFF files).
+
+    Per file: rows removed, share of them whose 23 features also occur with another label in
+    the file, the same share over all rows, and median packets per flow (flowPktsPerSecond x
+    duration / 1e6; A1 120 s uses its published, corrupt flowPktsPerSecond, so its packet
+    numbers are not meaningful)."""
+    from blindspy.data import load_raw
+
+    rows = []
+    for task in CORE_TASKS:
+        for t in TIMEOUTS:
+            df = load_raw(task, t)
+            feats = list(df.columns[:-1])
+            dup = df.duplicated(keep="first")
+            key = df[feats].astype(str).agg("|".join, axis=1)
+            n_labels = df.groupby(key)["label"].transform("nunique")
+            pkts = (df["flowPktsPerSecond"] * df["duration"] / 1e6).round()
+            rows.append({
+                "task": task, "timeout": t, "duplicates removed": int(dup.sum()),
+                "removed with other-label twin": round(float((n_labels[dup] > 1).mean()), 3),
+                "all rows with other-label twin": round(float((n_labels > 1).mean()), 3),
+                "median packets, removed": float(pkts[dup].median()),
+                "median packets, all": float(pkts.median()),
+            })  # fmt: skip
+    return pd.DataFrame(rows)
