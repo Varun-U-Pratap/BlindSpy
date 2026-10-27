@@ -34,7 +34,7 @@ def top_confusion_pairs(cm: pd.DataFrame, n: int = 5) -> list[dict]:
 def _plot_confusion(cm: pd.DataFrame, path: Path) -> None:
     norm = cm.div(cm.sum(axis=1).replace(0, 1), axis=0)
     k = len(cm)
-    fig, ax = plt.subplots(figsize=(1.1 + 0.55 * k, 0.9 + 0.5 * k))
+    fig, ax = plt.subplots(figsize=(max(4.0, 1.1 + 0.55 * k), max(3.5, 0.9 + 0.5 * k)))
     ax.imshow(norm.to_numpy(), cmap="Blues", vmin=0, vmax=1)
     for i in range(k):
         for j in range(k):
@@ -76,6 +76,27 @@ def _plot_roc(y_pos: np.ndarray, score: np.ndarray, auc: float, positive: str, p
     fig.tight_layout()
     fig.savefig(path, dpi=110)
     plt.close(fig)
+
+
+def feature_importance(pipe, features: list[str], out_dir: Path) -> bool:
+    """Write feature_importance.csv/.png for models with feature_importances_ (trees).
+
+    Returns False for other models (their importance is measured in Phase 4)."""
+    est = pipe[-1]
+    if not hasattr(est, "feature_importances_"):
+        return False
+    imp = pd.DataFrame({"feature": features, "importance": est.feature_importances_})
+    imp = imp.sort_values("importance", ascending=False)
+    imp.to_csv(out_dir / "feature_importance.csv", index=False)
+    fig, ax = plt.subplots(figsize=(5, 5))
+    ax.barh(imp["feature"][::-1], imp["importance"][::-1])
+    ax.set_xlabel("impurity-based importance")
+    ax.set_title("Feature importance (training data)", fontsize=8)
+    ax.tick_params(labelsize=7)
+    fig.tight_layout()
+    fig.savefig(out_dir / "feature_importance.png", dpi=110)
+    plt.close(fig)
+    return True
 
 
 def evaluate(

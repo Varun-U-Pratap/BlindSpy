@@ -112,6 +112,7 @@ def train_and_score(
     metrics["predict_ms_per_1000"] = _predict_ms_per_1000(pipe, X_val)
     metrics["model_size_bytes"] = _model_size(pipe, out_dir, cfg.get("save_model", True))
     metrics.update({f"model_{k}": v for k, v in models.complexity(pipe).items()})
+    has_imp = evaluate.feature_importance(pipe, list(X_tr.columns), out_dir / "eval")
 
     counts = {name: part["label"].value_counts().sort_index().to_dict()
               for name, part in (("train", train), ("val", val), ("test", test))}  # fmt: skip
@@ -125,9 +126,11 @@ def train_and_score(
         "n_val": len(val),
         "n_test": len(test),
         "classes": ",".join(classes),
+        **{f"class_counts.{k}": json.dumps(v) for k, v in counts.items()},
     }
     tags = {
         "protocol": "holdout",
+        "feature_importance": "impurity" if has_imp else "n/a",
         **{k: v for k, v in info.items() if k.endswith(("f1", "recall"))},
     }
     tags["top_confusion_pairs"] = "; ".join(
@@ -168,6 +171,7 @@ def paper_benchmark(cfg: dict, df: pd.DataFrame, seed: int, folds: int, out_dir:
     metrics["predict_ms_per_1000"] = _predict_ms_per_1000(pipe, X)
     metrics["model_size_bytes"] = _model_size(pipe, out_dir, cfg.get("save_model", True))
     metrics.update({f"model_{k}": v for k, v in models.complexity(pipe).items()})
+    evaluate.feature_importance(pipe, list(X.columns), out_dir / "eval")
 
     params = {
         **_base_params(cfg, pipe, X, seed),
@@ -176,6 +180,7 @@ def paper_benchmark(cfg: dict, df: pd.DataFrame, seed: int, folds: int, out_dir:
         "n_rows": len(df),
         "classes": ",".join(classes),
         "rows_source": cfg.get("rows", "v1"),
+        "class_counts.all": json.dumps(y.value_counts().sort_index().to_dict()),
     }
     tags = {"protocol": "paper_10fold", "rows_source": cfg.get("rows", "v1")}
     tags.update({k: v for k, v in info.items() if k.endswith(("f1", "recall"))})
