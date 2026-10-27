@@ -210,3 +210,23 @@ def test_refuses_to_overwrite_an_existing_version(tmp_path):
     (tmp_path / "data" / "processed" / "v1").mkdir(parents=True)
     with pytest.raises(SystemExit, match="never overwritten"):
         prepare_data.build("v1", root=tmp_path)
+
+
+@needs_v1
+def test_changelog_v1_table_matches_manifest():
+    text = (ROOT / "reports" / "DATA_CHANGELOG.md").read_text()
+    section = text.split("## v1 ", 1)[1]
+    tasks = manifest()["tasks"]
+    rows = [
+        line for line in section.splitlines() if line.startswith("| A") or line.startswith("| B")
+    ]
+    assert len(rows) == 16
+    for line in rows:
+        name, raw, removed, final, parts = [c.strip() for c in line.strip("|").split("|")]
+        task, timeout, _ = name.split()
+        s = tasks[f"{task}_{timeout}s"]["summary"]
+        num = lambda v: int(v.split()[0].replace(",", ""))  # noqa: E731
+        assert num(raw) == s["initial_rows"]
+        assert num(removed) == s["exact_duplicates_removed"]
+        assert num(final) == s["final_rows"]
+        assert [num(p) for p in parts.split("/")] == [s["train"], s["val"], s["test"]]

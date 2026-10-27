@@ -31,11 +31,26 @@ shasum -a 256 -c data/arff_sha256.txt
 All 20 lines must say `OK` (Windows: `Get-FileHash`). The Kaggle CSV goes in
 `datasets/kaggle/` and is checked with `data/kaggle_sha256.txt`.
 
-Build the cleaned data (available from Phase 1):
+Build the cleaned data (current version: v1, see `reports/DATA_CHANGELOG.md`):
 
 ```bash
 uv run python scripts/prepare_data.py --version v1
 ```
+
+This writes `data/processed/v1/` (one Parquet file per task x timeout, `splits/`,
+`cleaning_log.csv`, `manifest.json`), refreshes `data/manifest.json`, and writes viewing copies
+to `data/processed/csv/`. It refuses to overwrite an existing version, and a rebuild gives
+byte-identical files. Code loads data only through the Parquet files:
+
+```python
+from blindspy.data import load_task
+train, val, test = load_task("A1", 15, data_version="v1")
+```
+
+Column names are corrected by `COLUMN_MAP` in `src/blindspy/data.py` (9 A1/B headers shift the
+fiat/biat names; A2 files hold `total_fiat`/`total_biat` instead of the std columns). Evidence:
+`reports/experiments/utsav-s-r/E00.md`. To rewrite the CSV copies from another version:
+`uv run python scripts/prepare_data.py --export-csv v1`.
 
 ## Check the setup (MLflow smoke run)
 
