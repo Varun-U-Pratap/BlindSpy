@@ -1,0 +1,666 @@
+{
+ "data_version": "v1",
+ "table2_features": [
+  "duration",
+  "mean_fiat",
+  "min_fiat",
+  "max_fiat",
+  "std_fiat",
+  "mean_biat",
+  "min_biat",
+  "max_biat",
+  "std_biat",
+  "mean_flowiat",
+  "min_flowiat",
+  "max_flowiat",
+  "std_flowiat",
+  "mean_active",
+  "min_active",
+  "max_active",
+  "std_active",
+  "mean_idle",
+  "min_idle",
+  "max_idle",
+  "std_idle",
+  "flowBytesPerSecond",
+  "flowPktsPerSecond"
+ ],
+ "A1/B feature list equals Table 2 (as a set)": true,
+ "A2 feature list equals Table 2 (as a set)": false,
+ "A2 features not in Table 2": [
+  "total_biat",
+  "total_fiat"
+ ],
+ "units": "duration and all gap/active/idle features in microseconds, rates per second: packets = flowPktsPerSecond x duration / 1e6 makes mean_flowiat x (packets - 1) equal duration within 1% on the % of rows below, per file",
+ "units_identity_pct_per_file": {
+  "A1_15s": 100.0,
+  "A1_30s": 100.0,
+  "A1_60s": 100.0,
+  "A1_120s": 100.0,
+  "A2-VPN_15s": 100.0,
+  "A2-VPN_30s": 100.0,
+  "A2-VPN_60s": 100.0,
+  "A2-VPN_120s": 100.0,
+  "A2-NonVPN_15s": 100.0,
+  "A2-NonVPN_30s": 100.0,
+  "A2-NonVPN_60s": 100.0,
+  "A2-NonVPN_120s": 100.0,
+  "B_15s": 100.0,
+  "B_30s": 100.0,
+  "B_60s": 100.0,
+  "B_120s": 100.0
+ },
+ "feature_ranges": {
+  "A1/B layout (B files, all timeouts)": {
+   "duration": {
+    "min": 0.0,
+    "p01": 33.0,
+    "median": 14422310.5,
+    "p99": 119998193.75,
+    "max": 646565983.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "min_fiat": {
+    "min": -1.0,
+    "p01": 0.0,
+    "median": 112.0,
+    "p99": 45211908.0,
+    "max": 119999708.0,
+    "exactly_-1": 6308,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "min_biat": {
+    "min": -1.0,
+    "p01": 0.0,
+    "median": 45.0,
+    "p99": 45213098.48,
+    "max": 119999620.0,
+    "exactly_-1": 10522,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_fiat": {
+    "min": -1.0,
+    "p01": 67.0,
+    "median": 1650890.0,
+    "p99": 104244407.0,
+    "max": 646287731.0,
+    "exactly_-1": 6308,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_biat": {
+    "min": -1.0,
+    "p01": 114.07,
+    "median": 2294484.5,
+    "p99": 63987999.18,
+    "max": 600109667.0,
+    "exactly_-1": 10522,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_fiat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 158065.785714286,
+    "p99": 45200000.0,
+    "max": 152000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_biat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 83358.7777777778,
+    "p99": 45200000.0,
+    "max": 120000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "std_fiat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 27807.891145323,
+    "p99": 34000000.0,
+    "max": 264000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "std_biat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 24803.54437060275,
+    "p99": 25700000.0,
+    "max": 98000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "flowPktsPerSecond": {
+    "min": 0.0,
+    "p01": 0.065194464899,
+    "median": 8.9661469935,
+    "p99": 57142.8571428571,
+    "max": 2000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "flowBytesPerSecond": {
+    "min": 0.0,
+    "p01": 3.63334561585,
+    "median": 1694.8247872828501,
+    "p99": 6140974.025974019,
+    "max": 617000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "min_flowiat": {
+    "min": -1247.0,
+    "p01": 0.0,
+    "median": 21.0,
+    "p99": 1076195.0,
+    "max": 59947704.0,
+    "exactly_-1": 224,
+    "other_negative": 405,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_flowiat": {
+    "min": -1.0,
+    "p01": 35.0,
+    "median": 962728.0,
+    "p99": 109547639.0,
+    "max": 646287731.0,
+    "exactly_-1": 45,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_flowiat": {
+    "min": 0.0,
+    "p01": 30.0,
+    "median": 144230.1129383795,
+    "p99": 19900000.0,
+    "max": 64700000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "std_flowiat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 192277.890151208,
+    "p99": 33700000.0,
+    "max": 204000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "min_active": {
+    "min": -1.0,
+    "p01": 1073176.18,
+    "median": 5949131.0,
+    "p99": 120988571.94000001,
+    "max": 646565983.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_active": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 110000000.0,
+    "max": 647000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_active": {
+    "min": -1.0,
+    "p01": 1498203.4,
+    "median": 10316202.0,
+    "p99": 122147146.32000001,
+    "max": 646565983.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "std_active": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 23200000.0,
+    "max": 184000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "min_idle": {
+    "min": -1.0,
+    "p01": 1006300.0,
+    "median": 4993314.0,
+    "p99": 120661940.82000001,
+    "max": 646287731.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_idle": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 109000000.0,
+    "max": 646000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_idle": {
+    "min": -1.0,
+    "p01": 1088396.0,
+    "median": 10000610.0,
+    "p99": 121615880.0,
+    "max": 646287731.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "std_idle": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 23100000.0,
+    "max": 185000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   }
+  },
+  "A2 layout (A2-VPN + A2-NonVPN, all timeouts)": {
+   "duration": {
+    "min": 0.0,
+    "p01": 33.0,
+    "median": 14422310.5,
+    "p99": 119998193.75,
+    "max": 646565983.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "total_fiat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 13730133.5,
+    "p99": 119985272.44,
+    "max": 646565983.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "total_biat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 12591496.0,
+    "p99": 119976907.88,
+    "max": 601185122.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "min_fiat": {
+    "min": -1.0,
+    "p01": 0.0,
+    "median": 112.0,
+    "p99": 45211908.0,
+    "max": 119999708.0,
+    "exactly_-1": 6308,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "min_biat": {
+    "min": -1.0,
+    "p01": 0.0,
+    "median": 45.0,
+    "p99": 45213098.48,
+    "max": 119999620.0,
+    "exactly_-1": 10522,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_fiat": {
+    "min": -1.0,
+    "p01": 67.0,
+    "median": 1650890.0,
+    "p99": 104244407.0,
+    "max": 646287731.0,
+    "exactly_-1": 6308,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_biat": {
+    "min": -1.0,
+    "p01": 114.07,
+    "median": 2294484.5,
+    "p99": 63987999.18,
+    "max": 600109667.0,
+    "exactly_-1": 10522,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_fiat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 158065.785714286,
+    "p99": 45200000.0,
+    "max": 152000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_biat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 83358.7777777778,
+    "p99": 45200000.0,
+    "max": 120000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "flowPktsPerSecond": {
+    "min": 0.0,
+    "p01": 0.065194464899,
+    "median": 8.9661469935,
+    "p99": 57142.8571428571,
+    "max": 2000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "flowBytesPerSecond": {
+    "min": 0.0,
+    "p01": 3.63334561585,
+    "median": 1694.8247872828501,
+    "p99": 6140974.025974019,
+    "max": 617000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "min_flowiat": {
+    "min": -1247.0,
+    "p01": 0.0,
+    "median": 21.0,
+    "p99": 1076195.0,
+    "max": 59947704.0,
+    "exactly_-1": 224,
+    "other_negative": 405,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_flowiat": {
+    "min": -1.0,
+    "p01": 35.0,
+    "median": 962728.0,
+    "p99": 109547639.0,
+    "max": 646287731.0,
+    "exactly_-1": 45,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_flowiat": {
+    "min": 0.0,
+    "p01": 30.0,
+    "median": 144230.1129383795,
+    "p99": 19900000.0,
+    "max": 64700000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "std_flowiat": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 192277.890151208,
+    "p99": 33700000.0,
+    "max": 204000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "min_active": {
+    "min": -1.0,
+    "p01": 1073176.18,
+    "median": 5949131.0,
+    "p99": 120988571.94000001,
+    "max": 646565983.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_active": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 110000000.0,
+    "max": 647000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_active": {
+    "min": -1.0,
+    "p01": 1498203.4,
+    "median": 10316202.0,
+    "p99": 122147146.32000001,
+    "max": 646565983.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "std_active": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 23200000.0,
+    "max": 184000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   },
+   "min_idle": {
+    "min": -1.0,
+    "p01": 1006300.0,
+    "median": 4993314.0,
+    "p99": 120661940.82000001,
+    "max": 646287731.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "mean_idle": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 109000000.0,
+    "max": 646000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "max_idle": {
+    "min": -1.0,
+    "p01": 1088396.0,
+    "median": 10000610.0,
+    "p99": 121615880.0,
+    "max": 646287731.0,
+    "exactly_-1": 28663,
+    "other_negative": 0,
+    "pct_measured_values_<=_duration": 100.0
+   },
+   "std_idle": {
+    "min": 0.0,
+    "p01": 0.0,
+    "median": 0.0,
+    "p99": 23100000.0,
+    "max": 185000000.0,
+    "exactly_-1": 0,
+    "other_negative": 0
+   }
+  }
+ },
+ "published_header_matches_A1_vs_A2": {
+  "15s": {
+   "A1 rows": 18758,
+   "A1 rows equal to an A2 row in all 23 values": 0,
+   "A1 rows equal to an A2 row as an unordered set of values": 2364,
+   "A1 unique rows (features + label)": 18038,
+   "A1 unique feature rows (label ignored)": 18015
+  },
+  "30s": {
+   "A1 rows": 14651,
+   "A1 rows equal to an A2 row in all 23 values": 0,
+   "A1 rows equal to an A2 row as an unordered set of values": 1501,
+   "A1 unique rows (features + label)": 13610,
+   "A1 unique feature rows (label ignored)": 13588
+  },
+  "60s": {
+   "A1 rows": 15515,
+   "A1 rows equal to an A2 row in all 23 values": 0,
+   "A1 rows equal to an A2 row as an unordered set of values": 2190,
+   "A1 unique rows (features + label)": 14677,
+   "A1 unique feature rows (label ignored)": 14630
+  },
+  "120s": {
+   "A1 rows": 10782,
+   "A1 rows equal to an A2 row in all 23 values": 0,
+   "A1 rows equal to an A2 row as an unordered set of values": 494,
+   "A1 unique rows (features + label)": 9525,
+   "A1 unique feature rows (label ignored)": 9494
+  }
+ },
+ "cross_timeout_label_consistency_A2": {
+  "flows found in more than one timeout file": 7041,
+  "of these, flows whose label differs between timeouts": 210,
+  "median packets in those flows": 2.0,
+  "most common label sets": {
+   "FT/VPN-FT": 84,
+   "VPN-BROWSING/VPN-FT": 25,
+   "MAIL/VPN-MAIL": 16,
+   "BROWSING/VPN-BROWSING": 8,
+   "FT/MAIL": 8,
+   "STREAMING/VPN-BROWSING": 7,
+   "FT/VPN-FT/VPN-MAIL": 7,
+   "CHAT/VPN-BROWSING": 6,
+   "FT/MAIL/VPN-FT": 5,
+   "MAIL/VPN-CHAT": 4
+  }
+ },
+ "voip_ft_profile_per_timeout": {
+  "VOIP 15s": {
+   "flows": 2821,
+   "median packets per second": 100.1,
+   "median mean_fiat (us)": 19994.9,
+   "% mean_fiat 15-25 ms": 78.1,
+   "% no active/idle period": 99.4
+  },
+  "VOIP 30s": {
+   "flows": 1435,
+   "median packets per second": 100.0,
+   "median mean_fiat (us)": 19998.1,
+   "% mean_fiat 15-25 ms": 77.1,
+   "% no active/idle period": 98.9
+  },
+  "VOIP 60s": {
+   "flows": 1793,
+   "median packets per second": 2.1,
+   "median mean_fiat (us)": 961624.6,
+   "% mean_fiat 15-25 ms": 31.2,
+   "% no active/idle period": 51.5
+  },
+  "VOIP 120s": {
+   "flows": 389,
+   "median packets per second": 100.0,
+   "median mean_fiat (us)": 19999.8,
+   "% mean_fiat 15-25 ms": 73.5,
+   "% no active/idle period": 95.4
+  },
+  "FT 15s": {
+   "flows": 857,
+   "median packets per second": 1236.7,
+   "median mean_fiat (us)": 1042.8,
+   "% mean_fiat 15-25 ms": 1.2,
+   "% no active/idle period": 69.4
+  },
+  "FT 30s": {
+   "flows": 790,
+   "median packets per second": 2155.9,
+   "median mean_fiat (us)": 768.0,
+   "% mean_fiat 15-25 ms": 1.5,
+   "% no active/idle period": 72.0
+  },
+  "FT 60s": {
+   "flows": 1210,
+   "median packets per second": 56.5,
+   "median mean_fiat (us)": 34444.3,
+   "% mean_fiat 15-25 ms": 7.8,
+   "% no active/idle period": 80.1
+  },
+  "FT 120s": {
+   "flows": 464,
+   "median packets per second": 3738.5,
+   "median mean_fiat (us)": 507.5,
+   "% mean_fiat 15-25 ms": 0.4,
+   "% no active/idle period": 78.9
+  },
+  "VPN-VOIP 15s": {
+   "flows": 2266,
+   "median packets per second": 2.2,
+   "median mean_fiat (us)": 960175.4,
+   "% mean_fiat 15-25 ms": 42.9,
+   "% no active/idle period": 64.4
+  },
+  "VPN-VOIP 30s": {
+   "flows": 1294,
+   "median packets per second": 2.1,
+   "median mean_fiat (us)": 960284.3,
+   "% mean_fiat 15-25 ms": 37.7,
+   "% no active/idle period": 56.6
+  },
+  "VPN-VOIP 60s": {
+   "flows": 1611,
+   "median packets per second": 16.5,
+   "median mean_fiat (us)": 18295.3,
+   "% mean_fiat 15-25 ms": 15.7,
+   "% no active/idle period": 71.6
+  },
+  "VPN-VOIP 120s": {
+   "flows": 381,
+   "median packets per second": 2.1,
+   "median mean_fiat (us)": 960800.7,
+   "% mean_fiat 15-25 ms": 32.3,
+   "% no active/idle period": 49.3
+  },
+  "VPN-FT 15s": {
+   "flows": 1883,
+   "median packets per second": 7.1,
+   "median mean_fiat (us)": 192693.4,
+   "% mean_fiat 15-25 ms": 0.7,
+   "% no active/idle period": 55.1
+  },
+  "VPN-FT 30s": {
+   "flows": 1124,
+   "median packets per second": 4.0,
+   "median mean_fiat (us)": 416771.2,
+   "% mean_fiat 15-25 ms": 0.8,
+   "% no active/idle period": 35.0
+  },
+  "VPN-FT 60s": {
+   "flows": 845,
+   "median packets per second": 6.1,
+   "median mean_fiat (us)": 286898.0,
+   "% mean_fiat 15-25 ms": 1.4,
+   "% no active/idle period": 45.1
+  },
+  "VPN-FT 120s": {
+   "flows": 668,
+   "median packets per second": 7.5,
+   "median mean_fiat (us)": 187957.4,
+   "% mean_fiat 15-25 ms": 2.1,
+   "% no active/idle period": 48.8
+  }
+ }
+}
