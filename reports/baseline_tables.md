@@ -7,7 +7,8 @@ the paper benchmark (10-fold CV on the whole file). Data version: v1.
 
 - Baseline runs: 80 (5 models x 16 task/timeout configs), status FINISHED: 80.
 - Benchmark runs: 64 (2 algorithms x 16 files x 2 row sources).
-- Git commit(s) of these runs: 1817c5a, 36c56a1.
+- Git commit(s) of these runs: c450c3e.
+- Earlier runs of the same configs (identical scores; kept in MLflow and in history.csv): 1817c5a, 36c56a1.
 
 ## Validation macro F1 (E01-E03)
 
@@ -374,22 +375,21 @@ the paper benchmark (10-fold CV on the whole file). Data version: v1.
 
 | model | train time (s) median | train time (s) max | 5-fold CV time (s) median | 5-fold CV time (s) max | predict ms / 1,000 flows median | predict ms / 1,000 flows max | model file (KB) median | model file (KB) max | peak fit memory (MB) median | peak fit memory (MB) max |
 |---|---|---|---|---|---|---|---|---|---|---|
-| majority | 0.013 | 0.027 | 0.147 | 2.325 | 0.097 | 0.176 | 1.414 | 1.523 | 0.624 | 1.181 |
-| tree | 0.121 | 0.312 | 0.268 | 0.493 | 0.301 | 0.534 | 134.49 | 592.916 | 1.258 | 2.393 |
-| knn | 0.021 | 0.042 | 0.187 | 0.258 | 7.856 | 29.5 | 1242.967 | 2374.631 | 3.003 | 5.733 |
-| logreg | 0.116 | 0.461 | 0.201 | 0.604 | 0.364 | 0.684 | 3.829 | 5.196 | 3.432 | 8.147 |
-| svm_rbf | 0.636 | 2.939 | 2.05 | 3.849 | 211.011 | 599.119 | 1175.091 | 4288.896 | 3.554 | 7.783 |
+| majority | 0.004 | 0.008 | 0.157 | 2.854 | 0.091 | 0.18 | 1.414 | 1.523 | 0.623 | 1.182 |
+| tree | 0.112 | 0.304 | 0.293 | 0.652 | 0.298 | 0.531 | 134.49 | 592.916 | 1.257 | 2.392 |
+| knn | 0.01 | 0.021 | 0.182 | 0.281 | 8.031 | 13.338 | 1242.967 | 2374.631 | 2.999 | 5.722 |
+| logreg | 0.084 | 0.428 | 0.212 | 0.603 | 0.378 | 0.69 | 3.829 | 5.196 | 3.433 | 8.144 |
+| svm_rbf | 0.626 | 2.913 | 1.61 | 3.784 | 209.808 | 596.678 | 1175.091 | 4288.896 | 3.552 | 7.781 |
 
 Peak fit memory is measured with Python's tracemalloc, which counts NumPy arrays
 but not memory allocated inside compiled libraries (for example libsvm), so SVM
-memory is a lower bound. In these Phase 2 runs the timed fit also ran with
-tracemalloc on, which slows fitting: in a recheck (B 15 s, median of 5 fits) by
-x1.05 for the tree, x1.00 for the SVM, x1.19 for Logistic Regression and x2.3 for
-KNN (0.012 s -> 0.027 s). So the training times above are slight overestimates;
-from Phase 3 on, time and memory come from separate fits. The metric
-process_max_rss_mb in these runs is the high-water mark of the whole batch
-process (it only grows from run to run), not a per-run figure; it is not used
-and is no longer logged.
+memory is a lower bound. Training time comes from a fit without tracemalloc and
+peak memory from a separate fit of a clone. The first Phase 2 runs (commits
+1817c5a and 36c56a1) timed the fit with tracemalloc on, which slowed it (x1.05
+tree, x1.00 SVM, x1.19 Logistic Regression, x2.3 KNN in a recheck); all 144 configs
+were rerun from the fixed code (commit c450c3e) with identical scores, and these
+tables use the rerun. The first runs also logged process_max_rss_mb, a high-water
+mark of the whole batch process rather than a per-run figure; it is not used.
 
 ## Paper benchmark: A1 (paper Figure 2 values, read to +-0.01)
 
@@ -757,7 +757,7 @@ flow. A1 120 s packet counts use its published (corrupt) flowPktsPerSecond.
 | tree (holdout) | 16 | 5.457 | 0.764 | 0.579 |
 | tree (paper_10fold) | 32 | 11.674 | 0.817 | 0.629 |
 
-Whole store now: artifacts 137.8 MB, mlflow.db 5.8 MB.
+Whole store now: artifacts 275.2 MB, mlflow.db 10.4 MB.
 
 ## Threshold checks (pre-stated in E01-E03)
 

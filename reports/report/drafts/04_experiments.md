@@ -4,8 +4,9 @@
 sync. Every table here is copied unchanged from `reports/baseline_tables.md`, which
 `scripts/results_tables.py` generates from `reports/history.csv` (all MLflow runs, exported by
 `scripts/export_history.py`). Every number cites its experiment (E01-E03 entries in
-`reports/EXPERIMENT_LOG.md`). Data version: v1. Code: tag `v0.1-baseline` (commit 1817c5a) for the
-80 baseline runs; commit 36c56a1 for the 64 paper-benchmark runs.*
+`reports/EXPERIMENT_LOG.md`). Data version: v1. Code: tag `v0.1.1-baseline` (commit c450c3e), from which all 144 runs
+(80 baselines, 64 paper benchmark) were rerun with identical scores; the first runs came from
+commit 1817c5a (tag `v0.1-baseline`) and 36c56a1. Timings are from the rerun.*
 
 Each experiment states a hypothesis and a numeric pass/fail threshold before it runs, changes one
 thing, and ends with a verdict (supported / not supported). Unless stated otherwise, scores are on
@@ -127,10 +128,8 @@ What the tables show:
   (Section 2.8), and the 60 s files hold differently shaped VOIP and FT flows (E00 addendum), so this
   is not read as an effect of the timeout.
 - **Cost.** All baselines train in under 3 s. To predict 1,000 flows, the tree needs 0.30 ms
-  (median), KNN 7.9 ms and the SVM 211 ms. Model files range from 1.4 KB (majority) and
-  4-5 KB (Logistic Regression) to 4.2 MB (SVM). Training times were measured with Python's memory
-  tracer switched on, which slows fitting (x1.05 tree, x1.00 SVM, x1.19 Logistic Regression,
-  x2.3 KNN in a recheck), so they are slight overestimates; the ranking doesn't change.
+  (median), KNN 8.0 ms and the SVM 210 ms. Model files range from 1.4 KB (majority) and
+  4-5 KB (Logistic Regression) to 4.2 MB (SVM).
 
 Per-class extremes for the tree (E02): macro vs weighted F1, their gap, the generalisation gap, and
 the best and worst class by F1 and by recall:
@@ -200,22 +199,21 @@ Cost per model over the 16 configs:
 
 | model | train time (s) median | train time (s) max | 5-fold CV time (s) median | 5-fold CV time (s) max | predict ms / 1,000 flows median | predict ms / 1,000 flows max | model file (KB) median | model file (KB) max | peak fit memory (MB) median | peak fit memory (MB) max |
 |---|---|---|---|---|---|---|---|---|---|---|
-| majority | 0.013 | 0.027 | 0.147 | 2.325 | 0.097 | 0.176 | 1.414 | 1.523 | 0.624 | 1.181 |
-| tree | 0.121 | 0.312 | 0.268 | 0.493 | 0.301 | 0.534 | 134.49 | 592.916 | 1.258 | 2.393 |
-| knn | 0.021 | 0.042 | 0.187 | 0.258 | 7.856 | 29.5 | 1242.967 | 2374.631 | 3.003 | 5.733 |
-| logreg | 0.116 | 0.461 | 0.201 | 0.604 | 0.364 | 0.684 | 3.829 | 5.196 | 3.432 | 8.147 |
-| svm_rbf | 0.636 | 2.939 | 2.05 | 3.849 | 211.011 | 599.119 | 1175.091 | 4288.896 | 3.554 | 7.783 |
+| majority | 0.004 | 0.008 | 0.157 | 2.854 | 0.091 | 0.18 | 1.414 | 1.523 | 0.623 | 1.182 |
+| tree | 0.112 | 0.304 | 0.293 | 0.652 | 0.298 | 0.531 | 134.49 | 592.916 | 1.257 | 2.392 |
+| knn | 0.01 | 0.021 | 0.182 | 0.281 | 8.031 | 13.338 | 1242.967 | 2374.631 | 2.999 | 5.722 |
+| logreg | 0.084 | 0.428 | 0.212 | 0.603 | 0.378 | 0.69 | 3.829 | 5.196 | 3.433 | 8.144 |
+| svm_rbf | 0.626 | 2.913 | 1.61 | 3.784 | 209.808 | 596.678 | 1175.091 | 4288.896 | 3.552 | 7.781 |
 
 Peak fit memory is measured with Python's tracemalloc, which counts NumPy arrays
 but not memory allocated inside compiled libraries (for example libsvm), so SVM
-memory is a lower bound. In these Phase 2 runs the timed fit also ran with
-tracemalloc on, which slows fitting: in a recheck (B 15 s, median of 5 fits) by
-x1.05 for the tree, x1.00 for the SVM, x1.19 for Logistic Regression and x2.3 for
-KNN (0.012 s -> 0.027 s). So the training times above are slight overestimates;
-from Phase 3 on, time and memory come from separate fits. The metric
-process_max_rss_mb in these runs is the high-water mark of the whole batch
-process (it only grows from run to run), not a per-run figure; it is not used
-and is no longer logged.
+memory is a lower bound. Training time comes from a fit without tracemalloc and
+peak memory from a separate fit of a clone. The first Phase 2 runs (commits
+1817c5a and 36c56a1) timed the fit with tracemalloc on, which slowed it (x1.05
+tree, x1.00 SVM, x1.19 Logistic Regression, x2.3 KNN in a recheck); all 144 configs
+were rerun from the fixed code (commit c450c3e) with identical scores, and these
+tables use the rerun. The first runs also logged process_max_rss_mb, a high-water
+mark of the whole batch process rather than a per-run figure; it is not used.
 
 The same tables for KNN, Logistic Regression and SVM-RBF, plus accuracy, balanced accuracy,
 weighted F1 and A1 ROC-AUC for every run, are in `reports/baseline_tables.md` (Appendix).
@@ -491,8 +489,9 @@ being trained on, and this benchmark shows it changes 10-fold scores by only abo
 
 ## 4.4 Storage after the baselines
 
-Every official run saves its trained model (the plan's rule). After the 147 runs so far (80 baselines, 64 benchmark, 2 pilot, 1 setup check), the MLflow
-store holds 137.8 MB of artifacts and a 5.8 MB database; the largest single run is 4.3 MB (SVM).
+Every official run saves its trained model (the plan's rule). After the first 147 runs (80 baselines, 64 benchmark, 2 pilot, 1 setup check), the MLflow
+store held 137.8 MB of artifacts and a 5.8 MB database (275.2 MB and 10.4 MB after the timing
+rerun of all 144 configs); the largest single run is 4.3 MB (SVM).
 Per model type:
 
 | kind | runs | total_MB | per_run_max_MB | model_file_max_MB |
@@ -505,7 +504,7 @@ Per model type:
 | tree (holdout) | 16 | 5.457 | 0.764 | 0.579 |
 | tree (paper_10fold) | 32 | 11.674 | 0.817 | 0.629 |
 
-Whole store now: artifacts 137.8 MB, mlflow.db 5.8 MB.
+Whole store now (after the rerun): artifacts 275.2 MB, mlflow.db 10.4 MB.
 
 Tree ensembles in Phase 3 will be much larger: a 300-tree Random Forest, measured on the largest
 training set (B, 15 s), is a 171.9 MB file (22.4 MB with joblib compression level 3) [E03].

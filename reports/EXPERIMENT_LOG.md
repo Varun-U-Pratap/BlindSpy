@@ -74,9 +74,9 @@ Holdout (validation macro F1, data v1, 15 / 30 / 60 / 120 s; tree from E02 for r
   hypothesised. Logistic Regression converged in at most 244 iterations (limit 1,000; the default
   of 100 would have stopped early).
 - Generalisation gap |CV - validation| <= 0.042 for all three; CV std <= 0.025.
-- Cost (median over 16 configs): KNN trains in 0.02 s, but predicts 1,000 flows in 7.9 ms and
-  stores the training set (1.2 MB median, 2.3 MB max). Logistic Regression: 0.12 s, 0.36 ms,
-  3.8 KB. SVM: 0.64 s (2.9 s max), 211 ms (599 ms max), 1.1 MB (4.2 MB max). Peak fit memory
+- Cost (median over 16 configs): KNN trains in 0.01 s, but predicts 1,000 flows in 8.0 ms and
+  stores the training set (1.2 MB median, 2.3 MB max). Logistic Regression: 0.08 s, 0.38 ms,
+  3.8 KB. SVM: 0.63 s (2.9 s max), 210 ms (597 ms max), 1.1 MB (4.2 MB max). Peak fit memory
   is 3.0-3.6 MB (tracemalloc). For the SVM this is a lower bound, since libsvm's own memory isn't
   counted.
 
@@ -139,6 +139,18 @@ Metrics, plots, configs and commits are kept for every run either way.
 - The paper comparison is now also one table per task, for both row sources, with our per-class
   10-fold precision and recall and the paper's value where it gives one.
 
+**Addendum (2026-10-28): clean timing rerun.** All 144 Phase 2 configs (80 baselines, 64
+benchmark) were rerun from the fixed code (dev c450c3e, tag v0.1.1-baseline), where training time
+comes from a fit without tracemalloc. Every one of the 6,516 non-timing metric values (scores,
+per-class results, model sizes, complexity) and every parameter is identical to the first runs.
+The first runs (1817c5a, 36c56a1; tag v0.1-baseline) stay in MLflow and in history.csv; the
+tables now use the rerun. Cost numbers in this entry are from the rerun.
+Median training time, first runs -> rerun: KNN 0.021 -> 0.010 s, Logistic Regression
+0.116 -> 0.084 s, SVM 0.636 -> 0.626 s. Prediction times differ only by machine noise (KNN
+7.9 -> 8.0 ms, SVM 211 -> 210 ms per 1,000 flows). The overestimates noted in the corrections
+above are resolved. MLflow store after the rerun (291 runs): artifacts 275.2 MB, mlflow.db
+10.4 MB.
+
 ### E02 — Decision tree (C4.5 approximation) and the paper benchmark for C4.5 (2026-10-28, utsav-s-r)
 
 Hypothesis (holdout baseline): an unpruned entropy decision tree, the closest scikit-learn
@@ -197,7 +209,7 @@ Holdout (validation macro F1, data v1):
 - Top confusion pair in B at every timeout: BROWSING vs VPN-BROWSING (29-45 validation flows each
   way): the tree knows the flow is browsing but not whether it went through the VPN. In A2 the
   confusions are among CHAT, FT and BROWSING.
-- Complexity: unpruned trees of depth 16-35, 591-3,437 nodes. Cost: train 0.12 s (median),
+- Complexity: unpruned trees of depth 16-35, 591-3,437 nodes. Cost: train 0.11 s (median),
   predict 0.30 ms per 1,000 flows, model file 134 KB median (593 KB max), peak fit memory 1.3 MB.
 - B and A2-VPN score lower at 60 s and 120 s than at 15 s and 30 s. Class mix differs between
   timeouts (E00, point 10) and the 60 s files hold differently shaped VOIP and FT flows (E00,
@@ -251,6 +263,15 @@ MLflow runs: E02-tree-* (holdout), E02-paper-j48-* (benchmark, tag protocol=pape
   ours where it gives one ("C" chart, "T" text). The 8 A1 values that the paper both draws and
   states are marked as such (`reports/baseline_tables.md`, `notebooks/02_baselines.ipynb`).
 
+**Addendum (2026-10-28): clean timing rerun.** All 144 Phase 2 configs (80 baselines, 64
+benchmark) were rerun from the fixed code (dev c450c3e, tag v0.1.1-baseline), where training time
+comes from a fit without tracemalloc. Every one of the 6,516 non-timing metric values (scores,
+per-class results, model sizes, complexity) and every parameter is identical to the first runs.
+The first runs (1817c5a, 36c56a1; tag v0.1-baseline) stay in MLflow and in history.csv; the
+tables now use the rerun. Cost numbers in this entry are from the rerun.
+Tree training time: 0.11 s median (0.12 s in the first runs). The "slight overestimate" noted
+in the corrections above is resolved.
+
 ### E01 — Majority-class baseline, all tasks and timeouts (2026-10-28, utsav-s-r)
 
 Hypothesis: a model that always predicts the largest training class sets the floor every
@@ -288,6 +309,13 @@ Verdict: supported (16 of 16 configs within 0.001 on both checks).
 Decision: keep as the floor. Every later model is compared with it. Next: E02, E03.
 
 MLflow runs: E01-majority-*
+
+**Addendum (2026-10-28): clean timing rerun.** All 144 Phase 2 configs (80 baselines, 64
+benchmark) were rerun from the fixed code (dev c450c3e, tag v0.1.1-baseline), where training time
+comes from a fit without tracemalloc. Every one of the 6,516 non-timing metric values (scores,
+per-class results, model sizes, complexity) and every parameter is identical to the first runs.
+The first runs (1817c5a, 36c56a1; tag v0.1-baseline) stay in MLflow and in history.csv; the
+tables now use the rerun. Cost numbers in this entry are from the rerun.
 
 ### E00 — Data findings and data v1 (2026-10-27, utsav-s-r)
 
