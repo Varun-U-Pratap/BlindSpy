@@ -44,6 +44,7 @@ byte-identical files. Code loads data only through the Parquet files:
 
 ```python
 from blindspy.data import load_task
+
 train, val, test = load_task("A1", 15, data_version="v1")
 ```
 

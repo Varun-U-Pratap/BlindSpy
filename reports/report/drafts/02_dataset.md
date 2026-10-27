@@ -104,6 +104,46 @@ reading passes on at most 2% of rows in any file, so it is ruled out. `COLUMN_MA
 `max_biat`->`mean_biat`, `mean_fiat`->`std_fiat`, `mean_biat`->`std_biat`; the other 15 names are
 unchanged. All feature names in this report (importances, SHAP, ablation) are the corrected ones.
 
+**Units and value ranges.** Table 2 gives no units. The data does: with packets = flow packets per
+second x duration / 10^6, the mean flow gap x (packets - 1) equals the duration within 1% on 100% of
+rows in all 16 files, which holds only if times are in microseconds and rates per second. Every
+measured gap, active or idle value is at most the flow's duration (100% of values), as Table 2's
+definitions require. Under the corrected names the A1/B feature list is exactly Table 2's 23
+features; the A2 list differs only in `total_fiat` and `total_biat`
+(`reports/data_checks_v1.json`).
+
+| feature | min | median | p99 | max | exactly_-1 | other_negative | % <= duration |
+|---|---|---|---|---|---|---|---|
+| duration | 0 | 14,422,310 | 119,998,194 | 646,565,983 | 0 | 0 | - |
+| min_fiat | -1 | 112 | 45,211,908 | 119,999,708 | 6,308 | 0 | 100.0 |
+| min_biat | -1 | 45 | 45,213,098 | 119,999,620 | 10,522 | 0 | 100.0 |
+| max_fiat | -1 | 1,650,890 | 104,244,407 | 646,287,731 | 6,308 | 0 | 100.0 |
+| max_biat | -1 | 2,294,484 | 63,987,999 | 600,109,667 | 10,522 | 0 | 100.0 |
+| mean_fiat | 0 | 158,066 | 45,200,000 | 152,000,000 | 0 | 0 | 100.0 |
+| mean_biat | 0 | 83,359 | 45,200,000 | 120,000,000 | 0 | 0 | 100.0 |
+| std_fiat | 0 | 27,808 | 34,000,000 | 264,000,000 | 0 | 0 | - |
+| std_biat | 0 | 24,804 | 25,700,000 | 98,000,000 | 0 | 0 | - |
+| flowPktsPerSecond | 0 | 8.96615 | 57,143 | 2,000,000 | 0 | 0 | - |
+| flowBytesPerSecond | 0 | 1,695 | 6,140,974 | 617,000,000 | 0 | 0 | - |
+| min_flowiat | -1,247 | 21 | 1,076,195 | 59,947,704 | 224 | 405 | 100.0 |
+| max_flowiat | -1 | 962,728 | 109,547,639 | 646,287,731 | 45 | 0 | 100.0 |
+| mean_flowiat | 0 | 144,230 | 19,900,000 | 64,700,000 | 0 | 0 | 100.0 |
+| std_flowiat | 0 | 192,278 | 33,700,000 | 204,000,000 | 0 | 0 | - |
+| min_active | -1 | 5,949,131 | 120,988,572 | 646,565,983 | 28,663 | 0 | 100.0 |
+| mean_active | 0 | 0 | 110,000,000 | 647,000,000 | 0 | 0 | 100.0 |
+| max_active | -1 | 10,316,202 | 122,147,146 | 646,565,983 | 28,663 | 0 | 100.0 |
+| std_active | 0 | 0 | 23,200,000 | 184,000,000 | 0 | 0 | - |
+| min_idle | -1 | 4,993,314 | 120,661,941 | 646,287,731 | 28,663 | 0 | 100.0 |
+| mean_idle | 0 | 0 | 109,000,000 | 646,000,000 | 0 | 0 | 100.0 |
+| max_idle | -1 | 10,000,610 | 121,615,880 | 646,287,731 | 28,663 | 0 | 100.0 |
+| std_idle | 0 | 0 | 23,100,000 | 185,000,000 | 0 | 0 | - |
+
+This also explains the earlier puzzle that A1 and A2 rows never match. As published (names
+ignored), 0 A1 rows equal an A2 row in all 23 values at any timeout, and only 2,364 of 18,758 at
+15 s (1,501, 2,190 and 494 at 30, 60 and 120 s) contain the same set of values in another order.
+Two of the 23 values mean different things in the two families, and 9 of the 12 A1/B headers shift
+the names.
+
 ## 2.4 File-family decision
 
 Because A1/B and A2 hold the same flows with two different feature pairs, we had three options:
@@ -196,6 +236,7 @@ cleaned flows; no value is changed except the restored A1 120 s column.
 | B 30 s | 14,651 | 14,651 | 13,638 | 13,638 | 9,546 | 2,046 | 2,046 |
 | B 60 s | 15,516 | 15,515 | 14,729 | 14,729 | 10,309 | 2,210 | 2,210 |
 | B 120 s | 10,782 | 10,782 | 9,589 | 9,589 | 6,711 | 1,439 | 1,439 |
+| **All 16 files** | 179,120 | 179,118 | 167,909 | 167,909 | 117,523 | 25,191 | 25,195 |
 
 ![Data funnel](../../figures/data_funnel_v1.png)
 
@@ -270,6 +311,150 @@ B
 | B 60 s | 75 | 174 | 25 |
 | B 120 s | 77 | 173 | 21 |
 
+![Data funnel by class](../../figures/data_funnel_by_class_v1.png)
+
+Per class, from raw rows to the final train / validation / test sets:
+
+A1
+
+| class | timeout | raw | final | train | val | test |
+|---|---|---|---|---|---|---|
+| Non-VPN | 15 s | 8,965 | 8,687 | 6,081 | 1,303 | 1,303 |
+| VPN | 15 s | 9,793 | 9,351 | 6,545 | 1,403 | 1,403 |
+| Non-VPN | 30 s | 6,917 | 6,688 | 4,681 | 1,004 | 1,003 |
+| VPN | 30 s | 7,734 | 6,922 | 4,845 | 1,038 | 1,039 |
+| Non-VPN | 60 s | 8,580 | 8,187 | 5,731 | 1,228 | 1,228 |
+| VPN | 60 s | 6,935 | 6,490 | 4,542 | 974 | 974 |
+| Non-VPN | 120 s | 5,151 | 4,935 | 3,454 | 741 | 740 |
+| VPN | 120 s | 5,631 | 4,589 | 3,212 | 688 | 689 |
+
+A2-VPN
+
+| class | timeout | raw | final | train | val | test |
+|---|---|---|---|---|---|---|
+| VPN-BROWSING | 15 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| VPN-CHAT | 15 s | 1,196 | 1,158 | 810 | 174 | 174 |
+| VPN-STREAMING | 15 s | 475 | 475 | 333 | 71 | 71 |
+| VPN-MAIL | 15 s | 491 | 432 | 302 | 65 | 65 |
+| VPN-VOIP | 15 s | 2,271 | 2,266 | 1,586 | 340 | 340 |
+| VPN-P2P | 15 s | 928 | 666 | 466 | 100 | 100 |
+| VPN-FT | 15 s | 1,932 | 1,883 | 1,319 | 282 | 282 |
+| VPN-BROWSING | 30 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| VPN-CHAT | 30 s | 780 | 742 | 520 | 111 | 111 |
+| VPN-STREAMING | 30 s | 298 | 298 | 208 | 45 | 45 |
+| VPN-MAIL | 30 s | 848 | 365 | 255 | 55 | 55 |
+| VPN-VOIP | 30 s | 1,299 | 1,294 | 906 | 194 | 194 |
+| VPN-P2P | 30 s | 851 | 621 | 435 | 93 | 93 |
+| VPN-FT | 30 s | 1,158 | 1,124 | 786 | 169 | 169 |
+| VPN-BROWSING | 60 s | 2,500 | 2,463 | 1,724 | 369 | 370 |
+| VPN-CHAT | 60 s | 514 | 478 | 334 | 72 | 72 |
+| VPN-STREAMING | 60 s | 197 | 197 | 139 | 29 | 29 |
+| VPN-MAIL | 60 s | 383 | 324 | 227 | 49 | 48 |
+| VPN-VOIP | 60 s | 1,620 | 1,611 | 1,127 | 242 | 242 |
+| VPN-P2P | 60 s | 823 | 605 | 423 | 91 | 91 |
+| VPN-FT | 60 s | 898 | 845 | 591 | 127 | 127 |
+| VPN-BROWSING | 120 s | 2,500 | 2,244 | 1,570 | 337 | 337 |
+| VPN-CHAT | 120 s | 349 | 310 | 216 | 47 | 47 |
+| VPN-STREAMING | 120 s | 145 | 145 | 101 | 22 | 22 |
+| VPN-MAIL | 120 s | 722 | 302 | 212 | 45 | 45 |
+| VPN-VOIP | 120 s | 386 | 381 | 267 | 57 | 57 |
+| VPN-P2P | 120 s | 813 | 598 | 418 | 90 | 90 |
+| VPN-FT | 120 s | 716 | 668 | 468 | 100 | 100 |
+
+A2-NonVPN
+
+| class | timeout | raw | final | train | val | test |
+|---|---|---|---|---|---|---|
+| BROWSING | 15 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 15 s | 890 | 887 | 621 | 133 | 133 |
+| STREAMING | 15 s | 482 | 450 | 315 | 67 | 68 |
+| MAIL | 15 s | 249 | 238 | 166 | 36 | 36 |
+| VOIP | 15 s | 2,826 | 2,821 | 1,975 | 423 | 423 |
+| P2P | 15 s | 1,000 | 941 | 659 | 141 | 141 |
+| FT | 15 s | 1,018 | 857 | 599 | 129 | 129 |
+| BROWSING | 30 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 30 s | 595 | 588 | 412 | 88 | 88 |
+| STREAMING | 30 s | 342 | 311 | 217 | 47 | 47 |
+| MAIL | 30 s | 81 | 77 | 53 | 12 | 12 |
+| VOIP | 30 s | 1,438 | 1,435 | 1,005 | 215 | 215 |
+| P2P | 30 s | 1,000 | 993 | 695 | 149 | 149 |
+| FT | 30 s | 961 | 790 | 553 | 118 | 119 |
+| BROWSING | 60 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 60 s | 778 | 754 | 528 | 113 | 113 |
+| STREAMING | 60 s | 252 | 221 | 155 | 33 | 33 |
+| MAIL | 60 s | 849 | 732 | 512 | 110 | 110 |
+| VOIP | 60 s | 1,829 | 1,793 | 1,255 | 269 | 269 |
+| P2P | 60 s | 1,000 | 996 | 697 | 150 | 149 |
+| FT | 60 s | 1,372 | 1,210 | 847 | 181 | 182 |
+| BROWSING | 120 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 120 s | 242 | 239 | 167 | 36 | 36 |
+| STREAMING | 120 s | 208 | 177 | 124 | 26 | 27 |
+| MAIL | 120 s | 185 | 174 | 122 | 26 | 26 |
+| VOIP | 120 s | 392 | 389 | 273 | 58 | 58 |
+| P2P | 120 s | 1,000 | 998 | 698 | 150 | 150 |
+| FT | 120 s | 624 | 464 | 324 | 70 | 70 |
+
+B
+
+| class | timeout | raw | final | train | val | test |
+|---|---|---|---|---|---|---|
+| BROWSING | 15 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 15 s | 890 | 887 | 621 | 133 | 133 |
+| STREAMING | 15 s | 482 | 450 | 315 | 68 | 67 |
+| MAIL | 15 s | 249 | 238 | 166 | 36 | 36 |
+| VOIP | 15 s | 2,826 | 2,821 | 1,975 | 423 | 423 |
+| P2P | 15 s | 1,000 | 941 | 659 | 141 | 141 |
+| FT | 15 s | 1,018 | 857 | 600 | 128 | 129 |
+| VPN-BROWSING | 15 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| VPN-CHAT | 15 s | 1,196 | 1,158 | 810 | 174 | 174 |
+| VPN-STREAMING | 15 s | 475 | 475 | 333 | 71 | 71 |
+| VPN-MAIL | 15 s | 491 | 432 | 302 | 65 | 65 |
+| VPN-VOIP | 15 s | 2,271 | 2,266 | 1,586 | 340 | 340 |
+| VPN-P2P | 15 s | 928 | 666 | 466 | 100 | 100 |
+| VPN-FT | 15 s | 1,932 | 1,883 | 1,318 | 282 | 283 |
+| BROWSING | 30 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 30 s | 595 | 588 | 412 | 88 | 88 |
+| STREAMING | 30 s | 342 | 311 | 217 | 47 | 47 |
+| MAIL | 30 s | 81 | 77 | 54 | 11 | 12 |
+| VOIP | 30 s | 1,438 | 1,435 | 1,005 | 215 | 215 |
+| P2P | 30 s | 1,000 | 993 | 695 | 149 | 149 |
+| FT | 30 s | 961 | 790 | 553 | 119 | 118 |
+| VPN-BROWSING | 30 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| VPN-CHAT | 30 s | 780 | 742 | 520 | 111 | 111 |
+| VPN-STREAMING | 30 s | 298 | 298 | 208 | 45 | 45 |
+| VPN-MAIL | 30 s | 848 | 365 | 255 | 55 | 55 |
+| VPN-VOIP | 30 s | 1,299 | 1,294 | 906 | 194 | 194 |
+| VPN-P2P | 30 s | 851 | 621 | 435 | 93 | 93 |
+| VPN-FT | 30 s | 1,158 | 1,124 | 786 | 169 | 169 |
+| BROWSING | 60 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 60 s | 778 | 754 | 528 | 113 | 113 |
+| STREAMING | 60 s | 252 | 221 | 155 | 33 | 33 |
+| MAIL | 60 s | 849 | 732 | 512 | 110 | 110 |
+| VOIP | 60 s | 1,829 | 1,793 | 1,255 | 269 | 269 |
+| P2P | 60 s | 1,000 | 996 | 698 | 149 | 149 |
+| FT | 60 s | 1,372 | 1,210 | 847 | 182 | 181 |
+| VPN-BROWSING | 60 s | 2,500 | 2,463 | 1,724 | 369 | 370 |
+| VPN-CHAT | 60 s | 514 | 478 | 334 | 72 | 72 |
+| VPN-STREAMING | 60 s | 197 | 197 | 138 | 30 | 29 |
+| VPN-MAIL | 60 s | 383 | 324 | 227 | 48 | 49 |
+| VPN-VOIP | 60 s | 1,620 | 1,611 | 1,127 | 242 | 242 |
+| VPN-P2P | 60 s | 823 | 605 | 423 | 91 | 91 |
+| VPN-FT | 60 s | 898 | 845 | 591 | 127 | 127 |
+| BROWSING | 120 s | 2,500 | 2,500 | 1,750 | 375 | 375 |
+| CHAT | 120 s | 242 | 239 | 167 | 36 | 36 |
+| STREAMING | 120 s | 208 | 177 | 124 | 26 | 27 |
+| MAIL | 120 s | 185 | 174 | 122 | 26 | 26 |
+| VOIP | 120 s | 392 | 389 | 273 | 58 | 58 |
+| P2P | 120 s | 1,000 | 998 | 698 | 150 | 150 |
+| FT | 120 s | 624 | 464 | 324 | 70 | 70 |
+| VPN-BROWSING | 120 s | 2,500 | 2,244 | 1,570 | 337 | 337 |
+| VPN-CHAT | 120 s | 349 | 310 | 217 | 47 | 46 |
+| VPN-STREAMING | 120 s | 145 | 145 | 101 | 22 | 22 |
+| VPN-MAIL | 120 s | 722 | 302 | 212 | 45 | 45 |
+| VPN-VOIP | 120 s | 386 | 381 | 267 | 57 | 57 |
+| VPN-P2P | 120 s | 813 | 598 | 418 | 90 | 90 |
+| VPN-FT | 120 s | 716 | 668 | 468 | 100 | 100 |
+
 **In sentences.** For task A1 at 15 s, 18,758 flows were parsed. After removing 720 exact
 duplicates (442 VPN, 278 non-VPN), 18,038 unique flows remained. All 23 features were kept without
 feature selection or normalization, and the flows were split 12,626 / 2,706 / 2,706 into training,
@@ -300,6 +485,35 @@ we do not attribute it to the timeout alone.
 
 ![Class mix per timeout](../../figures/timeout_class_mix.png)
 
+**The 60 s files differ in what some classes look like.** At 15, 30 and 120 s, non-VPN VOIP flows
+send about 100 packets per second with a 20 ms median forward gap, and VPN-VOIP flows about 2 with
+a gap of about 960 ms. At 60 s the two are almost reversed (2.1 packets/s and 962 ms for VOIP, 16.5
+packets/s and 18 ms for VPN-VOIP), and non-VPN FT drops from 1,237-3,739 to 56.5 packets/s. It is not
+a label swap. Of 7,041 flows found identically in more than one timeout file, 210 change label
+between timeouts; they are mostly 2-packet flows, and no VoIP pair is among them. The 60 s files are
+also the only ones exported with the paper-style header, so they may come from a different export
+run. The ARFF files can't settle the cause. Results at 60 s are therefore read with care and the
+issue is listed under Limitations (Section 7).
+
+| class, timeout | flows | median packets per second | median mean_fiat (us) | % mean_fiat 15-25 ms | % no active/idle period |
+|---|---|---|---|---|---|
+| VOIP 15s | 2,821 | 100.1 | 19994.9 | 78.1 | 99.4 |
+| VOIP 30s | 1,435 | 100.0 | 19998.1 | 77.1 | 98.9 |
+| VOIP 60s | 1,793 | 2.1 | 961624.6 | 31.2 | 51.5 |
+| VOIP 120s | 389 | 100.0 | 19999.8 | 73.5 | 95.4 |
+| FT 15s | 857 | 1236.7 | 1042.8 | 1.2 | 69.4 |
+| FT 30s | 790 | 2155.9 | 768.0 | 1.5 | 72.0 |
+| FT 60s | 1,210 | 56.5 | 34444.3 | 7.8 | 80.1 |
+| FT 120s | 464 | 3738.5 | 507.5 | 0.4 | 78.9 |
+| VPN-VOIP 15s | 2,266 | 2.2 | 960175.4 | 42.9 | 64.4 |
+| VPN-VOIP 30s | 1,294 | 2.1 | 960284.3 | 37.7 | 56.6 |
+| VPN-VOIP 60s | 1,611 | 16.5 | 18295.3 | 15.7 | 71.6 |
+| VPN-VOIP 120s | 381 | 2.1 | 960800.7 | 32.3 | 49.3 |
+| VPN-FT 15s | 1,883 | 7.1 | 192693.4 | 0.7 | 55.1 |
+| VPN-FT 30s | 1,124 | 4.0 | 416771.2 | 0.8 | 35.0 |
+| VPN-FT 60s | 845 | 6.1 | 286898.0 | 1.4 | 45.1 |
+| VPN-FT 120s | 668 | 7.5 | 187957.4 | 2.1 | 48.8 |
+
 ## 2.9 The Kaggle copy used by Isnan et al.
 
 The Kaggle file used by Isnan et al. [13] has 59,706 rows and the A2 header. Compared as a
@@ -319,9 +533,9 @@ setup and measures the effect of keeping timeouts apart.
 | v1 | 2026-10-27 | utsav-s-r | First cleaned version | 16 core files (A1, A2-VPN, A2-NonVPN, B x 15/30/60/120 s) | 179,120 -> 167,909 | 0a36896 |
 
 Figures from the exploration notebook (`notebooks/01_eda.ipynb`): class counts per task and timeout
-(`class_counts_v1.png`), feature distributions by class (`feature_boxes_<task>_15s.png`) and
-feature correlations (`correlation_B_15s.png`, `correlation_A2-VPN_15s.png`). The notebook records
+(`class_counts_v1.png`), feature distributions by class at every timeout (`feature_boxes_<task>_<timeout>s.png`, 16 figures) and
+feature correlations (`correlation_<task>_15s.png`, all four tasks), the data funnel by class (`data_funnel_by_class_v1.png`). The notebook records
 two findings that matter later. Classes differ by orders of magnitude on rate and gap features
 (VPN-STREAMING: median 202 packets/s; VPN-VOIP: 2.2). Many features are near-duplicates: 19 of
-253 pairs in B have Spearman |rho| >= 0.9, mostly within the active/idle group. Feature
+253 pairs in A1 and B (27 in A2-VPN, 20 in A2-NonVPN) have Spearman |rho| >= 0.9, mostly within the active/idle group. Feature
 importances will therefore be shared out among correlated features.

@@ -9,7 +9,7 @@ import sys
 
 import pandas as pd
 
-from blindspy.data import CORE_TASKS, LABELS, TIMEOUTS, processed_dir
+from blindspy.data import CORE_TASKS, LABELS, ROOT, TIMEOUTS, processed_dir
 
 ODD_STEPS = [
     "fiat_not_measurable", "biat_not_measurable", "flowiat_not_measurable",
@@ -69,7 +69,9 @@ def main(version: str) -> None:
             "final": info["final_rows"], "train": info["train"], "val": info["val"],
             "test": info["test"],
         })  # fmt: skip
-    print(md(pd.DataFrame(funnel)))
+    funnel = pd.DataFrame(funnel)
+    total = {"file": "**All 16 files**", **funnel.drop(columns="file").sum().astype(int).to_dict()}
+    print(md(pd.concat([funnel, pd.DataFrame([total])], ignore_index=True)))
 
     print("\n### Exact duplicates removed per class\n")
     for task in CORE_TASKS:
@@ -120,6 +122,45 @@ def main(version: str) -> None:
              m["tasks"][f"{t}_{s}s"]["test_rows_with_conflicting_twin_in_train"]}
         for t, s in files
     ])))  # fmt: skip
+
+    print("\n### Per-class funnel: raw -> final -> train / val / test\n")
+    for task in CORE_TASKS:
+        print(f"\n{task}\n")
+        rows = []
+        for s in TIMEOUTS:
+            info = m["tasks"][f"{task}_{s}s"]
+            steps = log[(log.task == task) & (log.timeout == s)].set_index("step_name")
+            raw = json.loads(steps.loc["parse", "rows_after_per_class"])
+            for label in LABELS[task]:
+                rows.append({
+                    "class": label, "timeout": f"{s} s", "raw": raw.get(label, 0),
+                    "final": info["final_class_counts"].get(label, 0),
+                    "train": info["class_counts"]["train"].get(label, 0),
+                    "val": info["class_counts"]["val"].get(label, 0),
+                    "test": info["class_counts"]["test"].get(label, 0),
+                })  # fmt: skip
+        print(md(pd.DataFrame(rows)))
+
+    checks_file = ROOT / "reports" / f"data_checks_{version}.json"
+    if checks_file.exists():
+        checks = json.loads(checks_file.read_text())
+        print("\n### Value range of every feature (A1/B layout, B files, all timeouts)\n")
+        rng = pd.DataFrame(checks["feature_ranges"]["A1/B layout (B files, all timeouts)"]).T
+        cols = ["min", "median", "p99", "max", "exactly_-1", "other_negative"]
+        rng = rng[cols + ["pct_measured_values_<=_duration"]].reset_index(names="feature")
+        rng = rng.astype(object).fillna("-")
+        for c in ["min", "median", "p99", "max"]:
+            rng[c] = rng[c].map(lambda v: f"{v:,.0f}" if abs(v) >= 100 else f"{v:g}")
+        for c in ["exactly_-1", "other_negative"]:
+            rng[c] = rng[c].astype(int)
+        print(md(rng.rename(columns={"pct_measured_values_<=_duration": "% <= duration"})))
+
+        print("\n### VOIP and FT per timeout (the 60 s files differ)\n")
+        prof = pd.DataFrame(checks["voip_ft_profile_per_timeout"]).T.reset_index(
+            names="class, timeout"
+        )
+        prof["flows"] = prof["flows"].astype(int)
+        print(md(prof))
 
 
 if __name__ == "__main__":

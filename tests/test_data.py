@@ -230,3 +230,17 @@ def test_changelog_v1_table_matches_manifest():
         assert num(removed) == s["exact_duplicates_removed"]
         assert num(final) == s["final_rows"]
         assert [num(p) for p in parts.split("/")] == [s["train"], s["val"], s["test"]]
+
+
+@needs_v1
+def test_data_checks_evidence_supports_the_column_map():
+    path = ROOT / "reports" / "data_checks_v1.json"
+    evidence = json.loads(path.read_text())
+    assert evidence["A1/B feature list equals Table 2 (as a set)"] is True
+    assert evidence["A2 features not in Table 2"] == ["total_biat", "total_fiat"]
+    assert set(evidence["units_identity_pct_per_file"].values()) == {100.0}
+    for layout in evidence["feature_ranges"].values():
+        within = [v["pct_measured_values_<=_duration"] for v in layout.values() if len(v) == 8]
+        assert within and set(within) == {100.0}
+    matches = evidence["published_header_matches_A1_vs_A2"]
+    assert all(m["A1 rows equal to an A2 row in all 23 values"] == 0 for m in matches.values())
