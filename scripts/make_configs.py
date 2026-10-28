@@ -94,11 +94,15 @@ RERUNS: dict[tuple[str, str, str], list[int]] = {
     ("E05", "rf", "B"): [30, 60, 120],  # +0.0503 over E04 knn_log_standard at 15 s
 }
 
-# E08 builds on the current best per task after E07 (reports/phase3_tables.md, "Current best
-# at 15 s after E07"); one change: class balancing, ladder none -> class_weight -> oversample
-# -> smote. A step runs only if every earlier step helped (E08.md); steps run so far per task:
-E08_BASE = {"A1": "E06-xgb", "A2-VPN": "E07-lgbm", "A2-NonVPN": "E07-lgbm", "B": "E07-xgb"}
-E08_STEPS = {task: ["class_weight"] for task in CORE_TASKS}
+# E08 builds on the current best per task after E07 (results.E08_BASE); one change: class
+# balancing, ladder none -> class_weight -> oversample -> smote. A step runs only if every
+# earlier step helped (E08.md; table "E08 balancing ladder"). Steps run so far per task:
+E08_STEPS = {
+    "A1": ["class_weight"],  # round 1; class_weight did not help -> stopped
+    "A2-VPN": ["class_weight", "oversample"],  # class_weight helped -> round 2
+    "A2-NonVPN": ["class_weight", "oversample"],  # class_weight helped -> round 2
+    "B": ["class_weight"],  # round 1; class_weight did not help -> stopped
+}
 
 
 def write(name: str, cfg: dict) -> None:
@@ -148,7 +152,7 @@ def main() -> None:
             })  # fmt: skip
             n += 1
     for task, steps in E08_STEPS.items():
-        base = f"{E08_BASE[task]}-{task}-15s"
+        base = f"{results.E08_BASE[task]}-{task}-15s"
         settings = results.run_settings(base)
         for step in steps:
             run = f"E08-{settings['model']}_{step}-{task}-15s"

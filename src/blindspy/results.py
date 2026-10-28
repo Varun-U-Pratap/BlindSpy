@@ -597,6 +597,46 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
     return out  # fmt: skip
 
 
+E08_ORDER = ["none", "class_weight", "oversample", "smote"]
+# the current best per task after E07 (table "Current best at 15 s after E07"): E08's "none" step
+E08_BASE = {"A1": "E06-xgb", "A2-VPN": "E07-lgbm", "A2-NonVPN": "E07-lgbm", "B": "E07-xgb"}
+
+
+def e08_ladder(s: pd.DataFrame, base: dict[str, str]) -> pd.DataFrame:
+    """E08 per task and step (15 s): validation macro F1, the F1 of the class weakest without
+    balancing, whether the step helped (above every earlier step) and what happens next under
+    the stop rule (a step runs only if every earlier one helped). base: task -> label of the
+    current best after E07 (the "none" step)."""
+    rows = []
+    for task in CORE_TASKS:
+        at = s[(s["params.task"] == task) & (s["params.timeout"] == 15)].set_index("label")
+        none = at.loc[base[task]]
+        weak = none["tags.worst_class_f1"]
+        best = -1.0
+        for step in E08_ORDER:
+            label = base[task] if step == "none" else f"E08-{none['params.model']}_{step}"
+            if label not in at.index:
+                rows.append({"task": task, "step": step, "run": "not run yet",
+                             "next": "run this step"})  # fmt: skip
+                break
+            f1 = at.loc[label, "metrics.val_f1_macro"]
+            helped = step == "none" or f1 > best
+            rows.append({
+                "task": task, "step": step, "run": label, "val macro F1": round(f1, 4),
+                "change vs none": round(f1 - none["metrics.val_f1_macro"], 4),
+                "F1 of weakest class without balancing":
+                    f"{weak} {_v(at.loc[label], 'f1', weak):.4f}",
+                "helped": "" if step == "none" else ("yes" if helped else "no"),
+                "next": "" if helped else "stop: this step did not help",
+            })  # fmt: skip
+            if not helped:
+                break
+            best = max(best, f1)
+        else:
+            rows[-1]["next"] = "ladder complete"
+    return pd.DataFrame(rows).fillna("")
+
+
 def run_settings(run_name: str, path: Path = ROOT / "reports" / "history.csv") -> dict:
     """Model and hyperparameters of the newest selected run with this name, read from the
     logged strings (so tuned floats are copied exactly) for configs that build on it."""

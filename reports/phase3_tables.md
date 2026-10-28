@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 38, status FINISHED: 38.
-- Git commit(s) of these runs: 016ccd3, 1955147, 3817307, 4308ecb, 817757f, 84e82e2.
+- Phase 3 holdout runs: 42, status FINISHED: 42.
+- Git commit(s) of these runs: 016ccd3, 1955147, 3817307, 38ccc65, 4308ecb, 817757f, 84e82e2.
 
 ## Current best at 15 s after E04
 
@@ -210,6 +210,48 @@ are excluded. Data version: v1.
 | B | E07-lgbm | 50 / 250 | 42 | 33.3 | n_estimators=725, learning_rate=0.0161, num_leaves=153, subsample=0.79, colsample_bytree=0.851, min_child_samples=21 | 0.8305 -> 0.8447 | 0.8201 -> 0.8352 | 0.0151 | yes |
 | B | E07-xgb | 50 / 250 | 35 | 7.4 | n_estimators=505, learning_rate=0.101, max_depth=6, subsample=0.915, colsample_bytree=0.895, min_child_weight=2 | 0.8334 -> 0.8405 | 0.8303 -> 0.8428 | 0.0125 | yes |
 
+## Current best at 15 s after E08
+
+| task | current best at 15 s | val macro F1 | CV macro F1 |
+|---|---|---|---|
+| A1 | E06-xgb | 0.9271 | 0.9251 +- 0.0046 |
+| A2-VPN | E08-lgbm_class_weight | 0.883 | 0.8893 +- 0.0044 |
+| A2-NonVPN | E08-lgbm_class_weight | 0.9049 | 0.9333 +- 0.0080 |
+| B | E07-xgb | 0.8428 | 0.8405 +- 0.0056 |
+
+## E08 at 15 s against the best run before it
+
+| task | model | val macro F1 | CV macro F1 | best before | best before F1 | gain | winner (gain >= 0.03) |
+|---|---|---|---|---|---|---|---|
+| A1 | E08-xgb_class_weight | 0.9237 | 0.9249 +- 0.0042 | E06-xgb | 0.9271 | -0.0034 | no |
+| A2-VPN | E08-lgbm_class_weight | 0.883 | 0.8893 +- 0.0044 | E07-lgbm | 0.8768 | 0.0062 | no |
+| A2-NonVPN | E08-lgbm_class_weight | 0.9049 | 0.9333 +- 0.0080 | E07-lgbm | 0.9028 | 0.0022 | no |
+| B | E08-xgb_class_weight | 0.8364 | 0.8358 +- 0.0094 | E07-xgb | 0.8428 | -0.0064 | no |
+
+## E08 run details
+
+| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | complexity | train s | 5-fold CV s | predict ms/1k | model MiB (raw / file) | memory MiB (tracemalloc / child RSS) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| E08-xgb_class_weight-A1-15s | 0.924 | 0.924 | 0.924 | 0.923 | 0.001 | Non-VPN 0.92 | VPN 0.93 | 100 trees, depth 6.0 mean / 6 max, 7,356 nodes | 0.266 | 0.83 | 1.13 | 0.31 / 0.12 | 1.0 / 15.5 |
+| E08-lgbm_class_weight-A2-NonVPN-15s | 0.905 | 0.944 | 0.944 | 0.904 | 0.028 | STREAMING 0.82 | VOIP 1.00 | 6384 trees, depth 6.6 mean / 23 max, 198,240 nodes | 3.416 | 6.98 | 326.07 | 11.71 / 4.76 | 35.3 / 93.3 |
+| E08-lgbm_class_weight-A2-VPN-15s | 0.883 | 0.898 | 0.898 | 0.879 | 0.006 | VPN-CHAT 0.75 | VPN-VOIP 1.00 | 5663 trees, depth 22.1 mean / 62 max, 1,075,659 nodes | 12.751 | 18.32 | 1251.14 | 57.74 / 25.12 | 173.4 / 450.6 |
+| E08-xgb_class_weight-B-15s | 0.836 | 0.875 | 0.875 | 0.839 | -0.001 | VPN-MAIL 0.63 | VOIP 0.99 | 7070 trees, depth 5.8 mean / 6 max, 266,218 nodes | 9.531 | 11.32 | 58.0 | 13.08 / 4.35 | 1.0 / 103.0 |
+
+## E08 balancing ladder (stop rule: a step runs only if every earlier step helped)
+
+| task | step | run | val macro F1 | change vs none | F1 of weakest class without balancing | helped | next |
+|---|---|---|---|---|---|---|---|
+| A1 | none | E06-xgb | 0.9271 | 0.0 | Non-VPN 0.9240 |  |  |
+| A1 | class_weight | E08-xgb_class_weight | 0.9237 | -0.0034 | Non-VPN 0.9202 | no | stop: this step did not help |
+| A2-VPN | none | E07-lgbm | 0.8768 | 0.0 | VPN-CHAT 0.7343 |  |  |
+| A2-VPN | class_weight | E08-lgbm_class_weight | 0.883 | 0.0062 | VPN-CHAT 0.7463 | yes |  |
+| A2-VPN | oversample | not run yet |  |  |  |  | run this step |
+| A2-NonVPN | none | E07-lgbm | 0.9028 | 0.0 | STREAMING 0.8095 |  |  |
+| A2-NonVPN | class_weight | E08-lgbm_class_weight | 0.9049 | 0.0022 | STREAMING 0.8189 | yes |  |
+| A2-NonVPN | oversample | not run yet |  |  |  |  | run this step |
+| B | none | E07-xgb | 0.8428 | 0.0 | VPN-MAIL 0.6496 |  |  |
+| B | class_weight | E08-xgb_class_weight | 0.8364 | -0.0064 | VPN-MAIL 0.6290 | no | stop: this step did not help |
+
 ## Storage of the Phase 3 runs (mlruns/utsav-s-r, models saved with joblib compression level 3)
 
 Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included.
@@ -225,8 +267,10 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E07 lgbm | 3 | 92.646 | 62.694 | 62.51 |
 | E07 rf | 1 | 3.835 | 3.835 | 3.72 |
 | E07 xgb | 4 | 9.238 | 4.508 | 4.315 |
+| E08 lgbm | 2 | 30.073 | 25.222 | 25.121 |
+| E08 xgb | 2 | 4.724 | 4.511 | 4.348 |
 
-Whole store now: artifacts 508.4 MiB, mlflow.db 17.7 MiB.
+Whole store now: artifacts 543.2 MiB, mlflow.db 17.9 MiB.
 
 ## Threshold checks (pre-stated in the E## files)
 
