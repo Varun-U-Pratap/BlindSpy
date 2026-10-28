@@ -379,3 +379,29 @@ def test_train_and_score_keeps_only_the_feature_set(tmp_path):
     assert p["features"] == ",".join(select_features(cols, "only_fiat"))
     model = joblib.load(tmp_path / "model" / "model.joblib")
     assert list(model.feature_names_in_) == ["min_fiat", "max_fiat", "mean_fiat", "std_fiat"]
+
+
+def test_kaggle_run_grid_search_then_one_test_score(tmp_path):
+    X, y = toy(3, n=400)
+    df = X.assign(label=y.to_numpy(), timeout=15, source_task="A2-VPN", source_row=range(400))
+    train_rows, test_rows = df.iloc[:320], df.iloc[320:]
+    cfg = {"experiment_id": "E_test", "run_name": "x", "task": "kaggle", "timeout": 15,
+           "model": "rf", "params": {}, "split": "per_timeout_15s", "save_model": True,
+           "grid": {"n_estimators": [5, 10], "max_depth": [None, 3]}}  # fmt: skip
+    out = train.kaggle_run(cfg, train_rows, test_rows, seed=42, out_dir=tmp_path, compress=3)
+    m, p = out["metrics"], out["params"]
+    assert m["grid_configs"] == 4 and m["grid_total_fits"] == 20
+    assert p["features"] == "a,b,c,d" and p["n_test"] == 80  # bookkeeping columns not used
+    assert out["tags"]["protocol"] == "kaggle_per_timeout"
+    best = json.loads(p["grid_best_params"])
+    ref = models.build_model("rf", best, 42).fit(train_rows[list("abcd")], train_rows["label"])
+    model = joblib.load(tmp_path / "model" / "model.joblib")
+    assert (model.predict(test_rows[list("abcd")]) == ref.predict(test_rows[list("abcd")])).all()
+    assert m["kaggle_test_accuracy"] == pytest.approx(
+        (ref.predict(test_rows[list("abcd")]) == test_rows["label"]).mean()
+    )
+    assert (tmp_path / "grid" / "cv_results.csv").exists()
+    cfg2 = {**cfg, "model": "xgb", "params": {"n_estimators": 5}, "split": "isnan"}
+    del cfg2["grid"]
+    out2 = train.kaggle_run(cfg2, train_rows, test_rows, seed=42, out_dir=tmp_path / "b")
+    assert "grid_configs" not in out2["metrics"] and out2["tags"]["protocol"] == "kaggle_isnan"

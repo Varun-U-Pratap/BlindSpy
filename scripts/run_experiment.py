@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import mlflow  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from blindspy import data, splits, tracking, train, tuning  # noqa: E402
+from blindspy import data, kaggle, splits, tracking, train, tuning  # noqa: E402
 
 
 def run_smoke(cfg: dict, base: dict) -> None:
@@ -92,6 +92,22 @@ def run_optuna(cfg: dict, base: dict) -> None:
         tracking.log_result(result, Path(tmp))
 
 
+def run_kaggle(cfg: dict, base: dict) -> None:
+    """E16: a split of the Kaggle data version (kaggle-k1, scripts/prepare_kaggle.py)."""
+    version = cfg["data_version"].removeprefix("kaggle-")
+    train_rows, test_rows = kaggle.load_split(version, cfg["split"])
+    files = json.loads((kaggle.processed_dir(version) / "manifest.json").read_text())[
+        "files_sha256"
+    ]
+    mlflow.set_tags({"data_version": cfg["data_version"], "data_sha256": files["rows.parquet"],
+                     "data_split_sha256": files[f"splits/{cfg['split']}.json"],
+                     "data_file": f"data/processed/kaggle/{version}/rows.parquet"})  # fmt: skip
+    with tempfile.TemporaryDirectory() as tmp:
+        result = train.kaggle_run(cfg, train_rows, test_rows, base["seed"], Path(tmp),
+                                  compress=base.get("model_compress", 0))  # fmt: skip
+        tracking.log_result(result, Path(tmp))
+
+
 def run_paper_benchmark(cfg: dict, base: dict) -> None:
     version = base["data_version"]
     if cfg["rows"] == "published":
@@ -119,6 +135,7 @@ KINDS = {
     "train": run_train,
     "paper_benchmark": run_paper_benchmark,
     "optuna": run_optuna,
+    "kaggle": run_kaggle,
 }
 
 

@@ -7,7 +7,42 @@ overwritten). Every number below comes from that version's `manifest.json` and
 
 | Version | Date | Author | What changed | Files | Rows (raw lines -> final) | Commit |
 |---|---|---|---|---|---|---|
+| kaggle-k1 | 2026-10-29 | utsav-s-r | Kaggle CSV of Isnan et al. (2026) as its own version, for E16 only; data v1 unchanged | 1 CSV (= the 8 A2 files stacked) | 59,706 -> 40,987 (their dedup) / 56,030 kept per timeout | 3a72f2e |
 | v1 | 2026-10-27 | utsav-s-r | First cleaned version | 16 core files (A1, A2-VPN, A2-NonVPN, B x 15/30/60/120 s) | 179,120 -> 167,909 | 0a36896 |
+
+## kaggle-k1 (2026-10-29, utsav-s-r)
+
+**What.** The Kaggle CSV used by Isnan et al. (2026), `datasets/kaggle/consolidated_traffic_data.csv`
+(SHA-256 in `data/kaggle_sha256.txt`), as its own data version for E16. Built with
+`uv run python scripts/prepare_kaggle.py --version k1` into `data/processed/kaggle/k1/` (never
+overwritten); manifest copied to `data/kaggle_k1_manifest.json`. Every number below comes from
+that manifest.
+
+- The CSV is the eight A2 files (VPN and NonVPN x 4 timeouts) stacked in their original row order:
+  A2-NonVPN 120 s (5,151 rows), A2-VPN 120 s (5,631), A2-NonVPN 15 s (8,965), A2-VPN 15 s (9,793),
+  A2-NonVPN 30 s (6,917), A2-VPN 30 s (7,734), A2-NonVPN 60 s (8,580), A2-VPN 60 s (6,935). Each
+  block was checked against its ARFF file (23 features at 12 significant digits and the label),
+  so every row's source file, timeout and row number are known (`rows.parquet`).
+- Labels: the 14 task-B classes. Features: the 23 A2 features (total_fiat / total_biat layout).
+- Split "isnan" (Isnan et al.'s setup): exact duplicates (23 features + label) dropped over the
+  whole CSV, first copy kept: 59,706 -> 40,987 rows; stratified 80/20, seed 42: 32,789 / 8,198.
+- Splits "per_timeout_<t>s" (corrected setup): each timeout on its own, duplicates dropped within
+  it, then stratified 80/20, seed 42: 15 s 18,758 -> 18,074 (14,459 / 3,615); 30 s 14,651 ->
+  13,638 (10,910 / 2,728); 60 s 15,515 -> 14,729 (11,783 / 2,946); 120 s 10,782 -> 9,589 (7,671 /
+  1,918). 56,030 rows kept over the four timeouts.
+- Distinct rows (23 features + label) by the number of timeout files they appear in: 1: 33,894;
+  2: 2,475; 3: 1,286; 4: 3,332 (7,093 in two or more, as E00 found).
+- Split files keep the row order `train_test_split` returns (a seeded forest and an unshuffled
+  5-fold CV depend on it).
+- Not done, on purpose: no cleaning beyond the duplicate rule (no odd-value rules, no column
+  changes); the data is used as Isnan et al. used it.
+
+**Why.** E16 reproduces Isnan et al. and then repeats their protocol with the timeouts kept apart;
+their data mixes timeouts, so it needs its own version, separate from v1.
+
+**Checks.** Two builds into separate folders and the build in the main folder gave identical
+SHA-256 hashes for all 6 files; a second build into an existing folder is refused
+(`tests/test_kaggle.py`).
 
 ## v1 (2026-10-27, utsav-s-r)
 

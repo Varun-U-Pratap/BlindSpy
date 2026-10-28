@@ -276,3 +276,69 @@ def paper_benchmark(
         f"{q['true']} -> {q['predicted']}: {q['count']}" for q in info["top_confusion_pairs"]
     )
     return {"params": params, "metrics": metrics, "tags": tags, "info": info}
+
+
+def kaggle_run(
+    cfg: dict, train: pd.DataFrame, test: pd.DataFrame, seed: int, out_dir: Path,
+    compress: int = 0,
+) -> dict:  # fmt: skip
+    """E16 on the Kaggle CSV (data version kaggle-k1): Isnan et al.'s 80/20 protocol.
+
+    With cfg["grid"]: their GridSearchCV (5-fold, scikit-learn's default stratified folds
+    without shuffling, accuracy as the score) over the grid on the training rows, the best
+    settings refitted on all training rows; otherwise the config's fixed model. Then one score
+    on the 80/20 split's test rows (Kaggle rows, not our v1 test set)."""
+    from sklearn.model_selection import GridSearchCV
+
+    out_dir = Path(out_dir)
+    feats = [c for c in train.columns if c not in ("label", "source_task", "timeout",
+                                                   "source_row")]  # fmt: skip
+    X_tr, y_tr, X_te, y_te = train[feats], train["label"], test[feats], test["label"]
+    pipe = models.build_model(cfg["model"], cfg.get("params"), seed)
+    extra, grid_metrics = {}, {}
+    if cfg.get("grid"):
+        grid = {f"model__{k}": v for k, v in cfg["grid"].items()}
+        t0 = time.perf_counter()
+        gs = GridSearchCV(pipe, grid, cv=5, scoring="accuracy", n_jobs=CV_N_JOBS, refit=False)
+        gs.fit(X_tr, y_tr)
+        grid_metrics = {"grid_time_s": time.perf_counter() - t0,
+                        "grid_best_cv_accuracy": float(gs.best_score_),
+                        "grid_best_cv_accuracy_std":
+                            float(gs.cv_results_["std_test_score"][gs.best_index_]),
+                        "grid_configs": len(gs.cv_results_["params"]),
+                        "grid_total_fits": len(gs.cv_results_["params"]) * 5}  # fmt: skip
+        best = {k.removeprefix("model__"): v for k, v in gs.best_params_.items()}
+        pipe = models.build_model(cfg["model"], {**(cfg.get("params") or {}), **best}, seed)
+        extra = {
+            "grid": json.dumps(cfg["grid"]),
+            "grid_best_params": json.dumps(best),
+            "grid_cv": "GridSearchCV cv=5 (stratified, no shuffle), scoring=accuracy",
+        }
+        (out_dir / "grid").mkdir(parents=True, exist_ok=True)
+        pd.DataFrame(gs.cv_results_).drop(columns="params").to_csv(
+            out_dir / "grid" / "cv_results.csv", index=False)  # fmt: skip
+    cost = _cost(pipe, X_tr, y_tr, X_te, out_dir, cfg.get("save_model", True), compress)
+    classes = [str(c) for c in pipe.classes_]
+    pred = pipe.predict(X_te)
+    m, info = evaluate.evaluate(y_te, pred, models.class_scores(pipe, X_te), classes,
+                                out_dir / "eval")  # fmt: skip
+    metrics = {f"kaggle_test_{k}": v for k, v in m.items()}
+    metrics.update(grid_metrics)
+    metrics.update(cost)
+    metrics.update({f"model_{k}": v for k, v in models.complexity(pipe).items()})
+    _save_booster_config(pipe, out_dir)
+    counts = {name: part["label"].value_counts().sort_index().to_dict()
+              for name, part in (("train", train), ("test", test))}  # fmt: skip
+    (out_dir / "data").mkdir(parents=True, exist_ok=True)
+    (out_dir / "data" / "class_counts.json").write_text(json.dumps(counts, indent=1))
+    params = {
+        **_base_params(cfg, pipe, X_tr, seed, compress), **extra,
+        "protocol": f"kaggle {cfg['split']}: fit on the split's training rows, score once on its "
+                    "test rows",
+        "split": cfg["split"], "n_train": len(train), "n_test": len(test),
+        "timeouts_in_train": ",".join(str(t) for t in sorted(train["timeout"].unique())),
+        "classes": ",".join(classes),
+    }  # fmt: skip
+    tags = {"protocol": "kaggle_isnan" if cfg["split"] == "isnan" else "kaggle_per_timeout",
+            **{k: v for k, v in info.items() if k.endswith(("f1", "recall"))}}  # fmt: skip
+    return {"params": params, "metrics": metrics, "tags": tags, "info": info}

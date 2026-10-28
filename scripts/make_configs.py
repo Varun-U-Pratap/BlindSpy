@@ -140,6 +140,11 @@ E09_SETS = [f for f in features.FEATURE_SETS if f != "all"]
 E13_FRACTIONS = [0.1, 0.2, 0.4, 0.6, 0.8]
 E13_SEEDS = [42, 43, 44, 45, 46]
 E14_SEEDS = list(range(42, 52))
+# E16 on the Kaggle CSV (data version kaggle-k1): Isnan et al.'s Random Forest grid (their paper:
+# GridSearchCV, 5-fold, accuracy), (a) on their 80/20 split, (b) per timeout; (c) our task-B
+# headline model (configs/final/B.yaml) per timeout, settings fixed
+E16_GRID = {"n_estimators": [100, 200, 300], "max_depth": [None, 20, 30],
+            "min_samples_split": [2, 5], "min_samples_leaf": [1, 2]}  # fmt: skip
 
 
 def write(name: str, cfg: dict) -> None:
@@ -236,6 +241,40 @@ def main() -> None:
                 **keep, "split_seed": seed, "builds_on": final["builds_on"], "save_model": True,
             })  # fmt: skip
             n += 1
+    final_b = yaml.safe_load((ROOT / "configs" / "final" / "B.yaml").read_text())
+    common = {"experiment_id": "E16", "kind": "kaggle", "task": "kaggle",
+              "data_version": "kaggle-k1", "save_model": True}  # fmt: skip
+    write(
+        "E16_isnan_rf",
+        {
+            **common,
+            "run_name": "E16-isnan-rf",
+            "timeout": "mixed",
+            "split": "isnan",
+            "model": "rf",
+            "params": {},
+            "grid": E16_GRID,
+        },
+    )
+    n += 1
+    for t in TIMEOUTS:
+        write(
+            f"E16_per_timeout_rf_{t}s",
+            {
+                **common,
+                "run_name": f"E16-per_timeout-rf-{t}s",
+                "timeout": t,
+                "split": f"per_timeout_{t}s",
+                "model": "rf",
+                "params": {},
+                "grid": E16_GRID,
+            },
+        )
+        write(f"E16_per_timeout_xgb_{t}s", {
+            **common, "run_name": f"E16-per_timeout-xgb-{t}s", "timeout": t,
+            "split": f"per_timeout_{t}s", "model": final_b["model"], "params": final_b["params"],
+            "builds_on": final_b["builds_on"]})  # fmt: skip
+        n += 2
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")
 
 

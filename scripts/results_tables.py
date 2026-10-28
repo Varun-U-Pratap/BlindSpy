@@ -296,6 +296,15 @@ def phase3() -> None:
         out += ["", "## E09 feature-group ablation on the headline model per task (15 s, "
                 "validation; \"all\" = the headline run)", "", R.md(t9)]  # fmt: skip
         v.update(R.e09_verdicts(t9))
+    if (h["tags.experiment_id"] == "E16").any():
+        out += [
+            "",
+            "## E16 Isnan et al. on the Kaggle CSV (data version kaggle-k1; test = the "
+            "80/20 split's Kaggle test rows, not our v1 test set)",
+            "",
+            R.md(R.e16_table(h)),
+        ]
+        v.update(R.e16_verdicts(h))
     if (h["tags.experiment_id"] == "E13").any():
         t13 = R.e13_table(h, s)
         out += [
