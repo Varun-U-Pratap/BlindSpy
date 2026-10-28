@@ -134,6 +134,12 @@ E10_BASE = "E07-xgb-B-15s"
 # E09 feature-group ablation on the headline model per task (configs/final/<task>.yaml): the
 # same model and settings with one feature set; "all" is the headline run itself (not rerun)
 E09_SETS = [f for f in features.FEATURE_SETS if f != "all"]
+# E13 learning curve and E14 split-seed stability on the headline models (configs/final):
+# same model, settings and model seed 42; only the training rows change. E13's 100% point is
+# the headline run itself; E14 resplits train + validation (test rows never touched).
+E13_FRACTIONS = [0.1, 0.2, 0.4, 0.6, 0.8]
+E13_SEEDS = [42, 43, 44, 45, 46]
+E14_SEEDS = list(range(42, 52))
 
 
 def write(name: str, cfg: dict) -> None:
@@ -213,6 +219,21 @@ def main() -> None:
             write(f"E09_{fs}_{task}_15s", {
                 "experiment_id": "E09", "run_name": f"E09-{fs}-{task}-15s", "kind": "train",
                 **keep, "feature_set": fs, "builds_on": final["builds_on"], "save_model": True,
+            })  # fmt: skip
+            n += 1
+        for f in E13_FRACTIONS:
+            for seed in E13_SEEDS:
+                name = f"f{round(f * 100):03d}-s{seed}"
+                write(f"E13_{name}_{task}_15s", {
+                    "experiment_id": "E13", "run_name": f"E13-{name}-{task}-15s",
+                    "kind": "train", **keep, "train_fraction": f, "subsample_seed": seed,
+                    "builds_on": final["builds_on"], "save_model": True,
+                })  # fmt: skip
+                n += 1
+        for seed in E14_SEEDS:
+            write(f"E14_seed{seed}_{task}_15s", {
+                "experiment_id": "E14", "run_name": f"E14-seed{seed}-{task}-15s", "kind": "train",
+                **keep, "split_seed": seed, "builds_on": final["builds_on"], "save_model": True,
             })  # fmt: skip
             n += 1
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")

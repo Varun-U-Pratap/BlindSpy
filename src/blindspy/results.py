@@ -979,3 +979,108 @@ def e09_verdicts(t: pd.DataFrame) -> dict:
         "E09_stop_and_ask": {"sets_at_least_0.03_above_all": above,
                              "triggered": any(above.values())},
     }  # fmt: skip
+
+
+def _analysis_runs(h: pd.DataFrame, exp: str) -> pd.DataFrame:
+    return h[(h["tags.experiment_id"] == exp) & (h["tags.protocol"] == "holdout")]
+
+
+def e13_table(h: pd.DataFrame, s: pd.DataFrame) -> pd.DataFrame:
+    """E13 learning curve per task: validation macro F1 mean +- std over the subsample seeds at
+    each training fraction; 100% is the headline run (one run, the full training set)."""
+    head = final_choice(s).set_index("task")
+    manifest = json.loads((ROOT / "data" / "manifest.json").read_text())["tasks"]
+    train_rows = {k: v["summary"]["train"] for k, v in manifest.items()}
+    e = _analysis_runs(h, "E13")
+    rows = []
+    for task in CORE_TASKS:
+        g = e[e["params.task"] == task].copy()
+        g["f"] = g["params.train_fraction"].astype(float)
+        for f, x in g.groupby("f"):
+            rows.append(
+                {
+                    "task": task,
+                    "train fraction": f,
+                    "runs": len(x),
+                    "training rows": int(x["params.n_train_rows"].astype(float).iloc[0]),
+                    "val macro F1 mean": round(x["metrics.val_f1_macro"].mean(), 4),
+                    "val macro F1 std": round(x["metrics.val_f1_macro"].std(ddof=1), 4),
+                }
+            )
+        base = h[h["run_name"] == head.loc[task, "run"]].iloc[0]
+        if not g.empty:
+            rows.append({"task": task, "train fraction": 1.0, "runs": 1,
+                         "training rows": train_rows[f"{task}_15s"],
+                         "val macro F1 mean": round(base["metrics.val_f1_macro"], 4),
+                         "val macro F1 std": float("nan")})  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e13_verdicts(t: pd.DataFrame) -> dict:
+    """(a) 100% above 10% in all 4 tasks; (b) gain 80% -> 100% below 0.01 in 3 of 4;
+    (c) seed std at 10% above the std at 80% in 3 of 4."""
+    m = {k: g.set_index("train fraction") for k, g in t.groupby("task")}
+    up = {k: round(float(g.loc[1.0, "val macro F1 mean"] - g.loc[0.1, "val macro F1 mean"]), 4)
+          for k, g in m.items()}  # fmt: skip
+    last = {k: round(float(g.loc[1.0, "val macro F1 mean"] - g.loc[0.8, "val macro F1 mean"]), 4)
+            for k, g in m.items()}  # fmt: skip
+    spread = {k: [float(g.loc[0.1, "val macro F1 std"]), float(g.loc[0.8, "val macro F1 std"])]
+              for k, g in m.items()}  # fmt: skip
+    return {
+        "E13a": {"gain_10_to_100": up, "supported": all(v > 0 for v in up.values())},
+        "E13b": {"gain_80_to_100": last, "tasks_below_0.01": sum(v < 0.01 for v in last.values()),
+                 "needed": 3, "supported": sum(v < 0.01 for v in last.values()) >= 3},
+        "E13c": {"std_at_10_and_80": spread,
+                 "tasks_10_above_80": sum(a > b for a, b in spread.values()), "needed": 3,
+                 "supported": sum(a > b for a, b in spread.values()) >= 3},
+    }  # fmt: skip
+
+
+def e14_table(h: pd.DataFrame, s: pd.DataFrame) -> pd.DataFrame:
+    """E14 per task over the split seeds: validation macro F1 and accuracy mean +- std, range,
+    mean CV macro F1 and the mean CV - validation gap, against the official (seed 42) run."""
+    head = final_choice(s).set_index("task")
+    e = _analysis_runs(h, "E14")
+    rows = []
+    for task in CORE_TASKS:
+        g = e[e["params.task"] == task]
+        if g.empty:
+            continue
+        f1, cv = g["metrics.val_f1_macro"], g["metrics.cv_f1_macro_mean"]
+        official = h[h["run_name"] == head.loc[task, "run"]].iloc[0]["metrics.val_f1_macro"]
+        rows.append({
+            "task": task, "seeds": len(g),
+            "val macro F1 mean": round(f1.mean(), 4), "val macro F1 std": round(f1.std(ddof=1), 4),
+            "val macro F1 min": round(f1.min(), 4), "val macro F1 max": round(f1.max(), 4),
+            "val accuracy mean": round(g["metrics.val_accuracy"].mean(), 4),
+            "val accuracy std": round(g["metrics.val_accuracy"].std(ddof=1), 4),
+            "CV macro F1 mean": round(cv.mean(), 4),
+            "CV - val mean": round((cv - f1).mean(), 4),
+            "official split (seed 42) val macro F1": round(official, 4),
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e14_verdicts(t: pd.DataFrame) -> dict:
+    """(a) std of validation macro F1 below 0.01 in 3 of 4 tasks; (b) |mean CV - mean val| below
+    0.01 in 3 of 4; (c) the official split's score lies inside the 10 resplits' range in 4 of 4."""
+    t = t.set_index("task")
+    std = t["val macro F1 std"].to_dict()
+    gap = t["CV - val mean"].to_dict()
+    off = t["official split (seed 42) val macro F1"]
+    inside = ((off >= t["val macro F1 min"]) & (off <= t["val macro F1 max"])).to_dict()
+    return {
+        "E14a": {"std": std, "tasks_below_0.01": sum(v < 0.01 for v in std.values()), "needed": 3,
+                 "supported": sum(v < 0.01 for v in std.values()) >= 3},
+        "E14b": {"cv_minus_val": gap, "tasks_below_0.01": sum(abs(v) < 0.01 for v in gap.values()),
+                 "needed": 3, "supported": sum(abs(v) < 0.01 for v in gap.values()) >= 3},
+        "E14c": {"official_inside_range": inside, "needed": 4,
+                 "supported": all(inside.values())},
+    }  # fmt: skip
+
+
+def e14_mean_confusion(h: pd.DataFrame, task: str, runner: str) -> pd.DataFrame:
+    """E14: the validation confusion matrix averaged over the split seeds (rows true)."""
+    e = _analysis_runs(h, "E14")
+    cms = [run_confusion(r, runner) for r in e[e["params.task"] == task]["run_id"]]
+    return (sum(cms) / len(cms)).round(1)
