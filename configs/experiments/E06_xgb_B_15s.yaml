@@ -1,0 +1,8 @@
+experiment_id: E06
+run_name: E06-xgb-B-15s
+kind: train
+task: B
+timeout: 15
+model: xgb
+params: {}
+save_model: true
