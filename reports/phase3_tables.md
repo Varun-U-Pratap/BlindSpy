@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 45, status FINISHED: 45.
-- Git commit(s) of these runs: 016ccd3, 1955147, 2b9a93c, 3817307, 38ccc65, 4308ecb, 4ecf982, 817757f, 84e82e2.
+- Phase 3 holdout runs: 46, status FINISHED: 46.
+- Git commit(s) of these runs: 016ccd3, 1955147, 2b9a93c, 3817307, 38ccc65, 4308ecb, 4ecf982, 7266637, 817757f, 84e82e2.
 
 ## Current best at 15 s after E04
 
@@ -259,6 +259,34 @@ are excluded. Data version: v1.
 | B | none | E07-xgb | 0.8428 | 0.0 | VPN-MAIL 0.6496 |  |  |
 | B | class_weight | E08-xgb_class_weight | 0.8364 | -0.0064 | VPN-MAIL 0.6290 | no | stop: this step did not help |
 
+## Current best at 15 s after E10
+
+| task | current best at 15 s | val macro F1 | CV macro F1 |
+|---|---|---|---|
+| A1 | E06-xgb | 0.9271 | 0.9251 +- 0.0046 |
+| A2-VPN | E08-lgbm_class_weight | 0.883 | 0.8893 +- 0.0044 |
+| A2-NonVPN | E08-lgbm_oversample | 0.9075 | 0.9310 +- 0.0058 |
+| B | E07-xgb | 0.8428 | 0.8405 +- 0.0056 |
+
+## E10 at 15 s against the best run before it
+
+| task | model | val macro F1 | CV macro F1 | best before | best before F1 | gain | winner (gain >= 0.03) |
+|---|---|---|---|---|---|---|---|
+| B | E10-xgb_two_step | 0.8318 | 0.8274 +- 0.0083 | E07-xgb | 0.8428 | -0.011 | no |
+
+## E10 run details
+
+| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | complexity | train s | 5-fold CV s | predict ms/1k | model MiB (raw / file) | memory MiB (tracemalloc / child RSS) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| E10-xgb_two_step-B-15s | 0.832 | 0.872 | 0.873 | 0.822 | -0.004 | VPN-MAIL 0.62 | VOIP 0.99 | 7575 trees, depth 5.3 mean / 6 max, 225,553 nodes | 6.761 | 10.44 | 30.69 | 12.10 / 3.73 | 2.5 / 65.5 |
+
+## E10 task B: direct vs two-step (errors split at the VPN / non-VPN line)
+
+| structure | run | val macro F1 | CV macro F1 | val accuracy | rows | errors | group errors (VPN / non-VPN wrong) | type errors (right group, wrong type) | group accuracy | share of errors from the group |
+|---|---|---|---|---|---|---|---|---|---|---|
+| direct 14-class | E07-xgb | 0.8428 | 0.8405 +- 0.0056 | 0.8794 | 2,711 | 327 | 180 | 147 | 0.9336 | 0.5505 |
+| two-step | E10-xgb_two_step | 0.8318 | 0.8274 +- 0.0083 | 0.8727 | 2,711 | 345 | 191 | 154 | 0.9295 | 0.5536 |
+
 ## Storage of the Phase 3 runs (mlruns/utsav-s-r, models saved with joblib compression level 3)
 
 Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included.
@@ -276,8 +304,9 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E07 xgb | 4 | 9.238 | 4.508 | 4.315 |
 | E08 lgbm | 5 | 67.775 | 27.135 | 27.033 |
 | E08 xgb | 2 | 4.724 | 4.511 | 4.348 |
+| E10 xgb_two_step | 1 | 3.856 | 3.856 | 3.728 |
 
-Whole store now: artifacts 580.9 MiB, mlflow.db 18.0 MiB.
+Whole store now: artifacts 584.7 MiB, mlflow.db 18.1 MiB.
 
 ## Threshold checks (pre-stated in the E## files)
 
@@ -421,6 +450,19 @@ Whole store now: artifacts 580.9 MiB, mlflow.db 18.0 MiB.
   },
   "tasks_raised": 2,
   "needed": 2,
+  "supported": true
+ },
+ "E10a": {
+  "two_step_minus_direct": -0.011,
+  "supported": false
+ },
+ "E10b": {
+  "two_step_group_errors": 191,
+  "direct_group_errors": 180,
+  "supported": false
+ },
+ "E10c": {
+  "share_of_two_step_errors_from_step_1": 0.5536,
   "supported": true
  }
 }

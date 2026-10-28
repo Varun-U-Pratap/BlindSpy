@@ -228,6 +228,7 @@ def phase3() -> None:
            f"- Phase 3 holdout runs: {len(p3)}, status FINISHED: "
            f"{int((p3['status'] == 'FINISHED').sum())}.",
            "- Git commit(s) of these runs: " + ", ".join(commits) + "."]  # fmt: skip
+    runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
     done = [e for e in R.SELECTION_EXPS[3:] if (s["tags.experiment_id"] == e).any()]
     for exp in done:
         out += ["", f"## Current best at 15 s after {exp}", "", R.md(R.current_best(s, exp))]
@@ -241,6 +242,9 @@ def phase3() -> None:
         if exp == "E06":
             out += ["", "## E07 scope: best 2 of RF / XGBoost / LightGBM per task, plus KNN",
                     "", R.md(R.e07_candidates(s))]  # fmt: skip
+        if exp == "E10":
+            out += ["", "## E10 task B: direct vs two-step (errors split at the VPN / non-VPN "
+                    "line)", "", R.md(R.e10_table(s, runner))]  # fmt: skip
         if exp == "E08":
             out += ["", "## E08 balancing ladder (stop rule: a step runs only if every earlier "
                     "step helped)", "", R.md(R.e08_ladder(s, R.E08_BASE))]  # fmt: skip
@@ -250,14 +254,13 @@ def phase3() -> None:
         if exp == "E04":
             out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
                     "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip
-    runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
     st, total = storage(p3, runner, by_experiment=True)
     out += ["", f"## Storage of the Phase 3 runs (mlruns/{runner}, models saved with joblib "
             "compression level 3)", "", "Sizes in MiB (2**20 bytes). Optuna trial runs save no "
             "model and are not included.", "", R.md(st), "",
             f"Whole store now: artifacts {total['artifacts_MB']} MiB, "
             f"mlflow.db {total['mlflow_db_MB']} MiB."]  # fmt: skip
-    v = R.phase3_verdicts(s)
+    v = R.phase3_verdicts(s, runner)
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip
     OUT3.write_text("\n".join(out))

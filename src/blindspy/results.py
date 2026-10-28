@@ -505,8 +505,9 @@ def run_details(s: pd.DataFrame, exp: str) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def phase3_verdicts(s: pd.DataFrame) -> dict:
-    """Every pre-stated Phase 3 threshold that can be computed so far."""
+def phase3_verdicts(s: pd.DataFrame, runner: str | None = None) -> dict:
+    """Every pre-stated Phase 3 threshold that can be computed so far. E10 also reads the
+    confusion matrices from mlruns/<runner> (skipped without a runner)."""
     out = {}
     f1 = {(r["label"], r["params.task"], r["params.timeout"]): r["metrics.val_f1_macro"]
           for _, r in s.iterrows()}  # fmt: skip
@@ -617,6 +618,16 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
         out["E08c"] = {"weakest_class_f1_change_with_best_step": weak,
                        "tasks_raised": sum(w > 0 for w in weak.values()), "needed": 2}  # fmt: skip
         out["E08c"]["supported"] = out["E08c"]["tasks_raised"] >= 2
+    if runner and any(k[0] == "E10-xgb_two_step" for k in f1):
+        d, t = e10_table(s, runner).to_dict("records")
+        grp = "group errors (VPN / non-VPN wrong)"
+        diff = round(t["val macro F1"] - d["val macro F1"], 4)
+        out["E10a"] = {"two_step_minus_direct": diff, "supported": abs(diff) <= 0.01}
+        out["E10b"] = {"two_step_group_errors": t[grp], "direct_group_errors": d[grp],
+                       "supported": t[grp] < d[grp]}  # fmt: skip
+        out["E10c"] = {"share_of_two_step_errors_from_step_1":
+                       t["share of errors from the group"],
+                       "supported": t["share of errors from the group"] > 0.5}  # fmt: skip
     return out  # fmt: skip
 
 
@@ -640,6 +651,26 @@ def run_confusion(run_id: str, runner: str) -> pd.DataFrame:
     """A run's validation confusion matrix from its MLflow artifacts."""
     path = ROOT / "mlruns" / runner / "artifacts" / run_id / "artifacts" / "eval"
     return pd.read_csv(path / "confusion_matrix.csv", index_col=0)
+
+
+E10_DIRECT = "E07-xgb"  # the current best B model after E08 (E10.md)
+
+
+def e10_table(s: pd.DataFrame, runner: str) -> pd.DataFrame:
+    """E10: the direct 14-class model and the two-step model on the same B validation rows."""
+    rows = []
+    for label in (E10_DIRECT, "E10-xgb_two_step"):
+        r = s[(s["label"] == label) & (s["params.task"] == "B")
+              & (s["params.timeout"] == 15)].iloc[0]  # fmt: skip
+        rows.append({
+            "structure": "two-step" if "two_step" in label else "direct 14-class",
+            "run": label, "val macro F1": round(r["metrics.val_f1_macro"], 4),
+            "CV macro F1": f"{r['metrics.cv_f1_macro_mean']:.4f} +- "
+                           f"{r['metrics.cv_f1_macro_std']:.4f}",
+            "val accuracy": round(r["metrics.val_accuracy"], 4),
+            **vpn_group_errors(run_confusion(r["run_id"], runner)),
+        })  # fmt: skip
+    return pd.DataFrame(rows)
 
 
 E08_ORDER = ["none", "class_weight", "oversample", "smote"]
