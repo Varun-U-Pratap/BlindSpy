@@ -903,6 +903,16 @@ now compared against it. Next: E05 Random Forest.
 
 MLflow runs: E04-knn_log_standard-*, E04-knn_log_robust-*
 
+Addendum (Phase 3 recheck, 28 Oct): the setup check (plan Phase 3 item 1, done before E04) was
+until now recorded only in local notes, so it is written here. Setup commit 18316d7 (merged into
+dev as 5e79a74) holds model_compress: 3 in configs/base.yaml, xgboost / lightgbm / optuna /
+imbalanced-learn in pyproject.toml and uv.lock, the new logging in train.py, and the test that a
+compressed model reloads and predicts identically. A fresh scratch clone of dev at 5e79a74 with its
+own MLflow store (never the official one) rebuilt data v1 byte-identical to the main folder's (34
+of 34 files, SHA-256 compared again in this recheck) and reran E02-tree-A1-15s and E03-knn-B-15s:
+every non-timing metric equals the official Phase 2 run (28 and 72 metrics, 0 different; compared
+again in this recheck from both stores).
+
 ### E03 — KNN, Logistic Regression, SVM-RBF and the paper benchmark for KNN (2026-10-28, utsav-s-r)
 
 Hypothesis (holdout baselines): KNN (k = 5) on standard-scaled features comes close to the
