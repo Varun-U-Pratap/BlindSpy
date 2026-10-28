@@ -508,6 +508,25 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
             "needed": 3,
         }
         out["E04b"]["supported"] = out["E04b"]["tasks_within_0.02"] >= 3
+    if any(k[0] == "E05-rf" for k in f1):
+        rf = [f1["E05-rf", t, 15] for t in CORE_TASKS]
+        tree = [rf_ - f1["E02-tree", t, 15] for rf_, t in zip(rf, CORE_TASKS, strict=True)]
+        prev = [
+            rf_ - best_run(s, t, 15, "E04")["metrics.val_f1_macro"]
+            for rf_, t in zip(rf, CORE_TASKS, strict=True)
+        ]
+        out["E05a"] = {
+            "gains_vs_E02_tree": [round(g, 4) for g in tree],
+            "tasks_with_gain_ge_0.03": sum(is_winner(g) for g in tree),
+            "needed": 3,
+        }
+        out["E05a"]["supported"] = out["E05a"]["tasks_with_gain_ge_0.03"] >= 3
+        out["E05b"] = {
+            "gains_vs_best_after_E04": [round(g, 4) for g in prev],
+            "tasks_above": sum(g > 0 for g in prev),
+            "needed": 2,
+        }
+        out["E05b"]["supported"] = out["E05b"]["tasks_above"] >= 2
     return out  # fmt: skip
 
 
