@@ -117,6 +117,12 @@ def _cost(pipe, X_fit, y_fit, X_pred, out_dir: Path, save: bool, compress: int) 
     }
 
 
+def _describe_step(step) -> str:
+    """repr of a pipeline step; a FunctionTransformer is named by its function."""
+    func = getattr(step, "func", None)
+    return f"{type(step).__name__}({func.__name__})" if func is not None else repr(step)
+
+
 def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> dict:
     return {
         "task": cfg["task"],
@@ -125,6 +131,8 @@ def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> 
         **{f"model.{k}": v for k, v in (cfg.get("params") or {}).items()},
         "estimator": repr(pipe[-1]),
         "pipeline_steps": " -> ".join(type(s).__name__ for _, s in pipe.steps),
+        "preprocessing": "; ".join(f"{n}: {_describe_step(s)}" for n, s in pipe.steps[:-1])
+        or "none",
         "seed": seed,
         "class_balancing": "none",
         "features": ",".join(X.columns),

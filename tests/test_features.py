@@ -33,3 +33,19 @@ def test_knn_log_pipelines():
         pipe = models.build_model(name, {"n_neighbors": 5}, seed=42)
         assert [s for s, _ in pipe.steps] == ["log", "scale", "model"]
         assert type(pipe["scale"]).__name__ == scaler and pipe[-1].n_neighbors == 5
+
+
+def test_preprocessing_param_names_the_function():
+    from blindspy import train
+
+    pipe = models.build_model("knn_log_robust", {"n_neighbors": 5}, seed=42)
+    X = pd.DataFrame({"a": [1.0, 2.0]})
+    p = train._base_params({"task": "t", "timeout": 15, "model": "knn_log_robust"}, pipe, X, 42, 3)
+    assert p["preprocessing"] == "log: FunctionTransformer(signed_log); scale: RobustScaler()"
+    tree = models.build_model("tree", {}, seed=42)
+    assert (
+        train._base_params({"task": "t", "timeout": 15, "model": "tree"}, tree, X, 42, 3)[
+            "preprocessing"
+        ]
+        == "none"
+    )
