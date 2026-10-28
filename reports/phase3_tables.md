@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 42, status FINISHED: 42.
-- Git commit(s) of these runs: 016ccd3, 1955147, 3817307, 38ccc65, 4308ecb, 817757f, 84e82e2.
+- Phase 3 holdout runs: 44, status FINISHED: 44.
+- Git commit(s) of these runs: 016ccd3, 1955147, 3817307, 38ccc65, 4308ecb, 4ecf982, 817757f, 84e82e2.
 
 ## Current best at 15 s after E04
 
@@ -216,7 +216,7 @@ are excluded. Data version: v1.
 |---|---|---|---|
 | A1 | E06-xgb | 0.9271 | 0.9251 +- 0.0046 |
 | A2-VPN | E08-lgbm_class_weight | 0.883 | 0.8893 +- 0.0044 |
-| A2-NonVPN | E08-lgbm_class_weight | 0.9049 | 0.9333 +- 0.0080 |
+| A2-NonVPN | E08-lgbm_oversample | 0.9075 | 0.9310 +- 0.0058 |
 | B | E07-xgb | 0.8428 | 0.8405 +- 0.0056 |
 
 ## E08 at 15 s against the best run before it
@@ -225,7 +225,9 @@ are excluded. Data version: v1.
 |---|---|---|---|---|---|---|---|
 | A1 | E08-xgb_class_weight | 0.9237 | 0.9249 +- 0.0042 | E06-xgb | 0.9271 | -0.0034 | no |
 | A2-VPN | E08-lgbm_class_weight | 0.883 | 0.8893 +- 0.0044 | E07-lgbm | 0.8768 | 0.0062 | no |
+| A2-VPN | E08-lgbm_oversample | 0.883 | 0.8859 +- 0.0034 | E07-lgbm | 0.8768 | 0.0062 | no |
 | A2-NonVPN | E08-lgbm_class_weight | 0.9049 | 0.9333 +- 0.0080 | E07-lgbm | 0.9028 | 0.0022 | no |
+| A2-NonVPN | E08-lgbm_oversample | 0.9075 | 0.9310 +- 0.0058 | E07-lgbm | 0.9028 | 0.0047 | no |
 | B | E08-xgb_class_weight | 0.8364 | 0.8358 +- 0.0094 | E07-xgb | 0.8428 | -0.0064 | no |
 
 ## E08 run details
@@ -234,7 +236,9 @@ are excluded. Data version: v1.
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | E08-xgb_class_weight-A1-15s | 0.924 | 0.924 | 0.924 | 0.923 | 0.001 | Non-VPN 0.92 | VPN 0.93 | 100 trees, depth 6.0 mean / 6 max, 7,356 nodes | 0.266 | 0.83 | 1.13 | 0.31 / 0.12 | 1.0 / 15.5 |
 | E08-lgbm_class_weight-A2-NonVPN-15s | 0.905 | 0.944 | 0.944 | 0.904 | 0.028 | STREAMING 0.82 | VOIP 1.00 | 6384 trees, depth 6.6 mean / 23 max, 198,240 nodes | 3.416 | 6.98 | 326.07 | 11.71 / 4.76 | 35.3 / 93.3 |
+| E08-lgbm_oversample-A2-NonVPN-15s | 0.908 | 0.948 | 0.948 | 0.906 | 0.023 | MAIL 0.83 | VOIP 1.00 | 6384 trees, depth 6.3 mean / 25 max, 178,260 nodes | 5.055 | 9.36 | 284.25 | 10.77 / 4.32 | 34.7 / 98.0 |
 | E08-lgbm_class_weight-A2-VPN-15s | 0.883 | 0.898 | 0.898 | 0.879 | 0.006 | VPN-CHAT 0.75 | VPN-VOIP 1.00 | 5663 trees, depth 22.1 mean / 62 max, 1,075,659 nodes | 12.751 | 18.32 | 1251.14 | 57.74 / 25.12 | 173.4 / 450.6 |
+| E08-lgbm_oversample-A2-VPN-15s | 0.883 | 0.898 | 0.899 | 0.879 | 0.003 | VPN-CHAT 0.75 | VPN-VOIP 0.99 | 5663 trees, depth 23.0 mean / 72 max, 1,157,769 nodes | 16.912 | 26.21 | 1307.49 | 62.34 / 27.03 | 189.2 / 468.2 |
 | E08-xgb_class_weight-B-15s | 0.836 | 0.875 | 0.875 | 0.839 | -0.001 | VPN-MAIL 0.63 | VOIP 0.99 | 7070 trees, depth 5.8 mean / 6 max, 266,218 nodes | 9.531 | 11.32 | 58.0 | 13.08 / 4.35 | 1.0 / 103.0 |
 
 ## E08 balancing ladder (stop rule: a step runs only if every earlier step helped)
@@ -245,10 +249,11 @@ are excluded. Data version: v1.
 | A1 | class_weight | E08-xgb_class_weight | 0.9237 | -0.0034 | Non-VPN 0.9202 | no | stop: this step did not help |
 | A2-VPN | none | E07-lgbm | 0.8768 | 0.0 | VPN-CHAT 0.7343 |  |  |
 | A2-VPN | class_weight | E08-lgbm_class_weight | 0.883 | 0.0062 | VPN-CHAT 0.7463 | yes |  |
-| A2-VPN | oversample | not run yet |  |  |  |  | run this step |
+| A2-VPN | oversample | E08-lgbm_oversample | 0.883 | 0.0062 | VPN-CHAT 0.7477 | no | stop: this step did not help |
 | A2-NonVPN | none | E07-lgbm | 0.9028 | 0.0 | STREAMING 0.8095 |  |  |
 | A2-NonVPN | class_weight | E08-lgbm_class_weight | 0.9049 | 0.0022 | STREAMING 0.8189 | yes |  |
-| A2-NonVPN | oversample | not run yet |  |  |  |  | run this step |
+| A2-NonVPN | oversample | E08-lgbm_oversample | 0.9075 | 0.0047 | STREAMING 0.8372 | yes |  |
+| A2-NonVPN | smote | not run yet |  |  |  |  | run this step |
 | B | none | E07-xgb | 0.8428 | 0.0 | VPN-MAIL 0.6496 |  |  |
 | B | class_weight | E08-xgb_class_weight | 0.8364 | -0.0064 | VPN-MAIL 0.6290 | no | stop: this step did not help |
 
@@ -267,10 +272,10 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E07 lgbm | 3 | 92.646 | 62.694 | 62.51 |
 | E07 rf | 1 | 3.835 | 3.835 | 3.72 |
 | E07 xgb | 4 | 9.238 | 4.508 | 4.315 |
-| E08 lgbm | 2 | 30.073 | 25.222 | 25.121 |
+| E08 lgbm | 4 | 61.614 | 27.135 | 27.033 |
 | E08 xgb | 2 | 4.724 | 4.511 | 4.348 |
 
-Whole store now: artifacts 543.2 MiB, mlflow.db 17.9 MiB.
+Whole store now: artifacts 574.7 MiB, mlflow.db 18.0 MiB.
 
 ## Threshold checks (pre-stated in the E## files)
 
