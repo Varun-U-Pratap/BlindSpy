@@ -236,3 +236,24 @@ def test_vpn_group_errors_splits_cross_group_and_type_errors():
     assert g["group errors (VPN / non-VPN wrong)"] == 4
     assert g["type errors (right group, wrong type)"] == 2
     assert g["group accuracy"] == 0.9 and g["share of errors from the group"] == round(4 / 6, 4)
+
+
+def test_e10_verdicts_from_confusion_matrices(monkeypatch):
+    names = ["CHAT", "VPN-CHAT"]
+    cms = {"d": pd.DataFrame([[9, 1], [1, 9]], index=names, columns=names),
+           "t": pd.DataFrame([[8, 2], [1, 9]], index=names, columns=names)}  # fmt: skip
+    monkeypatch.setattr(R, "run_confusion", lambda rid, runner: cms[rid])
+    monkeypatch.setattr(R, "E10_DIRECT", "E03-xgb")  # no verdict block of its own
+    rows = [
+        {"run_name": "E03-xgb-B-15s", "run_id": "d", "metrics.val_f1_macro": 0.90},
+        {"run_name": "E10-xgb_two_step-B-15s", "run_id": "t", "metrics.val_f1_macro": 0.885},
+    ]
+    s = pd.DataFrame([{**r, "tags.protocol": "holdout", "tags.experiment_id": r["run_name"][:3],
+                       "params.task": "B", "params.timeout": 15, "metrics.val_accuracy": 0.9,
+                       "metrics.cv_f1_macro_mean": 0.9, "metrics.cv_f1_macro_std": 0.01,
+                       "tags.trial": ""} for r in rows])  # fmt: skip
+    v = R.phase3_verdicts(R.selection_runs(s), runner="x")
+    assert v["E10a"] == {"two_step_minus_direct": -0.015, "supported": False}
+    assert v["E10b"]["two_step_group_errors"] == 3 and not v["E10b"]["supported"]
+    assert v["E10c"]["share_of_two_step_errors_from_step_1"] == 1.0
+    assert "E10a" not in R.phase3_verdicts(R.selection_runs(s))  # no runner -> skipped
