@@ -64,3 +64,38 @@ def test_paper_task_table_places_paper_values():
     assert tab.loc[("VPN", "precision"), "C4.5 15 s"] == "0.500 (paper 0.890 C+T)"
     assert tab.loc[("VPN", "recall"), "KNN 30 s"] == "0.500 (paper 0.860 C)"
     assert tab.loc[("Non-VPN", "recall"), "KNN 30 s"] == "0.500"
+
+
+def fake_selection(rows):
+    return pd.DataFrame([{
+        "run_name": f"{exp}-{model}-{task}-{t}s", "tags.protocol": "holdout",
+        "tags.experiment_id": exp, "params.task": task, "params.timeout": t,
+        "metrics.val_f1_macro": f1, "metrics.cv_f1_macro_mean": f1,
+        "metrics.cv_f1_macro_std": 0.01,
+        "tags.trial": "True" if model == "trial" else "",
+    } for exp, model, task, t, f1 in rows])  # fmt: skip
+
+
+def test_model_label_strips_task_and_timeout():
+    r = pd.Series({"run_name": "E04-knn_log_standard-A2-NonVPN-15s",
+                   "params.task": "A2-NonVPN", "params.timeout": 15})  # fmt: skip
+    assert R.model_label(r) == "E04-knn_log_standard"
+
+
+def test_current_best_winner_flag_and_trials_excluded():
+    rows = [("E02", "tree", task, 15, 0.80) for task in CORE_TASKS]
+    rows += [
+        ("E04", "knn", "A1", 15, 0.83),
+        ("E04", "knn", "B", 15, 0.8299),
+        ("E04", "knn", "A2-VPN", 15, 0.80),
+        ("E05", "trial", "A1", 15, 0.99),
+    ]
+    s = R.selection_runs(fake_selection(rows))
+    assert "E05-trial" not in set(s["label"])
+    sc = R.screen(s, "E04").set_index("task")
+    assert sc.loc["A1", "winner (gain >= 0.03)"]  # exactly +0.03 counts
+    assert not sc.loc["B", "winner (gain >= 0.03)"]
+    # a tie keeps the earlier experiment as the current best
+    assert R.best_run(s, "A2-VPN", 15)["label"] == "E02-tree"
+    assert R.best_run(s, "A1", 15)["label"] == "E04-knn"
+    assert R.best_run(s, "A1", 15, upto="E03")["label"] == "E02-tree"

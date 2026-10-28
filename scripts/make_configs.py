@@ -40,7 +40,9 @@ SCREEN = [
     ("E04", "knn_log_robust", {"n_neighbors": 5}),
 ]
 # Winner reruns at the other timeouts: (experiment ID, registry name, task) -> timeouts
-RERUNS: dict[tuple[str, str, str], list[int]] = {}
+RERUNS: dict[tuple[str, str, str], list[int]] = {
+    ("E04", "knn_log_standard", "A2-NonVPN"): [30, 60, 120],  # +0.0376 over E02 tree at 15 s
+}
 
 
 def write(name: str, cfg: dict) -> None:
