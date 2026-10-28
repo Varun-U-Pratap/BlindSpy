@@ -361,3 +361,151 @@ def duplicate_profile() -> pd.DataFrame:
                 "median packets, all": float(pkts.median()),
             })  # fmt: skip
     return pd.DataFrame(rows)
+
+
+# ---- Phase 3 -------------------------------------------------------------------------------
+
+# Experiments whose holdout runs compete for "current best", in the order they ran.
+SELECTION_EXPS = ["E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E10"]
+WINNER_MARGIN = 0.03  # decided 28 Oct: above the largest Phase 2 CV std (0.025)
+
+
+def is_winner(gain: float) -> bool:
+    """gain >= 0.03, rounded first so an exact 0.03 isn't lost to float error."""
+    return bool(round(gain, 10) >= WINNER_MARGIN)
+
+
+def model_label(r: pd.Series) -> str:
+    """Run name without the task and timeout, e.g. 'E04-knn_log_standard'."""
+    suffix = f"-{r['params.task']}-{int(r['params.timeout'])}s"
+    name = r["run_name"]
+    return name[: -len(suffix)] if name.endswith(suffix) else name
+
+
+def selection_runs(h: pd.DataFrame) -> pd.DataFrame:
+    """Holdout runs of the model-selection experiments; Optuna trials and pilots excluded."""
+    s = h[(h["tags.protocol"] == "holdout") & h["tags.experiment_id"].isin(SELECTION_EXPS)]
+    if "tags.trial" in s.columns:
+        s = s[s["tags.trial"].astype(str) != "True"]
+    s = s.copy()
+    s["label"] = s.apply(model_label, axis=1)
+    return s
+
+
+def best_run(s: pd.DataFrame, task: str, t: int, upto: str | None = None) -> pd.Series:
+    """Highest validation macro F1 for task and timeout among experiments up to `upto`
+    (inclusive; all if None). Ties keep the earlier experiment."""
+    exps = SELECTION_EXPS if upto is None else SELECTION_EXPS[: SELECTION_EXPS.index(upto) + 1]
+    c = s[(s["params.task"] == task) & (s["params.timeout"] == t)
+          & s["tags.experiment_id"].isin(exps)]  # fmt: skip
+    if c.empty:
+        raise ValueError(f"no run for {task} {t}s up to {upto}")
+    c = c.assign(order=c["tags.experiment_id"].map(SELECTION_EXPS.index))
+    return c.sort_values(["metrics.val_f1_macro", "order"], ascending=[False, True]).iloc[0]
+
+
+def screen(s: pd.DataFrame, exp: str) -> pd.DataFrame:
+    """Every 15 s run of `exp` against the best run of the earlier experiments: gain and the
+    winner flag (gain >= WINNER_MARGIN -> rerun at 30, 60 and 120 s)."""
+    prev = SELECTION_EXPS[SELECTION_EXPS.index(exp) - 1]
+    rows = []
+    for _, r in s[(s["tags.experiment_id"] == exp) & (s["params.timeout"] == 15)].iterrows():
+        b = best_run(s, r["params.task"], 15, prev)
+        gain = r["metrics.val_f1_macro"] - b["metrics.val_f1_macro"]
+        rows.append({
+            "task": r["params.task"], "model": r["label"],
+            "val macro F1": round(r["metrics.val_f1_macro"], 4),
+            "CV macro F1": f"{r['metrics.cv_f1_macro_mean']:.4f} +- "
+                           f"{r['metrics.cv_f1_macro_std']:.4f}",
+            "best before": b["label"], "best before F1": round(b["metrics.val_f1_macro"], 4),
+            "gain": round(gain, 4), "winner (gain >= 0.03)": is_winner(gain),
+        })  # fmt: skip
+    order = {t: i for i, t in enumerate(CORE_TASKS)}
+    return (
+        pd.DataFrame(rows)
+        .sort_values(["task", "model"], key=lambda c: c.map(order) if c.name == "task" else c)
+        .reset_index(drop=True)
+    )
+
+
+def timeout_table(s: pd.DataFrame, label: str, task: str) -> pd.DataFrame:
+    """A model's validation macro F1 at every timeout it ran, next to the best other run."""
+    rows = []
+    for t in TIMEOUTS:
+        r = s[(s["label"] == label) & (s["params.task"] == task) & (s["params.timeout"] == t)]
+        if r.empty:
+            continue
+        r = r.iloc[0]
+        others = s[s["label"] != label]
+        b = best_run(others, task, t)
+        rows.append({
+            "task": task, "timeout": f"{t} s", "model": label,
+            "val macro F1": round(r["metrics.val_f1_macro"], 4),
+            "CV macro F1": f"{r['metrics.cv_f1_macro_mean']:.4f} +- "
+                           f"{r['metrics.cv_f1_macro_std']:.4f}",
+            "best other run": b["label"], "its F1": round(b["metrics.val_f1_macro"], 4),
+            "difference": round(r["metrics.val_f1_macro"] - b["metrics.val_f1_macro"], 4),
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def current_best(s: pd.DataFrame, upto: str | None = None) -> pd.DataFrame:
+    """The current best per task at 15 s (after experiment `upto`)."""
+    rows = []
+    for task in CORE_TASKS:
+        b = best_run(s, task, 15, upto)
+        rows.append({"task": task, "current best at 15 s": b["label"],
+                     "val macro F1": round(b["metrics.val_f1_macro"], 4),
+                     "CV macro F1": f"{b['metrics.cv_f1_macro_mean']:.4f} +- "
+                                    f"{b['metrics.cv_f1_macro_std']:.4f}"})  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def run_details(s: pd.DataFrame, exp: str) -> pd.DataFrame:
+    """Per run of `exp`: scores, F1 gap, best/worst class, cost (time, memory, sizes)."""
+    rows = []
+    for _, r in s[s["tags.experiment_id"] == exp].sort_values(
+            ["params.task", "params.timeout", "run_name"]).iterrows():  # fmt: skip
+        rows.append({
+            "run": r["run_name"], "val macro F1": round(r["metrics.val_f1_macro"], 3),
+            "weighted F1": round(r["metrics.val_f1_weighted"], 3),
+            "accuracy": round(r["metrics.val_accuracy"], 3),
+            "balanced acc.": round(r["metrics.val_balanced_accuracy"], 3),
+            "CV - val": round(r["metrics.gen_gap_f1_macro"], 3),
+            "worst F1": f"{r['tags.worst_class_f1']} "
+                        f"{_v(r, 'f1', r['tags.worst_class_f1']):.2f}",
+            "best F1": f"{r['tags.best_class_f1']} {_v(r, 'f1', r['tags.best_class_f1']):.2f}",
+            "train s": round(r["metrics.train_time_s"], 3),
+            "predict ms/1k": round(r["metrics.predict_ms_per_1000"], 2),
+            "model MB (raw / file)": f"{r['metrics.model_size_bytes'] / 2**20:.2f} / "
+                                     f"{r['metrics.model_file_bytes'] / 2**20:.2f}",
+            "memory MB (tracemalloc / child RSS)": f"{r['metrics.peak_memory_mb']:.1f} / "
+                                                   f"{r['metrics.child_peak_rss_mb']:.1f}",
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def phase3_verdicts(s: pd.DataFrame) -> dict:
+    """Every pre-stated Phase 3 threshold that can be computed so far."""
+    out = {}
+    f1 = {(r["label"], r["params.task"], r["params.timeout"]): r["metrics.val_f1_macro"]
+          for _, r in s.iterrows()}  # fmt: skip
+    if any(k[0].startswith("E04-") for k in f1):
+        std = [f1["E04-knn_log_standard", t, 15] for t in CORE_TASKS]
+        rob = [f1["E04-knn_log_robust", t, 15] for t in CORE_TASKS]
+        knn = [f1["E03-knn", t, 15] for t in CORE_TASKS]
+        gain = [max(a, b) - k for a, b, k in zip(std, rob, knn, strict=True)]
+        out["E04a"] = {
+            "gains_vs_E03_knn": [round(g, 4) for g in gain],
+            "tasks_with_gain_ge_0.02": sum(g >= 0.02 for g in gain),
+            "needed": 3,
+        }
+        out["E04a"]["supported"] = out["E04a"]["tasks_with_gain_ge_0.02"] >= 3
+        diff = [round(a - b, 4) for a, b in zip(std, rob, strict=True)]
+        out["E04b"] = {
+            "standard_minus_robust": diff,
+            "tasks_within_0.02": sum(abs(d) <= 0.02 for d in diff),
+            "needed": 3,
+        }
+        out["E04b"]["supported"] = out["E04b"]["tasks_within_0.02"] >= 3
+    return out  # fmt: skip
