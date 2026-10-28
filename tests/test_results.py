@@ -127,3 +127,22 @@ def test_timeout_table_ignores_later_experiments():
     s = R.selection_runs(fake_selection(rows))
     tab = R.timeout_table(s, "E05-rf", "B").set_index("timeout")
     assert tab.loc["30 s", "best other run"] == "E02-tree"
+
+
+def test_run_settings_copies_logged_strings_exactly(tmp_path):
+    h = pd.DataFrame([
+        {"run_id": "a", "run_name": "E07-xgb-B-15s", "status": "FINISHED", "start_time": 1,
+         "tags.git_dirty": "False", "tags.git_pushed": "True", "params.timeout": "15",
+         "params.model": "xgb", "params.model.learning_rate": "0.1",
+         "params.model.n_estimators": "100"},
+        {"run_id": "b", "run_name": "E07-xgb-B-15s", "status": "FINISHED", "start_time": 2,
+         "tags.git_dirty": "False", "tags.git_pushed": "True", "params.timeout": "15",
+         "params.model": "xgb", "params.model.learning_rate": "0.10125778281260306",
+         "params.model.n_estimators": "505"},
+    ])  # fmt: skip
+    h.to_csv(tmp_path / "h.csv", index=False)
+    got = R.run_settings("E07-xgb-B-15s", tmp_path / "h.csv")
+    assert got == {
+        "model": "xgb",
+        "params": {"learning_rate": 0.10125778281260306, "n_estimators": 505},
+    }

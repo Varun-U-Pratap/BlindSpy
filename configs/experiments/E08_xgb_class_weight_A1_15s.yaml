@@ -1,0 +1,10 @@
+experiment_id: E08
+run_name: E08-xgb_class_weight-A1-15s
+kind: train
+task: A1
+timeout: 15
+model: xgb
+params: {}
+balance: class_weight
+builds_on: E06-xgb-A1-15s
+save_model: true

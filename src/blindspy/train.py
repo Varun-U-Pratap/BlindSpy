@@ -151,7 +151,8 @@ def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> 
         "preprocessing": "; ".join(f"{n}: {_describe_step(s)}" for n, s in pipe.steps[:-1])
         or "none",
         "seed": seed,
-        "class_balancing": "none",
+        "class_balancing": cfg.get("balance") or "none",
+        **({"builds_on": cfg["builds_on"]} if cfg.get("builds_on") else {}),
         "features": ",".join(X.columns),
         "n_features": X.shape[1],
         "save_model": bool(cfg.get("save_model", True)),
@@ -170,7 +171,7 @@ def train_and_score(
     train, val, test = parts
     X_tr, y_tr = _xy(train)
     X_val, y_val = _xy(val)
-    pipe = models.build_model(cfg["model"], cfg.get("params"), seed)
+    pipe = models.build_model(cfg["model"], cfg.get("params"), seed, cfg.get("balance"))
 
     cv = StratifiedKFold(cv_folds, shuffle=True, random_state=seed)
     t0 = time.perf_counter()

@@ -128,8 +128,31 @@ MODELS = {
 }
 
 
-def build_model(name: str, params: dict, seed: int) -> Pipeline:
-    return MODELS[name](dict(params or {}), seed)
+BALANCE = ["none", "class_weight", "oversample", "smote"]  # E08 ladder, simplest first
+
+
+def build_model(name: str, params: dict, seed: int, balance: str | None = None) -> Pipeline:
+    """balance (E08): "class_weight" sets class_weight="balanced" on the model; "oversample"
+    (RandomOverSampler) and "smote" (SMOTE, k_neighbors=5) add a resampling step right
+    before the model in an imblearn Pipeline, which resamples only the rows it is fitted on
+    (each CV training fold, the training set), never validation or test rows."""
+    balance = balance or "none"
+    if balance not in BALANCE:
+        raise ValueError(f"unknown balance {balance!r}; one of {BALANCE}")
+    params = dict(params or {})
+    if balance == "class_weight":
+        if "class_weight" not in MODELS[name]({}, seed)[-1].get_params():
+            raise ValueError(f"model {name!r} has no class_weight")
+        params["class_weight"] = "balanced"
+    pipe = MODELS[name](params, seed)
+    if balance in ("oversample", "smote"):
+        from imblearn.over_sampling import SMOTE, RandomOverSampler
+        from imblearn.pipeline import Pipeline as ImbPipeline
+
+        sampler = (RandomOverSampler(random_state=seed) if balance == "oversample"
+                   else SMOTE(k_neighbors=5, random_state=seed))  # fmt: skip
+        pipe = ImbPipeline([*pipe.steps[:-1], ("balance", sampler), pipe.steps[-1]])
+    return pipe
 
 
 def class_scores(pipe: Pipeline, X) -> np.ndarray:
