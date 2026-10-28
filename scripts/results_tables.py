@@ -286,6 +286,11 @@ def phase3() -> None:
             f"Whole store now: artifacts {total['artifacts_MB']} MiB, "
             f"mlflow.db {total['mlflow_db_MB']} MiB."]  # fmt: skip
     v = R.phase3_verdicts(s, runner)
+    if (h["tags.experiment_id"] == "E09").any():
+        t9 = R.e09_table(h, s)
+        out += ["", "## E09 feature-group ablation on the headline model per task (15 s, "
+                "validation; \"all\" = the headline run)", "", R.md(t9)]  # fmt: skip
+        v.update(R.e09_verdicts(t9))
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip
     OUT3.write_text("\n".join(out))

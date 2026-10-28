@@ -360,3 +360,22 @@ def test_signed_log_option_adds_the_log_step(name):
     assert [s for s, _ in logged.steps] == ["log", "scale", "model"]
     assert "signed_log" not in logged[-1].get_params()
     assert [s for s, _ in models.build_model(name, {"signed_log": False}, 42).steps] == plain
+
+
+def test_train_and_score_keeps_only_the_feature_set(tmp_path):
+    from blindspy.features import select_features
+
+    cols = ["duration", "min_fiat", "max_fiat", "mean_fiat", "std_fiat", "min_idle",
+            "flowPktsPerSecond", "flowBytesPerSecond"]  # fmt: skip
+    rng = np.random.default_rng(0)
+    y = np.array(["C0", "C1"])[rng.integers(0, 2, 300)]
+    df = pd.DataFrame(rng.normal(size=(300, len(cols))), columns=cols).assign(label=y)
+    parts = (df.iloc[:200], df.iloc[200:250], df.iloc[250:])
+    cfg = {"experiment_id": "E_test", "task": "toy", "timeout": 15, "model": "tree",
+           "params": {}, "feature_set": "only_fiat", "save_model": True}  # fmt: skip
+    logged = train.train_and_score(cfg, parts, seed=42, cv_folds=5, out_dir=tmp_path)
+    p = logged["params"]
+    assert p["feature_set"] == "only_fiat" and p["n_features"] == 4
+    assert p["features"] == ",".join(select_features(cols, "only_fiat"))
+    model = joblib.load(tmp_path / "model" / "model.joblib")
+    assert list(model.feature_names_in_) == ["min_fiat", "max_fiat", "mean_fiat", "std_fiat"]
