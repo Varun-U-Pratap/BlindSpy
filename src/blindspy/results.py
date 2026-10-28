@@ -634,7 +634,7 @@ def e08_ladder(s: pd.DataFrame, base: dict[str, str]) -> pd.DataFrame:
             best = max(best, f1)
         else:
             rows[-1]["next"] = "ladder complete"
-    return pd.DataFrame(rows).fillna("")
+    return pd.DataFrame(rows).astype(object).fillna("")
 
 
 def run_settings(run_name: str, path: Path = ROOT / "reports" / "history.csv") -> dict:
