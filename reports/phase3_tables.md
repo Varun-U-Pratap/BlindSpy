@@ -193,6 +193,23 @@ are excluded. Data version: v1.
 | E07-lgbm-B-15s | 0.835 | 0.877 | 0.878 | 0.827 | 0.01 | VPN-MAIL 0.62 | VOIP 0.99 | 10150 trees, depth 22.1 mean / 65 max, 2,678,464 nodes | 35.238 | 58.63 | 3272.11 | 143.35 / 62.51 | 430.2 / 1007.2 |
 | E07-xgb-B-15s | 0.843 | 0.879 | 0.879 | 0.834 | -0.002 | VPN-MAIL 0.65 | VOIP 0.99 | 7070 trees, depth 5.7 mean / 6 max, 263,974 nodes | 9.351 | 12.6 | 56.84 | 13.00 / 4.31 | 0.9 / 102.9 |
 
+## E07 searches: size, chosen settings, tuned vs untuned
+
+| task | model | trials / fits | best trial | search min | chosen settings | CV untuned -> tuned | val untuned -> tuned | val change | CV best == retrained CV |
+|---|---|---|---|---|---|---|---|---|---|
+| A1 | E07-knn_log_standard | 50 / 250 | 22 | 0.5 | n_neighbors=4, weights=distance, metric=manhattan | 0.9033 -> 0.9122 | 0.9048 -> 0.9163 | 0.0115 | yes |
+| A1 | E07-rf | 50 / 250 | 49 | 11.6 | n_estimators=181, max_depth=None, min_samples_leaf=4, max_features=0.434 | 0.9172 -> 0.9209 | 0.9203 -> 0.9181 | -0.0022 | yes |
+| A1 | E07-xgb | 50 / 250 | 48 | 1.6 | n_estimators=694, learning_rate=0.051, max_depth=12, subsample=0.939, colsample_bytree=0.747, min_child_weight=5 | 0.9251 -> 0.9293 | 0.9271 -> 0.9259 | -0.0011 | yes |
+| A2-VPN | E07-knn_log_standard | 50 / 250 | 16 | 0.3 | n_neighbors=2, weights=distance, metric=euclidean | 0.8336 -> 0.8575 | 0.8544 -> 0.8625 | 0.0082 | yes |
+| A2-VPN | E07-lgbm | 50 / 250 | 11 | 11.2 | n_estimators=809, learning_rate=0.0188, num_leaves=125, subsample=0.842, colsample_bytree=0.962, min_child_samples=49 | 0.8827 -> 0.8902 | 0.8694 -> 0.8768 | 0.0074 | yes |
+| A2-VPN | E07-xgb | 50 / 250 | 21 | 2.3 | n_estimators=337, learning_rate=0.112, max_depth=6, subsample=0.734, colsample_bytree=0.854, min_child_weight=6 | 0.8799 -> 0.8838 | 0.8758 -> 0.8661 | -0.0097 | yes |
+| A2-NonVPN | E07-knn_log_standard | 50 / 250 | 12 | 0.2 | n_neighbors=1, weights=distance, metric=euclidean | 0.8861 -> 0.9060 | 0.8670 -> 0.8929 | 0.026 | yes |
+| A2-NonVPN | E07-lgbm | 50 / 250 | 48 | 7.5 | n_estimators=912, learning_rate=0.0613, num_leaves=35, subsample=0.586, colsample_bytree=0.695, min_child_samples=35 | 0.9224 -> 0.9329 | 0.8983 -> 0.9028 | 0.0045 | yes |
+| A2-NonVPN | E07-xgb | 50 / 250 | 23 | 2.0 | n_estimators=543, learning_rate=0.0923, max_depth=10, subsample=0.841, colsample_bytree=0.599, min_child_weight=1 | 0.9237 -> 0.9294 | 0.9015 -> 0.9025 | 0.001 | yes |
+| B | E07-knn_log_standard | 50 / 250 | 13 | 0.4 | n_neighbors=2, weights=distance, metric=manhattan | 0.7798 -> 0.8044 | 0.7644 -> 0.8006 | 0.0361 | yes |
+| B | E07-lgbm | 50 / 250 | 42 | 33.3 | n_estimators=725, learning_rate=0.0161, num_leaves=153, subsample=0.79, colsample_bytree=0.851, min_child_samples=21 | 0.8305 -> 0.8447 | 0.8201 -> 0.8352 | 0.0151 | yes |
+| B | E07-xgb | 50 / 250 | 35 | 7.4 | n_estimators=505, learning_rate=0.101, max_depth=6, subsample=0.915, colsample_bytree=0.895, min_child_weight=2 | 0.8334 -> 0.8405 | 0.8303 -> 0.8428 | 0.0125 | yes |
+
 ## Storage of the Phase 3 runs (mlruns/utsav-s-r, models saved with joblib compression level 3)
 
 Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included.
@@ -279,6 +296,48 @@ Whole store now: artifacts 508.4 MiB, mlflow.db 17.7 MiB.
   ],
   "tasks_within_0.02": 4,
   "needed": 3,
+  "supported": true
+ },
+ "E07a": {
+  "tuned_minus_untuned": {
+   "E07-knn_log_standard A1": 0.0115,
+   "E07-knn_log_standard A2-NonVPN": 0.026,
+   "E07-knn_log_standard A2-VPN": 0.0082,
+   "E07-knn_log_standard B": 0.0361,
+   "E07-lgbm A2-NonVPN": 0.0045,
+   "E07-lgbm A2-VPN": 0.0074,
+   "E07-lgbm B": 0.0151,
+   "E07-rf A1": -0.0022,
+   "E07-xgb A1": -0.0011,
+   "E07-xgb A2-NonVPN": 0.001,
+   "E07-xgb A2-VPN": -0.0097,
+   "E07-xgb B": 0.0125
+  },
+  "searches_above": 9,
+  "of": 12,
+  "needed": 8,
+  "supported": true
+ },
+ "E07b": {
+  "best_E07_minus_best_after_E06": [
+   -0.0011,
+   0.001,
+   0.0013,
+   0.0125
+  ],
+  "tasks_with_gain_ge_0.01": 1,
+  "needed": 2,
+  "supported": false
+ },
+ "E07c": {
+  "knn_minus_best_tuned_ensemble": [
+   -0.0096,
+   -0.0143,
+   -0.0098,
+   -0.0422
+  ],
+  "tasks_knn_below": 4,
+  "needed": 4,
   "supported": true
  }
 }

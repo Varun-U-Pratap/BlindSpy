@@ -241,6 +241,9 @@ def phase3() -> None:
         if exp == "E06":
             out += ["", "## E07 scope: best 2 of RF / XGBoost / LightGBM per task, plus KNN",
                     "", R.md(R.e07_candidates(s))]  # fmt: skip
+        if exp == "E07":
+            out += ["", "## E07 searches: size, chosen settings, tuned vs untuned", "",
+                    R.md(R.e07_searches(s))]  # fmt: skip
         if exp == "E04":
             out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
                     "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip
