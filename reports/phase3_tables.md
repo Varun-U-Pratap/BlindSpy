@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 18, status FINISHED: 18.
-- Git commit(s) of these runs: 016ccd3, 1955147, 3817307, 817757f.
+- Phase 3 holdout runs: 26, status FINISHED: 26.
+- Git commit(s) of these runs: 016ccd3, 1955147, 3817307, 4308ecb, 817757f.
 
 ## Current best at 15 s after E04
 
@@ -37,7 +37,7 @@ are excluded. Data version: v1.
 
 | task | timeout | model | val macro F1 | CV macro F1 | best other run | its F1 | difference |
 |---|---|---|---|---|---|---|---|
-| A2-NonVPN | 15 s | E04-knn_log_standard | 0.867 | 0.8861 +- 0.0068 | E05-rf | 0.8941 | -0.0271 |
+| A2-NonVPN | 15 s | E04-knn_log_standard | 0.867 | 0.8861 +- 0.0068 | E06-xgb | 0.9015 | -0.0345 |
 | A2-NonVPN | 30 s | E04-knn_log_standard | 0.8523 | 0.8487 +- 0.0067 | E02-tree | 0.8283 | 0.024 |
 | A2-NonVPN | 60 s | E04-knn_log_standard | 0.859 | 0.8638 +- 0.0108 | E02-tree | 0.8246 | 0.0344 |
 | A2-NonVPN | 120 s | E04-knn_log_standard | 0.8491 | 0.8243 +- 0.0252 | E02-tree | 0.8393 | 0.0098 |
@@ -89,7 +89,7 @@ are excluded. Data version: v1.
 
 | task | timeout | model | val macro F1 | CV macro F1 | best other run | its F1 | difference |
 |---|---|---|---|---|---|---|---|
-| B | 15 s | E05-rf | 0.8147 | 0.8102 +- 0.0090 | E04-knn_log_standard | 0.7644 | 0.0503 |
+| B | 15 s | E05-rf | 0.8147 | 0.8102 +- 0.0090 | E06-xgb | 0.8303 | -0.0156 |
 | B | 30 s | E05-rf | 0.8114 | 0.7979 +- 0.0119 | E02-tree | 0.7476 | 0.0638 |
 | B | 60 s | E05-rf | 0.7771 | 0.7656 +- 0.0136 | E02-tree | 0.7058 | 0.0713 |
 | B | 120 s | E05-rf | 0.7835 | 0.7562 +- 0.0083 | E02-tree | 0.7158 | 0.0677 |
@@ -106,15 +106,61 @@ are excluded. Data version: v1.
 | E05-rf-B-60s | 0.777 | 0.834 | 0.836 | 0.766 | -0.011 | VPN-CHAT 0.56 | VOIP 0.93 | 300 trees, depth 26.0 mean / 34 max, 989,750 nodes | 5.001 | 6.74 | 30.7 | 166.27 / 21.86 | 2.1 / 187.7 |
 | E05-rf-B-120s | 0.784 | 0.825 | 0.829 | 0.759 | -0.027 | STREAMING 0.49 | VOIP 1.00 | 300 trees, depth 24.4 mean / 33 max, 684,238 nodes | 3.147 | 3.22 | 32.72 | 114.99 / 15.12 | 1.5 / 150.0 |
 
+## Current best at 15 s after E06
+
+| task | current best at 15 s | val macro F1 | CV macro F1 |
+|---|---|---|---|
+| A1 | E06-xgb | 0.9271 | 0.9251 +- 0.0046 |
+| A2-VPN | E06-xgb | 0.8758 | 0.8799 +- 0.0025 |
+| A2-NonVPN | E06-xgb | 0.9015 | 0.9237 +- 0.0117 |
+| B | E06-xgb | 0.8303 | 0.8334 +- 0.0053 |
+
+## E06 at 15 s against the best run before it
+
+| task | model | val macro F1 | CV macro F1 | best before | best before F1 | gain | winner (gain >= 0.03) |
+|---|---|---|---|---|---|---|---|
+| A1 | E06-lgbm | 0.9181 | 0.9175 +- 0.0042 | E05-rf | 0.9203 | -0.0022 | no |
+| A1 | E06-xgb | 0.9271 | 0.9251 +- 0.0046 | E05-rf | 0.9203 | 0.0067 | no |
+| A2-VPN | E06-lgbm | 0.8694 | 0.8827 +- 0.0080 | E05-rf | 0.8679 | 0.0015 | no |
+| A2-VPN | E06-xgb | 0.8758 | 0.8799 +- 0.0025 | E05-rf | 0.8679 | 0.0079 | no |
+| A2-NonVPN | E06-lgbm | 0.8983 | 0.9224 +- 0.0097 | E05-rf | 0.8941 | 0.0042 | no |
+| A2-NonVPN | E06-xgb | 0.9015 | 0.9237 +- 0.0117 | E05-rf | 0.8941 | 0.0075 | no |
+| B | E06-lgbm | 0.8201 | 0.8305 +- 0.0088 | E05-rf | 0.8147 | 0.0054 | no |
+| B | E06-xgb | 0.8303 | 0.8334 +- 0.0053 | E05-rf | 0.8147 | 0.0156 | no |
+
+## E06 run details
+
+| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | complexity | train s | 5-fold CV s | predict ms/1k | model MiB (raw / file) | memory MiB (tracemalloc / child RSS) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| E06-lgbm-A1-15s | 0.918 | 0.918 | 0.918 | 0.918 | -0.001 | Non-VPN 0.91 | VPN 0.92 | 100 trees, depth 11.3 mean / 17 max, 6,100 nodes | 0.191 | 2.64 | 5.12 | 0.33 / 0.14 | 1.8 / 7.4 |
+| E06-xgb-A1-15s | 0.927 | 0.927 | 0.927 | 0.927 | -0.002 | Non-VPN 0.92 | VPN 0.93 | 100 trees, depth 6.0 mean / 6 max, 7,500 nodes | 0.256 | 0.81 | 1.13 | 0.32 / 0.12 | 0.9 / 15.2 |
+| E06-lgbm-A2-NonVPN-15s | 0.898 | 0.939 | 0.94 | 0.892 | 0.024 | STREAMING 0.82 | VOIP 1.00 | 700 trees, depth 12.9 mean / 26 max, 42,686 nodes | 0.784 | 2.71 | 44.89 | 2.32 / 0.98 | 7.0 / 24.0 |
+| E06-xgb-A2-NonVPN-15s | 0.902 | 0.941 | 0.942 | 0.895 | 0.022 | STREAMING 0.78 | VOIP 1.00 | 700 trees, depth 5.7 mean / 6 max, 23,220 nodes | 0.764 | 1.3 | 5.84 | 1.20 / 0.38 | 0.4 / 22.4 |
+| E06-lgbm-A2-VPN-15s | 0.869 | 0.886 | 0.888 | 0.86 | 0.013 | VPN-CHAT 0.72 | VPN-VOIP 0.99 | 700 trees, depth 12.9 mean / 30 max, 42,700 nodes | 0.799 | 2.71 | 47.74 | 2.30 / 0.99 | 7.0 / 24.2 |
+| E06-xgb-A2-VPN-15s | 0.876 | 0.89 | 0.891 | 0.87 | 0.004 | VPN-CHAT 0.72 | VPN-VOIP 0.99 | 700 trees, depth 5.9 mean / 6 max, 30,580 nodes | 0.924 | 1.21 | 6.14 | 1.44 / 0.49 | 0.5 / 24.5 |
+| E06-lgbm-B-15s | 0.82 | 0.866 | 0.866 | 0.81 | 0.01 | VPN-MAIL 0.62 | VOIP 0.99 | 1400 trees, depth 13.4 mean / 29 max, 85,400 nodes | 2.015 | 2.77 | 98.28 | 4.60 / 2.01 | 13.9 / 41.7 |
+| E06-xgb-B-15s | 0.83 | 0.872 | 0.872 | 0.824 | 0.003 | VPN-MAIL 0.66 | VOIP 0.99 | 1400 trees, depth 5.9 mean / 6 max, 66,808 nodes | 2.34 | 2.9 | 11.76 | 3.06 / 1.06 | 0.9 / 37.3 |
+
+## E07 scope: best 2 of RF / XGBoost / LightGBM per task, plus KNN
+
+| task | ranking (15 s val macro F1) | tuned in E07 | KNN preprocessing for E07 |
+|---|---|---|---|
+| A1 | xgb 0.9271, rf 0.9203, lgbm 0.9181 | xgb, rf | knn_log_standard 0.9048 |
+| A2-VPN | xgb 0.8758, lgbm 0.8694, rf 0.8679 | xgb, lgbm | knn_log_standard 0.8544 |
+| A2-NonVPN | xgb 0.9015, lgbm 0.8983, rf 0.8941 | xgb, lgbm | knn_log_standard 0.8670 |
+| B | xgb 0.8303, lgbm 0.8201, rf 0.8147 | xgb, lgbm | knn_log_standard 0.7644 |
+
 ## Storage of the Phase 3 runs (mlruns/utsav-s-r, models saved with joblib compression level 3)
 
 | kind | runs | total_MB | per_run_max_MB | model_file_max_MB |
 |---|---|---|---|---|
 | knn_log_robust (holdout) | 4 | 4.678 | 1.577 | 1.435 |
 | knn_log_standard (holdout) | 7 | 6.54 | 1.579 | 1.437 |
+| lgbm (holdout) | 4 | 4.56 | 2.168 | 2.014 |
 | rf (holdout) | 7 | 102.403 | 22.6 | 22.436 |
+| xgb (holdout) | 4 | 2.522 | 1.226 | 1.064 |
 
-Whole store now: artifacts 390.4 MB, mlflow.db 11.2 MB.
+Whole store now: artifacts 397.9 MB, mlflow.db 11.6 MB.
 
 ## Threshold checks (pre-stated in the E## files)
 
@@ -162,6 +208,28 @@ Whole store now: artifacts 390.4 MB, mlflow.db 11.2 MB.
   ],
   "tasks_above": 4,
   "needed": 2,
+  "supported": true
+ },
+ "E06a": {
+  "gains_vs_best_after_E05": [
+   0.0067,
+   0.0079,
+   0.0075,
+   0.0156
+  ],
+  "tasks_above": 4,
+  "needed": 2,
+  "supported": true
+ },
+ "E06b": {
+  "xgb_minus_lgbm": [
+   0.009,
+   0.0064,
+   0.0032,
+   0.0102
+  ],
+  "tasks_within_0.02": 4,
+  "needed": 3,
   "supported": true
  }
 }
