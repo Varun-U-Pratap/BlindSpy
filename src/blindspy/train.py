@@ -102,6 +102,14 @@ def _model_sizes(pipe, out_dir: Path, save: bool, compress: int) -> tuple[int, i
     return raw, path.stat().st_size
 
 
+def _save_booster_config(pipe, out_dir: Path) -> None:
+    """XGBoost: the resolved booster settings (defaults filled in) -> model/xgboost_config.json"""
+    est = pipe[-1]
+    if hasattr(est, "get_booster"):
+        (out_dir / "model").mkdir(parents=True, exist_ok=True)
+        (out_dir / "model" / "xgboost_config.json").write_text(est.get_booster().save_config())
+
+
 def _cost(pipe, X_fit, y_fit, X_pred, out_dir: Path, save: bool, compress: int) -> dict:
     """Training time, memory (tracemalloc and child-process RSS), prediction time and model
     sizes; pipe is left fitted on (X_fit, y_fit)."""
@@ -123,6 +131,14 @@ def _describe_step(step) -> str:
     return f"{type(step).__name__}({func.__name__})" if func is not None else repr(step)
 
 
+def _estimator_params(est) -> str:
+    """Every setting of the final estimator that is not None, as JSON. The repr is cut at 700
+    characters and XGBoost shows its defaults as None; its resolved settings are saved in
+    model/xgboost_config.json."""
+    params = {k: v for k, v in est.get_params(deep=False).items() if v is not None}
+    return json.dumps(params, sort_keys=True, default=str)
+
+
 def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> dict:
     return {
         "task": cfg["task"],
@@ -130,6 +146,7 @@ def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> 
         "model": cfg["model"],
         **{f"model.{k}": v for k, v in (cfg.get("params") or {}).items()},
         "estimator": repr(pipe[-1]),
+        "estimator_params": _estimator_params(pipe[-1]),
         "pipeline_steps": " -> ".join(type(s).__name__ for _, s in pipe.steps),
         "preprocessing": "; ".join(f"{n}: {_describe_step(s)}" for n, s in pipe.steps[:-1])
         or "none",
@@ -176,6 +193,7 @@ def train_and_score(
     metrics.update(cost)
     metrics.update({f"model_{k}": v for k, v in models.complexity(pipe).items()})
     has_imp = evaluate.feature_importance(pipe, list(X_tr.columns), out_dir / "eval")
+    _save_booster_config(pipe, out_dir)
 
     counts = {name: part["label"].value_counts().sort_index().to_dict()
               for name, part in (("train", train), ("val", val), ("test", test))}  # fmt: skip
