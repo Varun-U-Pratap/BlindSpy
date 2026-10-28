@@ -1,0 +1,23 @@
+experiment_id: E12
+run_name: E12-final-A2-NonVPN
+kind: train
+task: A2-NonVPN
+timeout: 15
+model: lgbm
+params:
+  colsample_bytree: 0.6945855105213082
+  learning_rate: 0.061316070113600026
+  min_child_samples: 35
+  n_estimators: 912
+  num_leaves: 35
+  subsample: 0.5863508152006783
+  subsample_freq: 1
+balance: oversample
+builds_on: E08-lgbm_oversample-A2-NonVPN-15s
+source_run_id: e7f4d10d245a46daad077467817ff251
+source_val_f1_macro: 0.9075007410548916
+reason: 'Highest validation macro F1 of all model-selection runs for A2-NonVPN: 0.9075 (E08-lgbm_oversample-A2-NonVPN-15s);
+  next best 0.9058 (E17-svm_rbf-A2-NonVPN-15s). Rule: ''Decided 28 Oct, after E10'' (highest validation
+  macro F1, any experiment and timeout; only fallback a saved file over 50 MB; skipped for size: none).
+  Saved model file 4.32 MiB.'
+save_model: true

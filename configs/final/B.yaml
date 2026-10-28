@@ -1,0 +1,21 @@
+experiment_id: E12
+run_name: E12-final-B
+kind: train
+task: B
+timeout: 15
+model: xgb
+params:
+  colsample_bytree: 0.8951628908652679
+  learning_rate: 0.10125778281260306
+  max_depth: 6
+  min_child_weight: 2
+  n_estimators: 505
+  subsample: 0.9151822993048108
+builds_on: E07-xgb-B-15s
+source_run_id: 13e6c4a441c3429d8e107d882590a5ae
+source_val_f1_macro: 0.8427982555494039
+reason: 'Highest validation macro F1 of all model-selection runs for B: 0.8428 (E07-xgb-B-15s); next best
+  0.8364 (E08-xgb_class_weight-B-15s). Rule: ''Decided 28 Oct, after E10'' (highest validation macro F1,
+  any experiment and timeout; only fallback a saved file over 50 MB; skipped for size: none). Saved model
+  file 4.31 MiB.'
+save_model: true

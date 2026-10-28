@@ -1,0 +1,17 @@
+experiment_id: E12
+run_name: E12-compare-knn-A2-NonVPN
+kind: train
+task: A2-NonVPN
+timeout: 15
+model: knn_log_standard
+params:
+  metric: euclidean
+  n_neighbors: 1
+  weights: distance
+builds_on: E07-knn_log_standard-A2-NonVPN-15s
+source_run_id: 88c16b0e4d1f430b8e8031008d9c1084
+source_val_f1_macro: 0.8929241348187456
+reason: 'Comparison set: the best 15 s validation variant of KNN for A2-NonVPN (0.8929, E07-knn_log_standard-A2-NonVPN-15s;
+  4 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

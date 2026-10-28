@@ -1,0 +1,23 @@
+experiment_id: E12
+run_name: E12-final-A2-VPN
+kind: train
+task: A2-VPN
+timeout: 15
+model: lgbm
+params:
+  colsample_bytree: 0.9615919872328451
+  learning_rate: 0.01880193217642019
+  min_child_samples: 49
+  n_estimators: 809
+  num_leaves: 125
+  subsample: 0.8424223992479878
+  subsample_freq: 1
+balance: class_weight
+builds_on: E08-lgbm_class_weight-A2-VPN-15s
+source_run_id: 2f09f869646740a19857864f143c4887
+source_val_f1_macro: 0.8829818312203661
+reason: 'Highest validation macro F1 of all model-selection runs for A2-VPN: 0.8830 (E08-lgbm_class_weight-A2-VPN-15s);
+  next best 0.8830 (E08-lgbm_oversample-A2-VPN-15s). Rule: ''Decided 28 Oct, after E10'' (highest validation
+  macro F1, any experiment and timeout; only fallback a saved file over 50 MB; skipped for size: none).
+  Saved model file 25.12 MiB.'
+save_model: true

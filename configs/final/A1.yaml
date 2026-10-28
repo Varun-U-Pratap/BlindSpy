@@ -1,0 +1,22 @@
+experiment_id: E12
+run_name: E12-final-A1
+kind: train
+task: A1
+timeout: 15
+model: lgbm
+params:
+  colsample_bytree: 0.8827722262730495
+  learning_rate: 0.05765489005731499
+  min_child_samples: 21
+  n_estimators: 998
+  num_leaves: 167
+  subsample: 0.9354309388691164
+  subsample_freq: 1
+builds_on: E17-lgbm-A1-15s
+source_run_id: 5780b4eaf856477b9622e502df6c2fd3
+source_val_f1_macro: 0.9307512329781683
+reason: 'Highest validation macro F1 of all model-selection runs for A1: 0.9308 (E17-lgbm-A1-15s); next
+  best 0.9271 (E06-xgb-A1-15s). Rule: ''Decided 28 Oct, after E10'' (highest validation macro F1, any
+  experiment and timeout; only fallback a saved file over 50 MB; skipped for size: none). Saved model
+  file 7.09 MiB.'
+save_model: true

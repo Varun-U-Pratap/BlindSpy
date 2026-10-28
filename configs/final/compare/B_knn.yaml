@@ -1,0 +1,17 @@
+experiment_id: E12
+run_name: E12-compare-knn-B
+kind: train
+task: B
+timeout: 15
+model: knn_log_standard
+params:
+  metric: manhattan
+  n_neighbors: 2
+  weights: distance
+builds_on: E07-knn_log_standard-B-15s
+source_run_id: 68a557729d0b479193d30cdfe6d67353
+source_val_f1_macro: 0.8005705135193691
+reason: 'Comparison set: the best 15 s validation variant of KNN for B (0.8006, E07-knn_log_standard-B-15s;
+  4 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

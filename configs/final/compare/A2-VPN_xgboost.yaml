@@ -1,0 +1,14 @@
+experiment_id: E12
+run_name: E12-compare-xgboost-A2-VPN
+kind: train
+task: A2-VPN
+timeout: 15
+model: xgb
+params: {}
+builds_on: E06-xgb-A2-VPN-15s
+source_run_id: d67740453f9a487b8a2c7dd21518c181
+source_val_f1_macro: 0.8758104818708317
+reason: 'Comparison set: the best 15 s validation variant of XGBoost for A2-VPN (0.8758, E06-xgb-A2-VPN-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

@@ -254,6 +254,31 @@ def phase3() -> None:
         if exp == "E04":
             out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
                     "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip
+    out += [
+        "",
+        "## Final choice per task (highest validation macro F1, decided 28 Oct after "
+        "E10; configs/final/<task>.yaml)",
+        "",
+        R.md(
+            R.final_choice(s).drop(columns="run_id").round({"val macro F1": 4, "next best F1": 4})
+        ),
+    ]
+    out += [
+        "",
+        "## Comparison set (best 15 s validation variant of each method type; "
+        "configs/final/compare/)",
+        "",
+        R.md(R.comparison_set(s).drop(columns="run_id").round({"val macro F1": 4})),
+    ]
+    old = R.old_rule_choice(s)
+    old["in comparison set"] = old["run"].isin(R.comparison_set(s)["run"])
+    out += [
+        "",
+        "## What the superseded 28 Oct tie rule would pick (configs/final/old_rule/ "
+        "where not in the comparison set)",
+        "",
+        R.md(old.drop(columns="run_id").round({"val macro F1": 4})),
+    ]
     st, total = storage(p3, runner, by_experiment=True)
     out += ["", f"## Storage of the Phase 3 runs (mlruns/{runner}, models saved with joblib "
             "compression level 3)", "", "Sizes in MiB (2**20 bytes). Optuna trial runs save no "

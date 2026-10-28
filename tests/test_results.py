@@ -138,13 +138,13 @@ def test_run_settings_copies_logged_strings_exactly(tmp_path):
         {"run_id": "b", "run_name": "E07-xgb-B-15s", "status": "FINISHED", "start_time": 2,
          "tags.git_dirty": "False", "tags.git_pushed": "True", "params.timeout": "15",
          "params.model": "xgb", "params.model.learning_rate": "0.10125778281260306",
-         "params.model.n_estimators": "505"},
+         "params.model.n_estimators": "505", "params.model.max_depth": "None"},
     ])  # fmt: skip
     h.to_csv(tmp_path / "h.csv", index=False)
     got = R.run_settings("E07-xgb-B-15s", tmp_path / "h.csv")
     assert got == {
         "model": "xgb",
-        "params": {"learning_rate": 0.10125778281260306, "n_estimators": 505},
+        "params": {"learning_rate": 0.10125778281260306, "n_estimators": 505, "max_depth": None},
     }
 
 
@@ -289,3 +289,53 @@ def test_e17_searches_table_shows_pipeline_options():
     df["params.model.max_iter"] = float("nan")  # a None setting, absent from estimator_params
     tab = R.e07_searches(R.selection_runs(df), "E17")
     assert tab.loc[0, "chosen settings"] == "signed_log=True, C=5, max_iter=None"
+
+
+def test_final_choice_takes_the_top_score_and_skips_files_over_50_mb():
+    rows = [("E06", "xgb", t, 15, 0.80) for t in CORE_TASKS]
+    rows += [("E07", "lgbm", "A1", 15, 0.82), ("E07", "lgbm", "B", 30, 0.85),
+             ("E01", "majority", "A2-VPN", 15, 0.95)]  # fmt: skip
+    df = fake_selection(rows)
+    df["run_id"] = df["run_name"]
+    df["params.model"] = [n.split("-")[1] for n in df["run_name"]]
+    df["metrics.model_file_bytes"] = [
+        60e6 if n == "E07-lgbm-A1-15s" else 1e6 for n in df["run_name"]
+    ]
+    f = R.final_choice(R.selection_runs(df)).set_index("task")
+    assert f.loc["A1", "run"] == "E06-xgb-A1-15s"  # the 60 MB LightGBM is skipped
+    assert f.loc["A1", "skipped for file size"] == "E07-lgbm-A1-15s"
+    assert f.loc["B", "run"] == "E07-lgbm-B-30s" and f.loc["B", "timeout"] == 30  # any timeout
+    assert f.loc["A2-VPN", "run"] == "E06-xgb-A2-VPN-15s"  # majority is not a candidate
+
+
+def test_comparison_set_takes_the_best_15s_variant_of_every_method_type():
+    models_ = ["tree", "knn", "knn_log_standard", "logreg", "svm_rbf", "rf", "xgb",
+               "xgb_two_step", "lgbm"]  # fmt: skip
+    rows = [("E05", m, t, 15, 0.70) for t in CORE_TASKS for m in models_]
+    rows += [("E07", "knn_log_standard", "A1", 15, 0.75), ("E10", "xgb_two_step", "A1", 15, 0.72),
+             ("E07", "xgb", "A1", 30, 0.99)]  # fmt: skip
+    df = fake_selection(rows)
+    df["run_id"] = df["run_name"]
+    df["params.model"] = [n.split("-")[1] for n in df["run_name"]]
+    c = R.comparison_set(R.selection_runs(df))
+    assert len(c) == 28 and c.groupby("task").size().eq(7).all()
+    a1 = c[c["task"] == "A1"].set_index("method type")
+    assert a1.loc["KNN", "run"] == "E07-knn_log_standard-A1-15s"
+    assert a1.loc["XGBoost", "run"] == "E10-xgb_two_step-A1-15s"  # 30 s run not eligible
+    assert a1.loc["KNN", "variants compared"] == 3
+
+
+def test_old_rule_picks_the_simplest_run_within_003():
+    rows = [("E06", "xgb", t, 15, 0.90) for t in CORE_TASKS]
+    rows += [("E04", "knn_log_standard", t, 15, 0.875) for t in CORE_TASKS]
+    rows += [("E07", "knn_log_standard", t, 15, 0.88) for t in CORE_TASKS]
+    rows += [("E02", "tree", "A1", 15, 0.86)]  # 0.04 below: not a tie
+    df = fake_selection(rows)
+    df["run_id"] = df["run_name"]
+    df["params.model"] = [n.split("-")[1] for n in df["run_name"]]
+    df["tags.tuned"] = ["True" if n.startswith("E07") else "" for n in df["run_name"]]
+    df["params.class_balancing"] = "none"
+    df["metrics.predict_ms_per_1000"] = 1.0
+    o = R.old_rule_choice(R.selection_runs(df)).set_index("task")
+    assert o.loc["A1", "run"] == "E04-knn_log_standard-A1-15s"  # KNN, and default < tuned
+    assert o.loc["A1", "below the best by"] == 0.025 and o.loc["A1", "runs within 0.03"] == 3

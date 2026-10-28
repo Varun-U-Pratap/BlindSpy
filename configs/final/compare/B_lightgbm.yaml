@@ -1,0 +1,21 @@
+experiment_id: E12
+run_name: E12-compare-lightgbm-B
+kind: train
+task: B
+timeout: 15
+model: lgbm
+params:
+  colsample_bytree: 0.8511395102909898
+  learning_rate: 0.016103011694001402
+  min_child_samples: 21
+  n_estimators: 725
+  num_leaves: 153
+  subsample: 0.7895911746954297
+  subsample_freq: 1
+builds_on: E07-lgbm-B-15s
+source_run_id: 2b5b081569c345b68b102c7d68204465
+source_val_f1_macro: 0.8351753579193986
+reason: 'Comparison set: the best 15 s validation variant of LightGBM for B (0.8352, E07-lgbm-B-15s; 2
+  variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true
