@@ -296,7 +296,10 @@ def phase3() -> None:
     OUT3.write_text("\n".join(out))
     print(f"Wrote {OUT3.relative_to(ROOT)}")
     for k, x in v.items():
-        print(k, "supported" if x["supported"] else "NOT supported")
+        if "supported" in x:
+            print(k, "supported" if x["supported"] else "NOT supported")
+        else:  # a stop-and-ask check, not a hypothesis
+            print(k, "TRIGGERED (ask the user)" if x["triggered"] else "not triggered")
 
 
 if __name__ == "__main__":
