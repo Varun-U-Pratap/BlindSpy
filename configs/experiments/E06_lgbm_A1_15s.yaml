@@ -1,0 +1,8 @@
+experiment_id: E06
+run_name: E06-lgbm-A1-15s
+kind: train
+task: A1
+timeout: 15
+model: lgbm
+params: {}
+save_model: true

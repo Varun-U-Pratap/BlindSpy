@@ -196,3 +196,29 @@ def test_random_forest_entry_uses_one_thread_and_reports_complexity():
     assert c["n_trees"] == 20 and c["tree_depth_mean"] == pytest.approx(np.mean(depths))
     assert c["tree_depth_max"] == max(depths)
     assert c["tree_nodes_total"] == sum(t.tree_.node_count for t in est.estimators_)
+
+
+@pytest.mark.parametrize("name", ["xgb", "lgbm"])
+def test_boosting_entries_take_string_labels_one_thread_and_report_complexity(name):
+    X, y = toy(3)
+    pipe = models.build_model(name, {"n_estimators": 10}, seed=42).fit(X, y)
+    est = pipe[-1]
+    assert est.get_params()["n_jobs"] == 1 and est.get_params()["random_state"] == 42
+    assert list(pipe.classes_) == ["C0", "C1", "C2"]
+    assert set(pipe.predict(X)) <= {"C0", "C1", "C2"}
+    assert models.class_scores(pipe, X).shape == (len(X), 3)
+    c = models.complexity(pipe)
+    assert c["n_trees"] == 30  # 10 rounds x 3 classes
+    assert 1 <= c["tree_depth_mean"] <= c["tree_depth_max"] and c["tree_nodes_total"] >= 30
+
+
+def test_xgb_binary_and_balanced_weights():
+    X, y = toy(2)
+    plain = models.build_model("xgb", {"n_estimators": 5}, seed=42).fit(X, y)
+    assert list(plain.classes_) == ["C0", "C1"] and models.complexity(plain)["n_trees"] == 5
+    y_skew = y.where(y.index % 4 != 0, "C0")  # make C0 the larger class
+    a = models.build_model("xgb", {"n_estimators": 5}, seed=42).fit(X, y_skew)
+    b = models.build_model("xgb", {"n_estimators": 5, "class_weight": "balanced"}, seed=42)
+    b.fit(X, y_skew)
+    assert not np.allclose(a.predict_proba(X), b.predict_proba(X))
+    assert "class_weight" not in b[-1].get_xgb_params()

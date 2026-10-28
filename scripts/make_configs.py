@@ -39,6 +39,8 @@ SCREEN = [
     ("E04", "knn_log_standard", {"n_neighbors": 5}),
     ("E04", "knn_log_robust", {"n_neighbors": 5}),
     ("E05", "rf", {"n_estimators": 300}),  # default depth, class_weight=None, n_jobs=1
+    ("E06", "xgb", {}),  # XGBoost defaults (n_jobs=1, random_state=42 set by the builder)
+    ("E06", "lgbm", {}),  # LightGBM defaults (n_jobs=1, random_state=42, verbose=-1)
 ]
 # Winner reruns at the other timeouts: (experiment ID, registry name, task) -> timeouts
 RERUNS: dict[tuple[str, str, str], list[int]] = {
