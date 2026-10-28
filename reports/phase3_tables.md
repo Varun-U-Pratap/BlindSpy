@@ -434,13 +434,15 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E13 xgb | 25 | 73.528 | 4.188 | 4.025 |
 | E14 lgbm | 30 | 372.146 | 25.859 | 25.759 |
 | E14 xgb | 10 | 44.771 | 4.494 | 4.336 |
+| E16 rf | 5 | 120.026 | 35.049 | 34.902 |
+| E16 xgb | 4 | 17.765 | 4.829 | 4.697 |
 | E17 lgbm | 1 | 7.215 | 7.215 | 7.092 |
 | E17 logreg | 4 | 0.515 | 0.199 | 0.004 |
 | E17 rf | 3 | 68.011 | 45.962 | 45.773 |
 | E17 svm_rbf | 4 | 2.944 | 1.479 | 1.306 |
 | E17 tree | 4 | 0.732 | 0.275 | 0.07 |
 
-Whole store now: artifacts 2173.9 MiB, mlflow.db 34.3 MiB.
+Whole store now: artifacts 2311.7 MiB, mlflow.db 34.8 MiB.
 
 ## E09 feature-group ablation on the headline model per task (15 s, validation; "all" = the headline run)
 
@@ -502,6 +504,20 @@ Whole store now: artifacts 2173.9 MiB, mlflow.db 34.3 MiB.
 | B | no_idle | 19 | 0.8428 | 0.0 | 0.8405 +- 0.0058 |
 | B | no_rates_duration | 20 | 0.7879 | -0.0549 | 0.7936 +- 0.0076 |
 | B | timing_only | 22 | 0.7987 | -0.0441 | 0.7949 +- 0.0062 |
+
+## E16 Isnan et al. on the Kaggle CSV (data version kaggle-k1; test = the 80/20 split's Kaggle test rows, not our v1 test set)
+
+| run | split | train / test rows | grid pick | grid best CV accuracy | test accuracy | test weighted F1 | test macro F1 |
+|---|---|---|---|---|---|---|---|
+| E16-isnan-rf | isnan | 32,789 / 8,198 | {"max_depth": null, "min_samples_leaf": 1, "min_samples_split": 2, "n_estimators": 200} | 0.8742 | 0.8796 | 0.8792 | 0.8407 |
+| E16-per_timeout-rf-120s | per_timeout_120s | 7,671 / 1,918 | {"max_depth": null, "min_samples_leaf": 1, "min_samples_split": 5, "n_estimators": 300} | 0.8178 | 0.8206 | 0.817 | 0.7724 |
+| E16-per_timeout-rf-15s | per_timeout_15s | 14,459 / 3,615 | {"max_depth": 30, "min_samples_leaf": 1, "min_samples_split": 2, "n_estimators": 300} | 0.8578 | 0.8658 | 0.8652 | 0.8323 |
+| E16-per_timeout-rf-30s | per_timeout_30s | 10,910 / 2,728 | {"max_depth": 30, "min_samples_leaf": 1, "min_samples_split": 2, "n_estimators": 300} | 0.8457 | 0.8537 | 0.8527 | 0.815 |
+| E16-per_timeout-rf-60s | per_timeout_60s | 11,783 / 2,946 | {"max_depth": 30, "min_samples_leaf": 1, "min_samples_split": 2, "n_estimators": 300} | 0.8307 | 0.8316 | 0.8308 | 0.7873 |
+| E16-per_timeout-xgb-120s | per_timeout_120s | 7,671 / 1,918 | fixed (configs/final/B.yaml) |  | 0.8384 | 0.8346 | 0.7881 |
+| E16-per_timeout-xgb-15s | per_timeout_15s | 14,459 / 3,615 | fixed (configs/final/B.yaml) |  | 0.8924 | 0.8919 | 0.8637 |
+| E16-per_timeout-xgb-30s | per_timeout_30s | 10,910 / 2,728 | fixed (configs/final/B.yaml) |  | 0.8728 | 0.872 | 0.8327 |
+| E16-per_timeout-xgb-60s | per_timeout_60s | 11,783 / 2,946 | fixed (configs/final/B.yaml) |  | 0.8551 | 0.8544 | 0.8076 |
 
 ## E13 learning curve on the headline model per task (15 s, validation; 5 subsample seeds per fraction, 100% = the headline run)
 
@@ -791,6 +807,27 @@ Mean validation confusion matrices over the 10 resplits: reports/e14_mean_confus
    "B": []
   },
   "triggered": false
+ },
+ "E16a": {
+  "accuracy": 0.8796,
+  "weighted_f1": 0.8792,
+  "isnan": {
+   "accuracy": 0.8801,
+   "f1_weighted": 0.8797
+  },
+  "supported": true
+ },
+ "E16b": {
+  "isnan_accuracy": 0.8796,
+  "per_timeout_rf_mean": 0.843,
+  "gap": 0.0366,
+  "timeouts": 4,
+  "supported": true
+ },
+ "E16c": {
+  "per_timeout_xgb_mean": 0.8647,
+  "per_timeout_rf_mean": 0.843,
+  "supported": true
  },
  "E13a": {
   "gain_10_to_100": {
