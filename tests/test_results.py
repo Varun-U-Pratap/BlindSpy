@@ -101,6 +101,25 @@ def test_current_best_winner_flag_and_trials_excluded():
     assert R.best_run(s, "A1", 15, upto="E03")["label"] == "E02-tree"
 
 
+def test_e07_verdicts_compare_with_untuned_and_best_before():
+    rows = [
+        (e, m, t, 15, 0.70)
+        for t in CORE_TASKS
+        for e, m in [("E02", "tree"), ("E03", "knn"), ("E04", "knn_log_robust")]
+    ]
+    rows += [(e, m, t, 15, 0.80) for t in CORE_TASKS
+             for e, m in [("E04", "knn_log_standard"), ("E05", "rf"), ("E06", "xgb"),
+                          ("E06", "lgbm")]]  # fmt: skip
+    rows += [("E07", "xgb", t, 15, 0.81) for t in CORE_TASKS]
+    rows += [("E07", "knn_log_standard", t, 15, 0.79) for t in CORE_TASKS]
+    s = R.selection_runs(fake_selection(rows))
+    v = R.phase3_verdicts(s)
+    assert v["E07a"]["searches_above"] == 4 and v["E07a"]["of"] == 8
+    assert not v["E07a"]["supported"]
+    assert v["E07b"]["tasks_with_gain_ge_0.01"] == 4 and v["E07b"]["supported"]
+    assert v["E07c"]["knn_minus_best_tuned_ensemble"] == [-0.02] * 4 and v["E07c"]["supported"]
+
+
 def test_timeout_table_ignores_later_experiments():
     rows = [("E02", "tree", "B", t, 0.70) for t in TIMEOUTS]
     rows += [("E05", "rf", "B", t, 0.80) for t in TIMEOUTS]

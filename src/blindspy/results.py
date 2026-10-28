@@ -565,7 +565,75 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
             "needed": 3,
         }
         out["E06b"]["supported"] = out["E06b"]["tasks_within_0.02"] >= 3
+    if any(k[0].startswith("E07-") for k in f1):
+        e07 = [k for k in f1 if k[0].startswith("E07-") and k[2] == 15]
+        better = {f"{lab} {t}": round(f1[lab, t, 15] - f1[UNTUNED[lab], t, 15], 4)
+                  for lab, t, _ in sorted(e07)}  # fmt: skip
+        out["E07a"] = {
+            "tuned_minus_untuned": better,
+            "searches_above": sum(g > 0 for g in better.values()),
+            "of": len(better),
+            "needed": 8,
+        }
+        out["E07a"]["supported"] = out["E07a"]["searches_above"] >= 8
+        best7 = {t: max(f1[lab, t, 15] for lab, tt, _ in e07 if tt == t) for t in CORE_TASKS}
+        gain = [best7[t] - best_run(s, t, 15, "E06")["metrics.val_f1_macro"] for t in CORE_TASKS]
+        out["E07b"] = {
+            "best_E07_minus_best_after_E06": [round(g, 4) for g in gain],
+            "tasks_with_gain_ge_0.01": sum(round(g, 10) >= 0.01 for g in gain),
+            "needed": 2,
+        }
+        out["E07b"]["supported"] = out["E07b"]["tasks_with_gain_ge_0.01"] >= 2
+        diff = []
+        for t in CORE_TASKS:
+            ens = max(f1[lab, tt, 15] for lab, tt, _ in e07 if tt == t and "knn" not in lab)
+            diff.append(round(f1["E07-knn_log_standard", t, 15] - ens, 4))
+        out["E07c"] = {
+            "knn_minus_best_tuned_ensemble": diff,
+            "tasks_knn_below": sum(d < 0 for d in diff),
+            "needed": 4,
+        }
+        out["E07c"]["supported"] = out["E07c"]["tasks_knn_below"] == 4
     return out  # fmt: skip
+
+
+# E07: each tuned model's untuned version (same model type and preprocessing)
+UNTUNED = {"E07-xgb": "E06-xgb", "E07-lgbm": "E06-lgbm", "E07-rf": "E05-rf",
+           "E07-knn_log_standard": "E04-knn_log_standard"}  # fmt: skip
+
+
+def e07_searches(s: pd.DataFrame) -> pd.DataFrame:
+    """Per Optuna search: size, time, the chosen settings, and the retrained model next to
+    its untuned version (CV on train and validation)."""
+    rows = []
+    e07 = s[(s["tags.experiment_id"] == "E07") & (s["params.timeout"] == 15)]
+    for _, r in e07.sort_values(["params.task", "label"]).iterrows():
+        u = s[(s["label"] == UNTUNED[r["label"]]) & (s["params.task"] == r["params.task"])
+              & (s["params.timeout"] == 15)].iloc[0]  # fmt: skip
+        space = json.loads(r["params.search.space"])
+        est = json.loads(r["params.estimator_params"])
+        chosen = []
+        for k in space:
+            v = est.get(k)
+            chosen.append(f"{k}={v:.3g}" if isinstance(v, float) else f"{k}={v}")
+        rows.append({
+            "task": r["params.task"], "model": r["label"],
+            "trials / fits": f"{int(r['metrics.search_n_trials'])} / "
+                             f"{int(r['metrics.search_total_fits'])}",
+            "best trial": int(r["metrics.search_best_trial"]),
+            "search min": round(r["metrics.search_time_s"] / 60, 1),
+            "chosen settings": ", ".join(chosen),
+            "CV untuned -> tuned": f"{u['metrics.cv_f1_macro_mean']:.4f} -> "
+                                   f"{r['metrics.cv_f1_macro_mean']:.4f}",
+            "val untuned -> tuned": f"{u['metrics.val_f1_macro']:.4f} -> "
+                                    f"{r['metrics.val_f1_macro']:.4f}",
+            "val change": round(r["metrics.val_f1_macro"] - u["metrics.val_f1_macro"], 4),
+            "CV best == retrained CV": bool(
+                r["metrics.search_best_cv_f1_macro_mean"] == r["metrics.cv_f1_macro_mean"]),
+        })  # fmt: skip
+    order = {t: i for i, t in enumerate(CORE_TASKS)}
+    return (pd.DataFrame(rows).sort_values("task", key=lambda c: c.map(order), kind="stable")
+            .reset_index(drop=True))  # fmt: skip
 
 
 def robust_scaling_check(timeout: int = 15) -> pd.DataFrame:
