@@ -222,3 +222,16 @@ def test_xgb_binary_and_balanced_weights():
     b.fit(X, y_skew)
     assert not np.allclose(a.predict_proba(X), b.predict_proba(X))
     assert "class_weight" not in b[-1].get_xgb_params()
+
+
+def test_xgb_run_logs_its_settings_in_full(tmp_path):
+    X, y = toy(3, n=400)
+    df = X.assign(label=y.to_numpy())
+    parts = (df.iloc[:280], df.iloc[280:340], df.iloc[340:])
+    cfg = {"experiment_id": "E_test", "task": "toy", "timeout": 15, "model": "xgb",
+           "params": {"n_estimators": 5}, "save_model": False}  # fmt: skip
+    logged = train.train_and_score(cfg, parts, seed=42, cv_folds=5, out_dir=tmp_path, compress=3)
+    p = json.loads(logged["params"]["estimator_params"])
+    assert p["random_state"] == 42 and p["n_jobs"] == 1 and p["n_estimators"] == 5
+    conf = json.loads((tmp_path / "model" / "xgboost_config.json").read_text())
+    assert conf["learner"]["gradient_booster"]["tree_train_param"]["max_depth"] == "6"
