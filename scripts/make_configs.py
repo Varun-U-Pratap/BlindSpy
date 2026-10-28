@@ -5,13 +5,15 @@ Paper benchmark (inside E02 and E03): the J48 approximation and IBk (Weka defaul
 x 2 row sources (data v1, and every row as published) = 64 configs, protocol "paper_10fold".
 Phase 3 (E04 on): each model first at 15 s for all 4 tasks; a winner (15 s validation macro F1
 at least 0.03 above the task's current best) is rerun at 30, 60 and 120 s with the same
-settings, listed in RERUNS.
+settings, listed in RERUNS. E08 runs a balancing ladder on the current best per task, copying
+its model and settings from reports/history.csv.
 
 Usage: uv run python scripts/make_configs.py
 """
 
 import yaml
 
+from blindspy import results
 from blindspy.data import CORE_TASKS, ROOT, TIMEOUTS
 
 OUT = ROOT / "configs" / "experiments"
@@ -92,6 +94,12 @@ RERUNS: dict[tuple[str, str, str], list[int]] = {
     ("E05", "rf", "B"): [30, 60, 120],  # +0.0503 over E04 knn_log_standard at 15 s
 }
 
+# E08 builds on the current best per task after E07 (reports/phase3_tables.md, "Current best
+# at 15 s after E07"); one change: class balancing, ladder none -> class_weight -> oversample
+# -> smote. A step runs only if every earlier step helped (E08.md); steps run so far per task:
+E08_BASE = {"A1": "E06-xgb", "A2-VPN": "E07-lgbm", "A2-NonVPN": "E07-lgbm", "B": "E07-xgb"}
+E08_STEPS = {task: ["class_weight"] for task in CORE_TASKS}
+
 
 def write(name: str, cfg: dict) -> None:
     (OUT / f"{name}.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False))
@@ -136,6 +144,17 @@ def main() -> None:
                 "experiment_id": "E07", "run_name": run, "kind": "optuna", "task": task,
                 "timeout": 15, "model": model, "trials": TRIALS,
                 "search_space": SEARCH[model], "fixed_params": FIXED.get(model, {}),
+                "save_model": True,
+            })  # fmt: skip
+            n += 1
+    for task, steps in E08_STEPS.items():
+        base = f"{E08_BASE[task]}-{task}-15s"
+        settings = results.run_settings(base)
+        for step in steps:
+            run = f"E08-{settings['model']}_{step}-{task}-15s"
+            write(f"E08_{settings['model']}_{step}_{task}_15s", {
+                "experiment_id": "E08", "run_name": run, "kind": "train", "task": task,
+                "timeout": 15, **settings, "balance": step, "builds_on": base,
                 "save_model": True,
             })  # fmt: skip
             n += 1

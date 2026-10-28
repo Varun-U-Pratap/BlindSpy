@@ -235,3 +235,61 @@ def test_xgb_run_logs_its_settings_in_full(tmp_path):
     assert p["random_state"] == 42 and p["n_jobs"] == 1 and p["n_estimators"] == 5
     conf = json.loads((tmp_path / "model" / "xgboost_config.json").read_text())
     assert conf["learner"]["gradient_booster"]["tree_train_param"]["max_depth"] == "6"
+
+
+def imbalanced_toy() -> tuple[pd.DataFrame, pd.Series]:
+    X, y = toy(3, n=400)
+    keep = (y != "C2") | (np.arange(len(y)) % 8 == 0)  # C2 about 8 times rarer
+    return X[keep].reset_index(drop=True), y[keep].reset_index(drop=True)
+
+
+@pytest.mark.parametrize("balance", ["oversample", "smote"])
+def test_resampling_sits_before_the_model_and_only_changes_training(balance):
+    from imblearn.pipeline import Pipeline as ImbPipeline
+
+    X, y = imbalanced_toy()
+    pipe = models.build_model("knn_log_standard", {}, seed=42, balance=balance)
+    assert isinstance(pipe, ImbPipeline)
+    assert [s for s, _ in pipe.steps] == ["log", "scale", "balance", "model"]
+    assert pipe.named_steps["balance"].random_state == 42
+    pipe.fit(X, y)
+    assert len(pipe.predict(X)) == len(X)  # resampling never touches predict
+    assert len(pipe[-1]._fit_X) > len(X)  # the model was fitted on resampled rows
+    again = models.build_model("knn_log_standard", {}, seed=42, balance=balance).fit(X, y)
+    assert (again.predict(X) == pipe.predict(X)).all()
+
+
+@pytest.mark.parametrize("name", ["xgb", "lgbm", "rf", "tree"])
+def test_class_weight_balanced(name):
+    pipe = models.build_model(name, {"n_estimators": 5} if name != "tree" else {}, 42,
+                              balance="class_weight")  # fmt: skip
+    assert pipe[-1].get_params()["class_weight"] == "balanced"
+    X, y = imbalanced_toy()
+    assert pipe.fit(X, y).score(X, y) > 0.5
+
+
+def test_balance_rejects_unknown_or_unsupported():
+    with pytest.raises(ValueError, match="balance"):
+        models.build_model("xgb", {}, 42, balance="undersample")
+    with pytest.raises(ValueError, match="class_weight"):
+        models.build_model("knn", {}, 42, balance="class_weight")
+    assert type(models.build_model("xgb", {}, 42, balance="none")) is Pipeline
+
+
+def test_train_and_score_with_smote_logs_balance_and_reloads(tmp_path):
+    X, y = imbalanced_toy()
+    df = X.assign(label=y.to_numpy())
+    a, b = int(len(df) * 0.7), int(len(df) * 0.85)
+    parts = (df.iloc[:a], df.iloc[a:b], df.iloc[b:])
+    cfg = {"experiment_id": "E_test", "task": "toy", "timeout": 15, "model": "xgb",
+           "params": {"n_estimators": 10}, "balance": "smote", "builds_on": "E07-x",
+           "save_model": True}  # fmt: skip
+    logged = train.train_and_score(cfg, parts, seed=42, cv_folds=5, out_dir=tmp_path, compress=3)
+    p = logged["params"]
+    assert p["class_balancing"] == "smote" and p["builds_on"] == "E07-x"
+    assert "balance: SMOTE(random_state=42)" in p["preprocessing"]
+    assert p["pipeline_steps"].endswith("SMOTE -> XGBLabelled")
+    reloaded = joblib.load(tmp_path / "model" / "model.joblib")
+    X_val = parts[1].drop(columns="label")
+    ref = models.build_model("xgb", {"n_estimators": 10}, 42, balance="smote")
+    assert (reloaded.predict(X_val) == ref.fit(*train._xy(parts[0])).predict(X_val)).all()

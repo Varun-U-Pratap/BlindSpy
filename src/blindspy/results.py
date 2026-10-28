@@ -597,6 +597,18 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
     return out  # fmt: skip
 
 
+def run_settings(run_name: str, path: Path = ROOT / "reports" / "history.csv") -> dict:
+    """Model and hyperparameters of the newest selected run with this name, read from the
+    logged strings (so tuned floats are copied exactly) for configs that build on it."""
+    import yaml
+
+    rid = load_history(path).set_index("run_name").loc[run_name, "run_id"]
+    raw = pd.read_csv(path, dtype=str, keep_default_na=False).set_index("run_id").loc[rid]
+    params = {c.removeprefix("params.model."): yaml.safe_load(v)
+              for c, v in raw.items() if c.startswith("params.model.") and v != ""}  # fmt: skip
+    return {"model": raw["params.model"], "params": params}
+
+
 # E07: each tuned model's untuned version (same model type and preprocessing)
 UNTUNED = {"E07-xgb": "E06-xgb", "E07-lgbm": "E06-lgbm", "E07-rf": "E05-rf",
            "E07-knn_log_standard": "E04-knn_log_standard"}  # fmt: skip
