@@ -509,3 +509,27 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
         }
         out["E04b"]["supported"] = out["E04b"]["tasks_within_0.02"] >= 3
     return out  # fmt: skip
+
+
+def robust_scaling_check(timeout: int = 15) -> pd.DataFrame:
+    """E04: after the signed log, which training columns have interquartile range 0 (so
+    RobustScaler leaves them unscaled), and the largest |value| after each scaler."""
+    from sklearn.preprocessing import RobustScaler, StandardScaler
+
+    from blindspy.data import load_task
+    from blindspy.features import signed_log
+
+    rows = []
+    for task in CORE_TASKS:
+        train = load_task(task, timeout, data_version="v1")[0]
+        X = signed_log(train.drop(columns="label"))
+        q75, q25 = np.percentile(X, [75, 25], axis=0)
+        rows.append({
+            "task": task, "timeout": f"{timeout} s",
+            "columns with IQR 0": ", ".join(c for c, a, b in zip(X.columns, q75, q25,
+                                                                  strict=True) if a == b),
+            "max |x| RobustScaler": round(float(np.abs(RobustScaler().fit_transform(X)).max()), 1),
+            "max |x| StandardScaler": round(
+                float(np.abs(StandardScaler().fit_transform(X)).max()), 1),
+        })  # fmt: skip
+    return pd.DataFrame(rows)
