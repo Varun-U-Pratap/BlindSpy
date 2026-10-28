@@ -757,7 +757,7 @@ flow. A1 120 s packet counts use its published (corrupt) flowPktsPerSecond.
 | tree (holdout) | 16 | 5.457 | 0.764 | 0.579 |
 | tree (paper_10fold) | 32 | 11.674 | 0.817 | 0.629 |
 
-Whole store now: artifacts 275.2 MB, mlflow.db 10.4 MB.
+Whole store now: artifacts 508.4 MB, mlflow.db 17.7 MB.
 
 ## Threshold checks (pre-stated in E01-E03)
 
