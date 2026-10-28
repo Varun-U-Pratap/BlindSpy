@@ -1,7 +1,7 @@
 # 2 Dataset
 
-*Working draft. The Google Docs report is the master copy; this text is pasted there and kept in
-sync. Every number and table here comes from files written by code for data version v1
+*Working draft. These markdown drafts are the master copy of the report; the full report (DOCX and
+PDF) is assembled from them at each milestone. Every number and table here comes from files written by code for data version v1
 (`data/manifest.json`, `data/processed/v1/cleaning_log.csv`, `reports/DATA_CHANGELOG.md`); the
 tables are printed by `scripts/data_tables.py v1`. Evidence: experiment E00.*
 

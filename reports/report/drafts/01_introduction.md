@@ -1,7 +1,7 @@
 # 1 Introduction
 
-*Working draft. The Google Docs report is the master copy; this text is pasted there and kept in
-sync. Placeholders in [brackets] are filled when the named experiment is logged.*
+*Working draft. These markdown drafts are the master copy of the report; the full report (DOCX and
+PDF) is assembled from them at each milestone. Placeholders in [brackets] are filled when the named experiment is logged.*
 
 ## 1.1 Problem
 

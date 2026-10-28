@@ -1,7 +1,7 @@
 # 4 Experiments
 
-*Working draft. The Google Docs report is the master copy; this text is pasted there and kept in
-sync. Every table here is copied unchanged from `reports/baseline_tables.md`, which
+*Working draft. These markdown drafts are the master copy of the report; the full report (DOCX and
+PDF) is assembled from them at each milestone. Every table here is copied unchanged from `reports/baseline_tables.md`, which
 `scripts/results_tables.py` generates from `reports/history.csv` (all MLflow runs, exported by
 `scripts/export_history.py`). Every number cites its experiment (E01-E03 entries in
 `reports/EXPERIMENT_LOG.md`). Data version: v1. Code: tag `v0.1.1-baseline` (commit c450c3e), from which all 144 runs
