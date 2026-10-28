@@ -1,0 +1,9 @@
+experiment_id: E05
+run_name: E05-rf-B-15s
+kind: train
+task: B
+timeout: 15
+model: rf
+params:
+  n_estimators: 300
+save_model: true
