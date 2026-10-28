@@ -1,0 +1,25 @@
+experiment_id: E16
+kind: kaggle
+task: kaggle
+data_version: kaggle-k1
+save_model: true
+run_name: E16-per_timeout-rf-60s
+timeout: 60
+split: per_timeout_60s
+model: rf
+params: {}
+grid:
+  n_estimators:
+  - 100
+  - 200
+  - 300
+  max_depth:
+  - null
+  - 20
+  - 30
+  min_samples_split:
+  - 2
+  - 5
+  min_samples_leaf:
+  - 1
+  - 2

@@ -1084,3 +1084,47 @@ def e14_mean_confusion(h: pd.DataFrame, task: str, runner: str) -> pd.DataFrame:
     e = _analysis_runs(h, "E14")
     cms = [run_confusion(r, runner) for r in e[e["params.task"] == task]["run_id"]]
     return (sum(cms) / len(cms)).round(1)
+
+
+ISNAN = {"accuracy": 0.8801, "f1_weighted": 0.8797}  # Isnan et al. 2026, test set of 8,198 rows
+
+
+def e16_table(h: pd.DataFrame) -> pd.DataFrame:
+    """E16 runs on the Kaggle data: protocol, rows, the grid's pick and the one test score."""
+    e = h[h["tags.experiment_id"] == "E16"]
+    rows = []
+    for _, r in e.sort_values("run_name").iterrows():
+        rows.append({
+            "run": r["run_name"], "split": r["params.split"],
+            "train / test rows": f"{int(r['params.n_train']):,} / {int(r['params.n_test']):,}",
+            "grid pick": pick if pd.notna(pick := r.get("params.grid_best_params"))
+                         else "fixed (configs/final/B.yaml)",
+            "grid best CV accuracy": round(r["metrics.grid_best_cv_accuracy"], 4)
+                                     if pd.notna(r.get("metrics.grid_best_cv_accuracy")) else "",
+            "test accuracy": round(r["metrics.kaggle_test_accuracy"], 4),
+            "test weighted F1": round(r["metrics.kaggle_test_f1_weighted"], 4),
+            "test macro F1": round(r["metrics.kaggle_test_f1_macro"], 4),
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e16_verdicts(h: pd.DataFrame) -> dict:
+    """(a) accuracy and weighted F1 within 0.01 of Isnan et al.'s; (b) mean per-timeout forest
+    accuracy at least 0.01 below (a)'s; (c) mean per-timeout XGBoost accuracy at least the
+    forest's."""
+    e = h[h["tags.experiment_id"] == "E16"].set_index("run_name")
+    a = e.loc["E16-isnan-rf"]
+    acc, wf1 = a["metrics.kaggle_test_accuracy"], a["metrics.kaggle_test_f1_weighted"]
+    rf = e[e.index.str.startswith("E16-per_timeout-rf-")]["metrics.kaggle_test_accuracy"]
+    xgb = e[e.index.str.startswith("E16-per_timeout-xgb-")]["metrics.kaggle_test_accuracy"]
+    return {
+        "E16a": {"accuracy": round(acc, 4), "weighted_f1": round(wf1, 4), "isnan": ISNAN,
+                 "supported": bool(abs(acc - ISNAN["accuracy"]) <= 0.01
+                                   and abs(wf1 - ISNAN["f1_weighted"]) <= 0.01)},
+        "E16b": {"isnan_accuracy": round(acc, 4), "per_timeout_rf_mean": round(rf.mean(), 4),
+                 "gap": round(acc - rf.mean(), 4), "timeouts": len(rf),
+                 "supported": bool(round(acc - rf.mean(), 10) >= 0.01)},
+        "E16c": {"per_timeout_xgb_mean": round(xgb.mean(), 4),
+                 "per_timeout_rf_mean": round(rf.mean(), 4),
+                 "supported": bool(xgb.mean() >= rf.mean())},
+    }  # fmt: skip

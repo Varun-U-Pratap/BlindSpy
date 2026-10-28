@@ -1,0 +1,113 @@
+{
+ "data_version": "kaggle-k1",
+ "source_csv_sha256": "1a0c655df06c9106582231629cb20203569d365d54b40dd3136908b5b1a291e7",
+ "rows": 59706,
+ "labels": [
+  "BROWSING",
+  "CHAT",
+  "FT",
+  "MAIL",
+  "P2P",
+  "STREAMING",
+  "VOIP",
+  "VPN-BROWSING",
+  "VPN-CHAT",
+  "VPN-FT",
+  "VPN-MAIL",
+  "VPN-P2P",
+  "VPN-STREAMING",
+  "VPN-VOIP"
+ ],
+ "features": [
+  "duration",
+  "total_fiat",
+  "total_biat",
+  "min_fiat",
+  "min_biat",
+  "max_fiat",
+  "max_biat",
+  "mean_fiat",
+  "mean_biat",
+  "flowPktsPerSecond",
+  "flowBytesPerSecond",
+  "min_flowiat",
+  "max_flowiat",
+  "mean_flowiat",
+  "std_flowiat",
+  "min_active",
+  "mean_active",
+  "max_active",
+  "std_active",
+  "min_idle",
+  "mean_idle",
+  "max_idle",
+  "std_idle"
+ ],
+ "file_order": [
+  "A2-NonVPN 120 s (5151 rows)",
+  "A2-VPN 120 s (5631 rows)",
+  "A2-NonVPN 15 s (8965 rows)",
+  "A2-VPN 15 s (9793 rows)",
+  "A2-NonVPN 30 s (6917 rows)",
+  "A2-VPN 30 s (7734 rows)",
+  "A2-NonVPN 60 s (8580 rows)",
+  "A2-VPN 60 s (6935 rows)"
+ ],
+ "distinct_rows_by_number_of_timeouts": {
+  "1": 33894,
+  "2": 2475,
+  "3": 1286,
+  "4": 3332
+ },
+ "isnan": {
+  "protocol": "isnan",
+  "rows": 59706,
+  "after_dedup": 40987,
+  "train": 32789,
+  "test": 8198
+ },
+ "per_timeout": {
+  "15": {
+   "protocol": "per_timeout",
+   "timeout": 15,
+   "rows": 18758,
+   "after_dedup": 18074,
+   "train": 14459,
+   "test": 3615
+  },
+  "30": {
+   "protocol": "per_timeout",
+   "timeout": 30,
+   "rows": 14651,
+   "after_dedup": 13638,
+   "train": 10910,
+   "test": 2728
+  },
+  "60": {
+   "protocol": "per_timeout",
+   "timeout": 60,
+   "rows": 15515,
+   "after_dedup": 14729,
+   "train": 11783,
+   "test": 2946
+  },
+  "120": {
+   "protocol": "per_timeout",
+   "timeout": 120,
+   "rows": 10782,
+   "after_dedup": 9589,
+   "train": 7671,
+   "test": 1918
+  }
+ },
+ "seed": 42,
+ "test_size": 0.2,
+ "files_sha256": {
+  "rows.parquet": "aead4676e32c3fff62fc8f9d52aad57548086c6619898a017fa69842a18537d9",
+  "splits/isnan.json": "a5d81d220eeed559e7536c22605011b3e9cf553fc3994f861a402891f499fe18",
+  "splits/per_timeout_120s.json": "6d134a1beca94aebb178af9e7426cfb363b78b191cac81c04250b0c8c1d68a86",
+  "splits/per_timeout_15s.json": "f413a658f8f2ae05311047362392f2e5ef8e27bc75765867c71134d19b7e3f4a",
+  "splits/per_timeout_30s.json": "7af095d8073473a0751557e89b3759b46302f48703c2042e1593894de376e60a",
+  "splits/per_timeout_60s.json": "cc53a62a714666cf8f4b1d7b77facb54ed260a9cf809512dc253875b0b42dacb"
+ }
+}

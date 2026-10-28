@@ -389,3 +389,30 @@ def test_e14_verdicts():
     assert v["E14a"]["tasks_below_0.01"] == 1 and v["E14b"]["tasks_below_0.01"] == 1
     assert v["E14c"]["official_inside_range"] == {"A1": True, "B": False}
     assert not v["E14c"]["supported"]
+
+
+def test_e16_verdicts():
+    rows = [
+        {
+            "run_name": "E16-isnan-rf",
+            "tags.experiment_id": "E16",
+            "metrics.kaggle_test_accuracy": 0.885,
+            "metrics.kaggle_test_f1_weighted": 0.884,
+        }
+    ]
+    rows += [
+        {
+            "run_name": f"E16-per_timeout-rf-{t}s",
+            "tags.experiment_id": "E16",
+            "metrics.kaggle_test_accuracy": a,
+            "metrics.kaggle_test_f1_weighted": a,
+        }
+        for t, a in [(15, 0.86), (30, 0.87), (60, 0.85), (120, 0.86)]
+    ]
+    rows += [{"run_name": f"E16-per_timeout-xgb-{t}s", "tags.experiment_id": "E16",
+              "metrics.kaggle_test_accuracy": a, "metrics.kaggle_test_f1_weighted": a}
+             for t, a in [(15, 0.87), (30, 0.87), (60, 0.86), (120, 0.85)]]  # fmt: skip
+    v = R.e16_verdicts(pd.DataFrame(rows))
+    assert v["E16a"]["supported"]  # 0.885 vs 0.8801, 0.884 vs 0.8797
+    assert v["E16b"]["gap"] == 0.025 and v["E16b"]["supported"]
+    assert v["E16c"]["supported"]  # 0.8625 >= 0.86
