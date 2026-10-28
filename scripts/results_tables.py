@@ -236,6 +236,9 @@ def phase3() -> None:
             out += ["", f"## Winner rerun: {label}, {task}, every timeout", "",
                     R.md(R.timeout_table(s, label, task))]  # fmt: skip
         out += ["", f"## {exp} run details", "", R.md(R.run_details(s, exp))]
+        if exp == "E04":
+            out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
+                    "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip
     v = R.phase3_verdicts(s)
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip

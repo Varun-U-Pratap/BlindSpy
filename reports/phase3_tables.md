@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 8, status FINISHED: 8.
-- Git commit(s) of these runs: 3817307.
+- Phase 3 holdout runs: 11, status FINISHED: 11.
+- Git commit(s) of these runs: 1955147, 3817307.
 
 ## Current best at 15 s after E04
 
@@ -33,6 +33,15 @@ are excluded. Data version: v1.
 | B | E04-knn_log_robust | 0.742 | 0.7555 +- 0.0094 | E02-tree | 0.7585 | -0.0166 | no |
 | B | E04-knn_log_standard | 0.7644 | 0.7798 +- 0.0078 | E02-tree | 0.7585 | 0.0059 | no |
 
+## Winner rerun: E04-knn_log_standard, A2-NonVPN, every timeout
+
+| task | timeout | model | val macro F1 | CV macro F1 | best other run | its F1 | difference |
+|---|---|---|---|---|---|---|---|
+| A2-NonVPN | 15 s | E04-knn_log_standard | 0.867 | 0.8861 +- 0.0068 | E04-knn_log_robust | 0.854 | 0.0129 |
+| A2-NonVPN | 30 s | E04-knn_log_standard | 0.8523 | 0.8487 +- 0.0067 | E02-tree | 0.8283 | 0.024 |
+| A2-NonVPN | 60 s | E04-knn_log_standard | 0.859 | 0.8638 +- 0.0108 | E02-tree | 0.8246 | 0.0344 |
+| A2-NonVPN | 120 s | E04-knn_log_standard | 0.8491 | 0.8243 +- 0.0252 | E02-tree | 0.8393 | 0.0098 |
+
 ## E04 run details
 
 | run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | train s | predict ms/1k | model MB (raw / file) | memory MB (tracemalloc / child RSS) |
@@ -41,10 +50,22 @@ are excluded. Data version: v1.
 | E04-knn_log_standard-A1-15s | 0.905 | 0.905 | 0.905 | 0.904 | -0.001 | Non-VPN 0.90 | VPN 0.91 | 0.023 | 11.26 | 2.31 / 1.44 | 6.7 / 6.4 |
 | E04-knn_log_robust-A2-NonVPN-15s | 0.854 | 0.901 | 0.903 | 0.843 | 0.015 | STREAMING 0.73 | VOIP 0.99 | 0.015 | 7.75 | 1.12 / 0.69 | 3.2 / 4.1 |
 | E04-knn_log_standard-A2-NonVPN-15s | 0.867 | 0.913 | 0.915 | 0.858 | 0.019 | STREAMING 0.74 | VOIP 0.99 | 0.014 | 8.27 | 1.12 / 0.68 | 3.2 / 3.9 |
+| E04-knn_log_standard-A2-NonVPN-30s | 0.852 | 0.899 | 0.9 | 0.842 | -0.004 | STREAMING 0.69 | VOIP 0.99 | 0.013 | 9.2 | 0.86 / 0.55 | 2.5 / 1.9 |
+| E04-knn_log_standard-A2-NonVPN-60s | 0.859 | 0.902 | 0.903 | 0.85 | 0.005 | STREAMING 0.69 | VOIP 0.98 | 0.013 | 8.1 | 1.05 / 0.69 | 3.0 / 2.8 |
+| E04-knn_log_standard-A2-NonVPN-120s | 0.849 | 0.902 | 0.904 | 0.823 | -0.025 | CHAT 0.69 | VOIP 0.97 | 0.006 | 7.74 | 0.64 / 0.42 | 1.8 / 2.1 |
 | E04-knn_log_robust-A2-VPN-15s | 0.837 | 0.853 | 0.854 | 0.838 | -0.019 | VPN-CHAT 0.63 | VPN-VOIP 0.99 | 0.021 | 8.03 | 1.21 / 0.77 | 3.5 / 4.1 |
 | E04-knn_log_standard-A2-VPN-15s | 0.854 | 0.87 | 0.871 | 0.858 | -0.021 | VPN-CHAT 0.69 | VPN-VOIP 0.99 | 0.016 | 7.95 | 1.21 / 0.77 | 3.5 / 3.9 |
 | E04-knn_log_robust-B-15s | 0.742 | 0.797 | 0.799 | 0.742 | 0.014 | VPN-CHAT 0.56 | VOIP 0.97 | 0.033 | 11.03 | 2.32 / 1.44 | 6.7 / 6.5 |
 | E04-knn_log_standard-B-15s | 0.764 | 0.819 | 0.82 | 0.765 | 0.015 | MAIL 0.56 | VOIP 0.97 | 0.027 | 10.8 | 2.32 / 1.44 | 6.7 / 6.4 |
+
+## E04: columns RobustScaler leaves unscaled (training rows, after the signed log)
+
+| task | timeout | columns with IQR 0 | max |x| RobustScaler | max |x| StandardScaler |
+|---|---|---|---|---|
+| A1 | 15 s | std_active, std_idle | 18.9 | 5.3 |
+| A2-VPN | 15 s | std_active, std_idle | 18.9 | 5.5 |
+| A2-NonVPN | 15 s | std_active, std_idle | 18.3 | 4.8 |
+| B | 15 s | std_active, std_idle | 18.9 | 5.2 |
 
 ## Threshold checks (pre-stated in the E## files)
 
