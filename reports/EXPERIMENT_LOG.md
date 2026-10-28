@@ -148,6 +148,79 @@ be built fairly. The final choice (highest validation macro F1, decided 28 Oct a
 
 MLflow runs: E17-<model>-<task>-15s (retrained best); trials E17-<model>-<task>-15s-trial-NNN
 
+### E16 — Reproduce Isnan et al. (2026) on the Kaggle CSV, then correct it (2026-10-29, utsav-s-r)
+
+Purpose (plan): Isnan et al. report 88.01% accuracy and 87.97% weighted F1 for a 300-tree Random
+Forest on 14 ISCXVPN2016 classes. E00 found that their data, the Kaggle CSV, is the eight A2
+files from all four timeouts stacked, so their duplicate removal and their 80/20 split mix
+timeouts. E16 (a) reproduces their setup exactly, (b) repeats it with the timeouts kept apart,
+and (c) trains our best task-B model type and settings under (b). No E16 result feeds model
+selection (protocol tags are not "holdout"; E16 is not a model-selection experiment).
+
+Data: own data version kaggle-k1 (`scripts/prepare_kaggle.py --version k1` ->
+`data/processed/kaggle/k1/`, manifest copied to `data/kaggle_k1_manifest.json`; DATA_CHANGELOG
+entry; data v1 untouched). Found while building it: the CSV keeps the A2 files' row order, in
+the order 120, 15, 30, 60 s (NonVPN then VPN within each), so every CSV row's source file,
+timeout and row number are known exactly; each block was checked against its ARFF file (all 23
+features at 12 significant digits and the label). The split files keep the rows in the order
+`train_test_split` returns them (not sorted), because a seeded forest's bootstrap samples and an
+unshuffled 5-fold CV depend on row order, and Isnan et al. trained on that order (found in the
+recheck before E16; an earlier draft sorted them). Two builds into separate folders gave identical
+hashes for all 6 files. Counts (manifest): 59,706 rows, 14 labels (the B classes);
+40,987 after dropping exact duplicates over the whole CSV (Isnan et al.: 40,987), split 32,789 /
+8,198 (theirs: 32,789 / 8,198); 7,093 distinct rows appear in 2-4 timeout files (2,475 in 2,
+1,286 in 3, 3,332 in 4), as E00 found.
+
+Their setup, read from their paper (about/related/intechno-2026_rf-flow-classification.pdf, read
+again 29 Oct): exact duplicates dropped; labels encoded with LabelEncoder (alphabetical, the same
+class order as our string labels, so the stratified split is the same); stratified 80/20 split
+with random_state 42; GridSearchCV with stratified 5-fold cross-validation (scikit-learn's
+default, no shuffling) and accuracy as the score over n_estimators {100, 200, 300}, max_depth
+{None, 20, 30}, min_samples_split {2, 5}, min_samples_leaf {1, 2} (36 configurations, 180
+fits), Gini, max_features sqrt, bootstrap, random_state 42; their pick 300 trees, max_depth
+None, min_samples_split 2, min_samples_leaf 1; test accuracy 88.01%, weighted F1 87.97%.
+
+Protocols (all with seed 42; Random Forest with n_jobs = 1 per model and the grid's CV fits in
+parallel, which does not change a seeded forest's result):
+- (a) Isnan et al.: their dedup over the whole CSV, their split, their grid search, then the
+  chosen model refitted on the 32,789 training rows and scored once on the 8,198 test rows.
+- (b) Timeouts kept apart: for each timeout t, only the rows from the two A2 files of t,
+  exact duplicates dropped within t, a stratified 80/20 split of those rows (seed 42), the same
+  grid search, the chosen model scored on t's test rows. A flow and its copies from other
+  timeouts can then never be on both sides. 4 runs (15, 30, 60, 120 s); after dedup 18,074 /
+  13,638 / 14,729 / 9,589 rows.
+- (c) Our model under (b): the current best task-B model type and settings (E07 XGBoost, tuned:
+  `configs/final/B.yaml`, copied from E07-xgb-B-15s), retrained on each timeout's training rows
+  of (b) and scored on the same test rows; no grid search (our settings are fixed). The Kaggle
+  rows use the A2 column layout (total_fiat / total_biat), so the model is retrained, not reused.
+  4 runs.
+Reported for every run: accuracy and weighted F1 (Isnan et al.'s scores) and macro F1 (ours),
+per-class precision / recall / F1 and the confusion matrix; for (a) and (b) also the grid's best
+settings and best CV accuracy.
+
+Hypothesis: (a) reproduces their numbers closely, since their setup is fully specified and seeded.
+(b) scores lower than (a): in (a) the same flow can sit in the training set at one timeout and in
+the test set at another (as a slightly different row, so dedup does not remove it), which helps the
+model; (b) removes that. (c) scores at least as high as the Random Forest under (b), as in our own
+experiments where tuned XGBoost beats the forest on task B (E05-E07).
+
+Threshold (set before running, never moved afterwards):
+- (a) test accuracy within 0.01 of 88.01% and weighted F1 within 0.01 of 87.97%;
+- (b) the mean test accuracy over the 4 timeouts under (b) is at least 0.01 below (a)'s;
+- (c) the mean test accuracy over the 4 timeouts under (c) is at least the mean under (b).
+Each part gets its own verdict. The (a) - (b) gap is reported in any case.
+
+Winner rule (decided 28 Oct): not applicable; E16 never feeds model selection, and its scores
+are on the Kaggle rows, not on our v1 validation rows.
+
+Result: (after the runs)
+
+Verdict: (after the runs)
+
+Decision: (after the runs)
+
+MLflow runs: E16-isnan-rf, E16-per_timeout-rf-<t>s, E16-per_timeout-xgb-<t>s
+
 ### E14 — Split-seed stability of the headline models (2026-10-28, utsav-s-r)
 
 Purpose (plan, analysis only): how much the headline model's validation score depends on which
@@ -185,11 +258,56 @@ the 10 runs (`reports/e14_mean_confusion/<task>.csv`). Logged param `split_seed`
 `configs/experiments/E14_seed<seed>_<task>_15s.yaml` (`scripts/make_configs.py`). Every run saves
 its model (compression level 3).
 
-Result: (after the runs)
+Result: 40 runs from dev commit 7a440a9 (hypothesis and configs committed before the first run),
+all FINISHED, committed and pushed, data v1. The first run (E14-seed42-A2-NonVPN-15s) was checked
+by query before the others: 6,085 training rows and the same class counts as the official split
+(stratified resplit), the test rows' class counts unchanged. Numbers below come from
+`reports/phase3_tables.md` (table "E14 split-seed stability"), generated by
+`scripts/results_tables.py --phase 3` from `reports/history.csv`; per-class F1 from
+`reports/history.csv`.
 
-Verdict: (after the runs)
+Validation scores at 15 s over 10 resplits of train + validation (seeds 42-51):
 
-Decision: (after the runs)
+| Task | macro F1 mean (std) | min - max | accuracy mean (std) | CV - val | official split |
+|---|---|---|---|---|---|
+| A1 | 0.9338 (0.0042) | 0.9275 - 0.9397 | 0.9339 (0.0042) | -0.0032 | 0.9308 |
+| A2-VPN | 0.8862 (0.0114) | 0.8689 - 0.9020 | 0.9037 (0.0066) | -0.0057 | 0.8830 |
+| A2-NonVPN | 0.9324 (0.0071) | 0.9257 - 0.9468 | 0.9589 (0.0044) | -0.0041 | 0.9075 |
+| B | 0.8476 (0.0084) | 0.8344 - 0.8636 | 0.8819 (0.0074) | -0.0119 | 0.8428 |
+
+- The split moves macro F1 by about 0.004-0.011 (std); accuracy moves less (0.004-0.007),
+  because the small classes, which macro F1 weights as much as the large ones, change most
+  between splits.
+- Cross-validation agrees with validation on average (mean CV - val -0.003 to -0.006; B
+  -0.012): by Isnan et al.'s rule (gap and std under 1 point) A1 and A2-NonVPN are stable on
+  both counts, B on the std only (gap 0.0119), A2-VPN on the gap only (std 0.0114).
+- The official split is not typical in A2-NonVPN: its validation macro F1 (0.9075) is below
+  all 10 resplits (0.9257-0.9468), 0.025 under their mean. The official validation rows are harder
+  for MAIL (F1 0.827 against 0.853-0.959 on the resplits; 36 validation rows, so a few flows move
+  it) and P2P (0.950 against 0.975-0.996). This also explains why A2-NonVPN showed the largest
+  CV - validation gaps in E04-E17 (mean over its Phase 3 model-selection runs +0.0166, the other
+  tasks -0.0002 to +0.0008, computed from `reports/history.csv`; headline: CV 0.9310, validation
+  0.9075). In the other three
+  tasks the official score lies inside the resplit range (A1 and B in the lower half, A2-VPN near
+  the middle).
+- What this means for the choice: all A2-NonVPN candidates were compared on the same, harder
+  validation rows, so the comparison stays fair, but their validation scores understate typical
+  performance by about 0.025; the test score in Phase 4 may come out higher than the validation
+  score for that reason. Nothing is changed (analysis only).
+- Mean confusion matrices over the 10 resplits: `reports/e14_mean_confusion/<task>.csv`.
+
+Storage: the 40 E14 runs take 416.9 MiB (model files 412.6 MiB; largest run 25.9 MiB); whole store
+after E13 and E14 2,173.9 MiB + mlflow.db 34.3 MiB.
+
+Verdict: (a) supported (std below 0.01 in 3 of 4 tasks; A2-VPN 0.0114 is the exception).
+(b) supported (|mean CV - mean val| within 0.01 in 3 of 4 tasks; B 0.0119 is the exception).
+(c) not supported (the official score lies inside the resplit range in 3 of 4 tasks; A2-NonVPN's
+0.9075 is below the minimum, 0.9257).
+
+Decision: no change to the final configs (analysis only, decided in the plan). Report: the
+validation scores are stable to about +-0.01 across splits; A2-NonVPN's official validation rows
+are unusually hard (by about 0.025, mostly MAIL and P2P), which the report states next to its
+validation score and its Phase 4 test score. E12 part 1 (written before this) is not changed.
 
 MLflow runs: E14-seed<seed>-<task>-15s
 
@@ -228,11 +346,47 @@ own sample. Logged params: `train_fraction`, `subsample_seed`, `n_train_rows`. C
 `configs/experiments/E13_f<percent>-s<seed>_<task>_15s.yaml` (`scripts/make_configs.py`). Every run
 saves its model (compression level 3), as for every official run.
 
-Result: (after the runs)
+Result: 100 runs from dev commit 7a440a9 (hypothesis and configs committed before the first
+run), all FINISHED, committed and pushed, data v1. The first run (E13-f010-s42-A2-NonVPN-15s) was
+checked by query before the others: 608 training rows (10% of 6,085), the headline model's
+settings and oversampling, validation unchanged. Numbers below come from `reports/phase3_tables.md`
+(table "E13 learning curve"), generated by `scripts/results_tables.py --phase 3` from
+`reports/history.csv`.
 
-Verdict: (after the runs)
+Validation macro F1 at 15 s, mean (std) over 5 subsample seeds; 100% is the headline run:
 
-Decision: (after the runs)
+| Training rows used | A1 | A2-VPN | A2-NonVPN | B |
+|---|---|---|---|---|
+| 10% | 0.8724 (0.0062) | 0.7793 (0.0052) | 0.8176 (0.0093) | 0.6969 (0.0097) |
+| 20% | 0.8952 (0.0041) | 0.8260 (0.0101) | 0.8585 (0.0118) | 0.7468 (0.0138) |
+| 40% | 0.9106 (0.0066) | 0.8582 (0.0041) | 0.8806 (0.0057) | 0.7975 (0.0036) |
+| 60% | 0.9213 (0.0039) | 0.8721 (0.0053) | 0.8934 (0.0045) | 0.8156 (0.0016) |
+| 80% | 0.9270 (0.0029) | 0.8804 (0.0036) | 0.9005 (0.0033) | 0.8297 (0.0029) |
+| 100% | 0.9308 | 0.8830 | 0.9075 | 0.8428 |
+| training rows at 100% | 12,626 | 6,566 | 6,085 | 12,651 |
+
+- Every task gains steadily with more rows: from 10% to 100% +0.058 (A1), +0.104 (A2-VPN),
+  +0.090 (A2-NonVPN) and +0.146 (B). The 14-class task B needs the most data.
+- The curves flatten: the last 20% adds +0.0038 (A1), +0.0026 (A2-VPN) and +0.0070
+  (A2-NonVPN), but still +0.0131 in B. B is the one task where more training flows would
+  probably still help; the others are close to their limit with this model and these features.
+- Small samples vary more between seeds: the std at 10% (0.0052-0.0097) is above the std at 80%
+  (0.0029-0.0036) in all 4 tasks; at 20% it is largest in three tasks (0.0101-0.0138). The 100%
+  point is one run (the full training set, no subsample), so it has no spread.
+- 40% of the training set (2,434-5,060 flows) already reaches within 0.020-0.045 of the full
+  score (A1 -0.0202, A2-VPN -0.0248, A2-NonVPN -0.0269, B -0.0453), so the models are usable
+  with much less data than the dataset holds.
+
+Storage: the 100 E13 runs take 548.2 MiB (model files 536.6 MiB; largest run 21.3 MiB); whole
+artifact store after E13 and E14 2,173.9 MiB, mlflow.db 34.3 MiB (measured from the store), far
+below the plan's 20 GB line.
+
+Verdict: (a) supported (100% above 10% in 4 of 4 tasks). (b) supported (gain 80% -> 100% below
+0.01 in 3 of 4 tasks; B +0.0131 is the exception). (c) supported (std at 10% above std at 80% in 4
+of 4 tasks).
+
+Decision: no change to the final configs (analysis only). For the report: more data would still
+help task B most; the binary and 7-class tasks are near their plateau. Next: E14.
 
 MLflow runs: E13-f<percent>-s<seed>-<task>-15s
 

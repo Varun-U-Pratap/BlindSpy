@@ -427,14 +427,20 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E07 xgb | 4 | 9.238 | 4.508 | 4.315 |
 | E08 lgbm | 5 | 67.775 | 27.135 | 27.033 |
 | E08 xgb | 2 | 4.724 | 4.511 | 4.348 |
+| E09 lgbm | 39 | 482.749 | 27.644 | 27.549 |
+| E09 xgb | 13 | 61.881 | 5.261 | 5.092 |
 | E10 xgb_two_step | 1 | 3.856 | 3.856 | 3.728 |
+| E13 lgbm | 75 | 474.7 | 21.265 | 21.163 |
+| E13 xgb | 25 | 73.528 | 4.188 | 4.025 |
+| E14 lgbm | 30 | 372.146 | 25.859 | 25.759 |
+| E14 xgb | 10 | 44.771 | 4.494 | 4.336 |
 | E17 lgbm | 1 | 7.215 | 7.215 | 7.092 |
 | E17 logreg | 4 | 0.515 | 0.199 | 0.004 |
 | E17 rf | 3 | 68.011 | 45.962 | 45.773 |
 | E17 svm_rbf | 4 | 2.944 | 1.479 | 1.306 |
 | E17 tree | 4 | 0.732 | 0.275 | 0.07 |
 
-Whole store now: artifacts 1208.8 MiB, mlflow.db 28.3 MiB.
+Whole store now: artifacts 2173.9 MiB, mlflow.db 34.3 MiB.
 
 ## E09 feature-group ablation on the headline model per task (15 s, validation; "all" = the headline run)
 
@@ -496,6 +502,46 @@ Whole store now: artifacts 1208.8 MiB, mlflow.db 28.3 MiB.
 | B | no_idle | 19 | 0.8428 | 0.0 | 0.8405 +- 0.0058 |
 | B | no_rates_duration | 20 | 0.7879 | -0.0549 | 0.7936 +- 0.0076 |
 | B | timing_only | 22 | 0.7987 | -0.0441 | 0.7949 +- 0.0062 |
+
+## E13 learning curve on the headline model per task (15 s, validation; 5 subsample seeds per fraction, 100% = the headline run)
+
+| task | train fraction | runs | training rows | val macro F1 mean | val macro F1 std |
+|---|---|---|---|---|---|
+| A1 | 0.1 | 5 | 1,262 | 0.8724 | 0.0062 |
+| A1 | 0.2 | 5 | 2,525 | 0.8952 | 0.0041 |
+| A1 | 0.4 | 5 | 5,050 | 0.9106 | 0.0066 |
+| A1 | 0.6 | 5 | 7,575 | 0.9213 | 0.0039 |
+| A1 | 0.8 | 5 | 10,100 | 0.927 | 0.0029 |
+| A1 | 1.0 | 1 | 12,626 | 0.9308 | nan |
+| A2-VPN | 0.1 | 5 | 656 | 0.7793 | 0.0052 |
+| A2-VPN | 0.2 | 5 | 1,313 | 0.826 | 0.0101 |
+| A2-VPN | 0.4 | 5 | 2,626 | 0.8582 | 0.0041 |
+| A2-VPN | 0.6 | 5 | 3,939 | 0.8721 | 0.0053 |
+| A2-VPN | 0.8 | 5 | 5,252 | 0.8804 | 0.0036 |
+| A2-VPN | 1.0 | 1 | 6,566 | 0.883 | nan |
+| A2-NonVPN | 0.1 | 5 | 608 | 0.8176 | 0.0093 |
+| A2-NonVPN | 0.2 | 5 | 1,217 | 0.8585 | 0.0118 |
+| A2-NonVPN | 0.4 | 5 | 2,434 | 0.8806 | 0.0057 |
+| A2-NonVPN | 0.6 | 5 | 3,651 | 0.8934 | 0.0045 |
+| A2-NonVPN | 0.8 | 5 | 4,868 | 0.9005 | 0.0033 |
+| A2-NonVPN | 1.0 | 1 | 6,085 | 0.9075 | nan |
+| B | 0.1 | 5 | 1,265 | 0.6969 | 0.0097 |
+| B | 0.2 | 5 | 2,530 | 0.7468 | 0.0138 |
+| B | 0.4 | 5 | 5,060 | 0.7975 | 0.0036 |
+| B | 0.6 | 5 | 7,590 | 0.8156 | 0.0016 |
+| B | 0.8 | 5 | 10,120 | 0.8297 | 0.0029 |
+| B | 1.0 | 1 | 12,651 | 0.8428 | nan |
+
+## E14 split-seed stability on the headline model per task (10 resplits of train + validation, seeds 42-51; test rows untouched)
+
+| task | seeds | val macro F1 mean | val macro F1 std | val macro F1 min | val macro F1 max | val accuracy mean | val accuracy std | CV macro F1 mean | CV - val mean | official split (seed 42) val macro F1 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | 10 | 0.9338 | 0.0042 | 0.9275 | 0.9397 | 0.9339 | 0.0042 | 0.9306 | -0.0032 | 0.9308 |
+| A2-VPN | 10 | 0.8862 | 0.0114 | 0.8689 | 0.902 | 0.9037 | 0.0066 | 0.8805 | -0.0057 | 0.883 |
+| A2-NonVPN | 10 | 0.9324 | 0.0071 | 0.9257 | 0.9468 | 0.9589 | 0.0044 | 0.9283 | -0.0041 | 0.9075 |
+| B | 10 | 0.8476 | 0.0084 | 0.8344 | 0.8636 | 0.8819 | 0.0074 | 0.8358 | -0.0119 | 0.8428 |
+
+Mean validation confusion matrices over the 10 resplits: reports/e14_mean_confusion/<task>.csv.
 
 ## Threshold checks (pre-stated in the E## files)
 
@@ -745,6 +791,81 @@ Whole store now: artifacts 1208.8 MiB, mlflow.db 28.3 MiB.
    "B": []
   },
   "triggered": false
+ },
+ "E13a": {
+  "gain_10_to_100": {
+   "A1": 0.0584,
+   "A2-NonVPN": 0.0899,
+   "A2-VPN": 0.1037,
+   "B": 0.1459
+  },
+  "supported": true
+ },
+ "E13b": {
+  "gain_80_to_100": {
+   "A1": 0.0038,
+   "A2-NonVPN": 0.007,
+   "A2-VPN": 0.0026,
+   "B": 0.0131
+  },
+  "tasks_below_0.01": 3,
+  "needed": 3,
+  "supported": true
+ },
+ "E13c": {
+  "std_at_10_and_80": {
+   "A1": [
+    0.0062,
+    0.0029
+   ],
+   "A2-NonVPN": [
+    0.0093,
+    0.0033
+   ],
+   "A2-VPN": [
+    0.0052,
+    0.0036
+   ],
+   "B": [
+    0.0097,
+    0.0029
+   ]
+  },
+  "tasks_10_above_80": 4,
+  "needed": 3,
+  "supported": true
+ },
+ "E14a": {
+  "std": {
+   "A1": 0.0042,
+   "A2-VPN": 0.0114,
+   "A2-NonVPN": 0.0071,
+   "B": 0.0084
+  },
+  "tasks_below_0.01": 3,
+  "needed": 3,
+  "supported": true
+ },
+ "E14b": {
+  "cv_minus_val": {
+   "A1": -0.0032,
+   "A2-VPN": -0.0057,
+   "A2-NonVPN": -0.0041,
+   "B": -0.0119
+  },
+  "tasks_below_0.01": 3,
+  "needed": 3,
+  "supported": true
+ },
+ "E14c": {
+  "official_inside_range": {
+   "A1": true,
+   "A2-VPN": true,
+   "A2-NonVPN": false,
+   "B": true
+  },
+  "needed": 4,
+  "supported": false
  }
 }
 ```

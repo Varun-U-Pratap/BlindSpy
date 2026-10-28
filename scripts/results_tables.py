@@ -279,7 +279,12 @@ def phase3() -> None:
         "",
         R.md(old.drop(columns="run_id").round({"val macro F1": 4})),
     ]
-    st, total = storage(p3, runner, by_experiment=True)
+    # every Phase 3 run with a model (selection and analysis experiments; trials save none)
+    every = h[h["tags.experiment_id"].isin(["E04", "E05", "E06", "E07", "E08", "E09", "E10",
+                                            "E13", "E14", "E16", "E17"])]  # fmt: skip
+    if "tags.trial" in every.columns:
+        every = every[every["tags.trial"].astype(str) != "True"]
+    st, total = storage(every, runner, by_experiment=True)
     out += ["", f"## Storage of the Phase 3 runs (mlruns/{runner}, models saved with joblib "
             "compression level 3)", "", "Sizes in MiB (2**20 bytes). Optuna trial runs save no "
             "model and are not included.", "", R.md(st), "",
