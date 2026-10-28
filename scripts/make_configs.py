@@ -99,8 +99,8 @@ RERUNS: dict[tuple[str, str, str], list[int]] = {
 # earlier step helped (E08.md; table "E08 balancing ladder"). Steps run so far per task:
 E08_STEPS = {
     "A1": ["class_weight"],  # round 1; class_weight did not help -> stopped
-    "A2-VPN": ["class_weight", "oversample"],  # class_weight helped -> round 2
-    "A2-NonVPN": ["class_weight", "oversample"],  # class_weight helped -> round 2
+    "A2-VPN": ["class_weight", "oversample"],  # round 2; oversample did not help -> stopped
+    "A2-NonVPN": ["class_weight", "oversample", "smote"],  # oversample helped -> round 3
     "B": ["class_weight"],  # round 1; class_weight did not help -> stopped
 }
 
