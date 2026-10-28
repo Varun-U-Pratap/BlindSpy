@@ -1,0 +1,28 @@
+experiment_id: E17
+run_name: E17-tree-B-15s
+kind: optuna
+task: B
+timeout: 15
+model: tree
+trials: 50
+search_space:
+  criterion:
+    type: categorical
+    choices:
+    - gini
+    - entropy
+  max_depth:
+    type: int_or_none
+    low: 3
+    high: 40
+  min_samples_leaf:
+    type: int
+    low: 1
+    high: 50
+  ccp_alpha:
+    type: float
+    low: 1.0e-06
+    high: 0.01
+    log: true
+fixed_params: {}
+save_model: true

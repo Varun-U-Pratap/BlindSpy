@@ -248,9 +248,9 @@ def phase3() -> None:
         if exp == "E08":
             out += ["", "## E08 balancing ladder (stop rule: a step runs only if every earlier "
                     "step helped)", "", R.md(R.e08_ladder(s, R.E08_BASE))]  # fmt: skip
-        if exp == "E07":
-            out += ["", "## E07 searches: size, chosen settings, tuned vs untuned", "",
-                    R.md(R.e07_searches(s))]  # fmt: skip
+        if exp in ("E07", "E17"):
+            out += ["", f"## {exp} searches: size, chosen settings, tuned vs untuned", "",
+                    R.md(R.e07_searches(s, exp))]  # fmt: skip
         if exp == "E04":
             out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
                     "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip
