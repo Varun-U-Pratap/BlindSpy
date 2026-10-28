@@ -1,0 +1,19 @@
+experiment_id: E13
+run_name: E13-f020-s42-A2-NonVPN-15s
+kind: train
+task: A2-NonVPN
+timeout: 15
+model: lgbm
+params:
+  colsample_bytree: 0.6945855105213082
+  learning_rate: 0.061316070113600026
+  min_child_samples: 35
+  n_estimators: 912
+  num_leaves: 35
+  subsample: 0.5863508152006783
+  subsample_freq: 1
+balance: oversample
+train_fraction: 0.2
+subsample_seed: 42
+builds_on: E08-lgbm_oversample-A2-NonVPN-15s
+save_model: true

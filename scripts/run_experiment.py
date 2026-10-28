@@ -24,7 +24,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import mlflow  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from blindspy import data, tracking, train, tuning  # noqa: E402
+from blindspy import data, splits, tracking, train, tuning  # noqa: E402
 
 
 def run_smoke(cfg: dict, base: dict) -> None:
@@ -42,7 +42,7 @@ def run_smoke(cfg: dict, base: dict) -> None:
 
 def run_train(cfg: dict, base: dict) -> None:
     version = base["data_version"]
-    parts = data.load_task(cfg["task"], cfg["timeout"], data_version=version)
+    parts = splits.resample(data.load_task(cfg["task"], cfg["timeout"], data_version=version), cfg)
     mlflow.set_tags(tracking.data_tags(cfg["task"], cfg["timeout"], "v1", version))
     with tempfile.TemporaryDirectory() as tmp:
         result = train.train_and_score(cfg, parts, base["seed"], base["cv_folds"], Path(tmp),

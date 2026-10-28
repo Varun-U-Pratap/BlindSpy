@@ -148,6 +148,94 @@ be built fairly. The final choice (highest validation macro F1, decided 28 Oct a
 
 MLflow runs: E17-<model>-<task>-15s (retrained best); trials E17-<model>-<task>-15s-trial-NNN
 
+### E14 — Split-seed stability of the headline models (2026-10-28, utsav-s-r)
+
+Purpose (plan, analysis only): how much the headline model's validation score depends on which
+flows happened to land in the training and validation sets. Isnan et al. call a model stable when
+the gap between cross-validation and held-out scores is under 1 percentage point with a standard
+deviation under 1 point.
+
+Hypothesis: the scores barely move with the split, because each task has thousands of flows and
+the CV spread of the headline models is small (0.0028-0.0058, table "Current best at 15 s after
+E17" in `reports/phase3_tables.md`).
+
+Threshold (set before running, never moved afterwards), validation macro F1 at 15 s over the 10
+resplits:
+- (a) in at least 3 of the 4 tasks the standard deviation is below 0.01;
+- (b) in at least 3 of the 4 tasks the mean CV macro F1 minus the mean validation macro F1 is
+  within 0.01 (absolute);
+- (c) in all 4 tasks the official split's validation macro F1 (the headline run) lies inside the
+  range of the 10 resplits.
+Each part gets its own verdict.
+
+Winner rule (decided 28 Oct): E14 is analysis only and never changes the final configs, so it
+starts no reruns; a run above the current best by 0.03 or more (the winner margin, set above the
+largest Phase 2 CV standard deviation, 0.025) would be reported to the user, not acted on.
+
+Change vs the headline model (one change: the split of train + validation). Each task keeps the
+headline model's type, every setting, its balancing and the model seed 42
+(`configs/final/<task>.yaml`, named in `builds_on`). The training and validation rows of the
+official split are pooled and split again, stratified, with split seeds 42-51, keeping both sizes
+(`splits.resplit_train_val`). The test rows of the official seed-42 split are never pooled, resplit
+or looked at. Seed 42 here is a resplit of train + validation, not the official 70/15/15 split, so
+its score will not equal the official validation score. 10 seeds x 4 tasks = 40 runs, each with 5-fold
+CV on its own training rows. Reported: mean +- std of validation macro F1 and accuracy, min and
+max, mean CV and the mean CV - validation gap, and the validation confusion matrix averaged over
+the 10 runs (`reports/e14_mean_confusion/<task>.csv`). Logged param `split_seed`. Configs
+`configs/experiments/E14_seed<seed>_<task>_15s.yaml` (`scripts/make_configs.py`). Every run saves
+its model (compression level 3).
+
+Result: (after the runs)
+
+Verdict: (after the runs)
+
+Decision: (after the runs)
+
+MLflow runs: E14-seed<seed>-<task>-15s
+
+### E13 — Learning curve of the headline models (2026-10-28, utsav-s-r)
+
+Purpose (plan, analysis only): whether more training data would still help, and how little data
+the headline model needs (as in Jorgensen et al., Fig. 2). It changes nothing about the final
+choice.
+
+Hypothesis: macro F1 rises with the number of training rows and flattens: the last 20% of the
+training set adds little, because the 70% training split already holds thousands of flows per
+task (A1 12,626, A2-VPN 6,566, A2-NonVPN 6,085, B 12,651; `data/manifest.json`). Small
+subsamples should also vary more between seeds, since the smallest classes then have only a few
+dozen rows (MAIL: 166 training rows in A2-NonVPN and B, so about 17 at 10%).
+
+Threshold (set before running, never moved afterwards), validation macro F1 at 15 s, mean over
+the 5 subsample seeds:
+- (a) in all 4 tasks the full training set scores above 10% of it;
+- (b) in at least 3 of the 4 tasks the gain from 80% to 100% is below 0.01;
+- (c) in at least 3 of the 4 tasks the standard deviation over seeds is larger at 10% than at
+  80%.
+Each part gets its own verdict.
+
+Winner rule (decided 28 Oct): E13 is analysis only and never changes the final configs, so it
+starts no reruns; a run above the current best by 0.03 or more (the winner margin, set above the
+largest Phase 2 CV standard deviation, 0.025) would be reported to the user, not acted on.
+
+Change vs the headline model (one change: the training rows used). Each task keeps the headline
+model's type, every setting, its balancing and the model seed 42 (`configs/final/<task>.yaml`,
+named in `builds_on`). The training rows are a stratified sample (`splits.subsample_train`) of
+10%, 20%, 40%, 60% or 80% of the training set, drawn with subsample seeds 42-46 (the plan's 5
+repeats); validation rows are the same full validation set for every run, so all points are
+comparable; the test set is untouched. 100% is the headline run itself (not rerun; it has one
+value, no spread). 5 fractions x 5 seeds x 4 tasks = 100 runs; each also runs its 5-fold CV on its
+own sample. Logged params: `train_fraction`, `subsample_seed`, `n_train_rows`. Configs
+`configs/experiments/E13_f<percent>-s<seed>_<task>_15s.yaml` (`scripts/make_configs.py`). Every run
+saves its model (compression level 3), as for every official run.
+
+Result: (after the runs)
+
+Verdict: (after the runs)
+
+Decision: (after the runs)
+
+MLflow runs: E13-f<percent>-s<seed>-<task>-15s
+
 ### E12 — Final results on the test set (part 1 written 2026-10-28 in Phase 3, before the test set is opened; utsav-s-r)
 
 Part 1 (this section) fixes, before any test score exists, which models Phase 4 scores, how,

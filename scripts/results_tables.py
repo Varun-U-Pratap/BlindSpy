@@ -291,6 +291,27 @@ def phase3() -> None:
         out += ["", "## E09 feature-group ablation on the headline model per task (15 s, "
                 "validation; \"all\" = the headline run)", "", R.md(t9)]  # fmt: skip
         v.update(R.e09_verdicts(t9))
+    if (h["tags.experiment_id"] == "E13").any():
+        t13 = R.e13_table(h, s)
+        out += [
+            "",
+            "## E13 learning curve on the headline model per task (15 s, validation; "
+            "5 subsample seeds per fraction, 100% = the headline run)",
+            "",
+            R.md(t13),
+        ]
+        v.update(R.e13_verdicts(t13))
+    if (h["tags.experiment_id"] == "E14").any():
+        t14 = R.e14_table(h, s)
+        out += ["", "## E14 split-seed stability on the headline model per task (10 resplits of "
+                "train + validation, seeds 42-51; test rows untouched)", "", R.md(t14),
+                "", "Mean validation confusion matrices over the 10 resplits: "
+                "reports/e14_mean_confusion/<task>.csv."]  # fmt: skip
+        folder = ROOT / "reports" / "e14_mean_confusion"
+        folder.mkdir(exist_ok=True)
+        for task in t14["task"]:
+            R.e14_mean_confusion(h, task, runner).to_csv(folder / f"{task}.csv")
+        v.update(R.e14_verdicts(t14))
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip
     OUT3.write_text("\n".join(out))

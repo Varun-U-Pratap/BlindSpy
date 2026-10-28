@@ -1,0 +1,18 @@
+experiment_id: E14
+run_name: E14-seed51-A2-VPN-15s
+kind: train
+task: A2-VPN
+timeout: 15
+model: lgbm
+params:
+  colsample_bytree: 0.9615919872328451
+  learning_rate: 0.01880193217642019
+  min_child_samples: 49
+  n_estimators: 809
+  num_leaves: 125
+  subsample: 0.8424223992479878
+  subsample_freq: 1
+balance: class_weight
+split_seed: 51
+builds_on: E08-lgbm_class_weight-A2-VPN-15s
+save_model: true

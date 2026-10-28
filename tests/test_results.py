@@ -358,3 +358,34 @@ def test_e09_verdicts_on_a_table():
     assert v["E09b"]["tasks_within_0.02"] == 3 and v["E09b"]["supported"]
     assert v["E09c"]["tasks_within_0.01"] == 3 and v["E09c"]["supported"]
     assert v["E09_stop_and_ask"]["sets_at_least_0.03_above_all"]["B"] == ["only_fiat"]
+
+
+def test_e13_verdicts():
+    rows = []
+    for task, at10, at80, at100, s10, s80 in [("A1", 0.80, 0.92, 0.925, 0.02, 0.005),
+                                              ("A2-VPN", 0.70, 0.86, 0.88, 0.03, 0.01),
+                                              ("A2-NonVPN", 0.75, 0.90, 0.905, 0.01, 0.02),
+                                              ("B", 0.65, 0.835, 0.84, 0.02, 0.01)]:  # fmt: skip
+        rows += [{"task": task, "train fraction": 0.1, "val macro F1 mean": at10,
+                  "val macro F1 std": s10},
+                 {"task": task, "train fraction": 0.8, "val macro F1 mean": at80,
+                  "val macro F1 std": s80},
+                 {"task": task, "train fraction": 1.0, "val macro F1 mean": at100,
+                  "val macro F1 std": float("nan")}]  # fmt: skip
+    v = R.e13_verdicts(pd.DataFrame(rows))
+    assert v["E13a"]["supported"]
+    assert v["E13b"]["tasks_below_0.01"] == 3 and v["E13b"]["supported"]  # A2-VPN gains 0.02
+    assert v["E13c"]["tasks_10_above_80"] == 3 and v["E13c"]["supported"]
+
+
+def test_e14_verdicts():
+    t = pd.DataFrame([
+        {"task": "A1", "val macro F1 std": 0.004, "CV - val mean": 0.002, "val macro F1 min": 0.92,
+         "val macro F1 max": 0.935, "official split (seed 42) val macro F1": 0.93},
+        {"task": "B", "val macro F1 std": 0.012, "CV - val mean": -0.015, "val macro F1 min": 0.82,
+         "val macro F1 max": 0.84, "official split (seed 42) val macro F1": 0.843},
+    ])  # fmt: skip
+    v = R.e14_verdicts(t)
+    assert v["E14a"]["tasks_below_0.01"] == 1 and v["E14b"]["tasks_below_0.01"] == 1
+    assert v["E14c"]["official_inside_range"] == {"A1": True, "B": False}
+    assert not v["E14c"]["supported"]

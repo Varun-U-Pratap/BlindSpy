@@ -154,6 +154,9 @@ def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> 
         "class_balancing": cfg.get("balance") or "none",
         **({"builds_on": cfg["builds_on"]} if cfg.get("builds_on") else {}),
         **({"feature_set": cfg["feature_set"]} if cfg.get("feature_set") else {}),
+        # E13 / E14 resampling (splits.resample); n_train_rows = training rows actually used
+        **{k: cfg[k] for k in ("train_fraction", "subsample_seed", "split_seed") if k in cfg},
+        "n_train_rows": len(X),
         "features": ",".join(X.columns),
         "n_features": X.shape[1],
         "save_model": bool(cfg.get("save_model", True)),
