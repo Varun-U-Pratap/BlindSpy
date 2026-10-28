@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 11, status FINISHED: 11.
-- Git commit(s) of these runs: 1955147, 3817307.
+- Phase 3 holdout runs: 15, status FINISHED: 15.
+- Git commit(s) of these runs: 1955147, 3817307, 817757f.
 
 ## Current best at 15 s after E04
 
@@ -37,7 +37,7 @@ are excluded. Data version: v1.
 
 | task | timeout | model | val macro F1 | CV macro F1 | best other run | its F1 | difference |
 |---|---|---|---|---|---|---|---|
-| A2-NonVPN | 15 s | E04-knn_log_standard | 0.867 | 0.8861 +- 0.0068 | E04-knn_log_robust | 0.854 | 0.0129 |
+| A2-NonVPN | 15 s | E04-knn_log_standard | 0.867 | 0.8861 +- 0.0068 | E05-rf | 0.8941 | -0.0271 |
 | A2-NonVPN | 30 s | E04-knn_log_standard | 0.8523 | 0.8487 +- 0.0067 | E02-tree | 0.8283 | 0.024 |
 | A2-NonVPN | 60 s | E04-knn_log_standard | 0.859 | 0.8638 +- 0.0108 | E02-tree | 0.8246 | 0.0344 |
 | A2-NonVPN | 120 s | E04-knn_log_standard | 0.8491 | 0.8243 +- 0.0252 | E02-tree | 0.8393 | 0.0098 |
@@ -67,6 +67,33 @@ are excluded. Data version: v1.
 | A2-NonVPN | 15 s | std_active, std_idle | 18.3 | 4.8 |
 | B | 15 s | std_active, std_idle | 18.9 | 5.2 |
 
+## Current best at 15 s after E05
+
+| task | current best at 15 s | val macro F1 | CV macro F1 |
+|---|---|---|---|
+| A1 | E05-rf | 0.9203 | 0.9172 +- 0.0050 |
+| A2-VPN | E05-rf | 0.8679 | 0.8637 +- 0.0066 |
+| A2-NonVPN | E05-rf | 0.8941 | 0.9048 +- 0.0049 |
+| B | E05-rf | 0.8147 | 0.8102 +- 0.0090 |
+
+## E05 at 15 s against the best run before it
+
+| task | model | val macro F1 | CV macro F1 | best before | best before F1 | gain | winner (gain >= 0.03) |
+|---|---|---|---|---|---|---|---|
+| A1 | E05-rf | 0.9203 | 0.9172 +- 0.0050 | E04-knn_log_standard | 0.9048 | 0.0156 | no |
+| A2-VPN | E05-rf | 0.8679 | 0.8637 +- 0.0066 | E04-knn_log_standard | 0.8544 | 0.0135 | no |
+| A2-NonVPN | E05-rf | 0.8941 | 0.9048 +- 0.0049 | E04-knn_log_standard | 0.867 | 0.0271 | no |
+| B | E05-rf | 0.8147 | 0.8102 +- 0.0090 | E04-knn_log_standard | 0.7644 | 0.0503 | yes |
+
+## E05 run details
+
+| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | train s | predict ms/1k | model MB (raw / file) | memory MB (tracemalloc / child RSS) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| E05-rf-A1-15s | 0.92 | 0.92 | 0.921 | 0.92 | -0.003 | Non-VPN 0.92 | VPN 0.92 | 4.563 | 22.85 | 44.66 / 9.37 | 2.5 / 46.9 |
+| E05-rf-A2-NonVPN-15s | 0.894 | 0.932 | 0.933 | 0.886 | 0.011 | STREAMING 0.81 | VOIP 1.00 | 2.038 | 21.91 | 28.66 / 5.31 | 1.4 / 33.1 |
+| E05-rf-A2-VPN-15s | 0.868 | 0.882 | 0.883 | 0.859 | -0.004 | VPN-CHAT 0.71 | VPN-VOIP 0.99 | 2.657 | 25.88 | 48.40 / 8.38 | 1.5 / 61.6 |
+| E05-rf-B-15s | 0.815 | 0.857 | 0.859 | 0.805 | -0.005 | VPN-MAIL 0.62 | VOIP 0.99 | 6.059 | 27.28 | 171.86 / 22.44 | 2.5 / 187.9 |
+
 ## Threshold checks (pre-stated in the E## files)
 
 ```json
@@ -91,6 +118,28 @@ are excluded. Data version: v1.
   ],
   "tasks_within_0.02": 3,
   "needed": 3,
+  "supported": true
+ },
+ "E05a": {
+  "gains_vs_E02_tree": [
+   0.0302,
+   0.0432,
+   0.0647,
+   0.0561
+  ],
+  "tasks_with_gain_ge_0.03": 4,
+  "needed": 3,
+  "supported": true
+ },
+ "E05b": {
+  "gains_vs_best_after_E04": [
+   0.0156,
+   0.0135,
+   0.0271,
+   0.0503
+  ],
+  "tasks_above": 4,
+  "needed": 2,
   "supported": true
  }
 }

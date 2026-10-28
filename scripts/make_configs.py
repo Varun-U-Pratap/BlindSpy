@@ -43,6 +43,7 @@ SCREEN = [
 # Winner reruns at the other timeouts: (experiment ID, registry name, task) -> timeouts
 RERUNS: dict[tuple[str, str, str], list[int]] = {
     ("E04", "knn_log_standard", "A2-NonVPN"): [30, 60, 120],  # +0.0376 over E02 tree at 15 s
+    ("E05", "rf", "B"): [30, 60, 120],  # +0.0503 over E04 knn_log_standard at 15 s
 }
 
 
