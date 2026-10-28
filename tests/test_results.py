@@ -183,3 +183,43 @@ def test_e08_ladder_stops_at_the_first_step_that_does_not_help():
     assert last.loc["A2-NonVPN", "next"] == "stop: this step did not help"
     assert last.loc["B", "next"] == "ladder complete"
     assert lad.set_index(["task", "step"]).loc[("B", "smote"), "change vs none"] == 0.03
+
+
+def test_e08_verdicts_use_the_best_step_that_ran(monkeypatch):
+    # bases from an experiment with no verdict block of its own
+    monkeypatch.setattr(R, "E08_BASE", {t: "E03-xgb" for t in CORE_TASKS})
+
+    def run(label, task, f1, weak):
+        exp, model = label.split("-", 1)
+        return {
+            "run_name": f"{label}-{task}-15s",
+            "tags.protocol": "holdout",
+            "tags.experiment_id": exp,
+            "params.task": task,
+            "params.timeout": 15,
+            "params.model": model.split("_")[0],
+            "metrics.val_f1_macro": f1,
+            "tags.worst_class_f1": "C",
+            "metrics.val_f1.C": weak,
+            "tags.trial": "",
+        }
+
+    rows = [run(R.E08_BASE[t], t, 0.80, 0.60) for t in CORE_TASKS]
+    m = {t: R.E08_BASE[t].split("-", 1)[1] for t in CORE_TASKS}
+    rows += [run(f"E08-{m['A1']}_class_weight", "A1", 0.795, 0.6)]
+    rows += [
+        run(f"E08-{m['A2-VPN']}_class_weight", "A2-VPN", 0.815, 0.65),
+        run(f"E08-{m['A2-VPN']}_oversample", "A2-VPN", 0.812, 0.70),
+    ]
+    rows += [run(f"E08-{m['A2-NonVPN']}_class_weight", "A2-NonVPN", 0.805, 0.62)]
+    rows += [run(f"E08-{m['B']}_class_weight", "B", 0.79, 0.55)]  # fmt: skip
+    v = R.phase3_verdicts(R.selection_runs(pd.DataFrame(rows)))
+    assert v["E08a"]["best_step"]["A2-VPN"] == "class_weight"
+    assert v["E08a"]["tasks_with_gain_ge_0.01"] == 1 and not v["E08a"]["supported"]
+    assert v["E08b"]["supported"]
+    assert v["E08c"]["weakest_class_f1_change_with_best_step"] == {
+        "A2-VPN": 0.05,
+        "A2-NonVPN": 0.02,
+        "B": -0.05,
+    }
+    assert v["E08c"]["supported"]
