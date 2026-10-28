@@ -6,6 +6,9 @@ split:
   val: 0.15
   test: 0.15
 cv_folds: 5
+# joblib compression level for every saved model (lossless; Phase 3 on, decided 28 Oct).
+# Phase 2 models were saved uncompressed (level 0). Logged as the param model_compress.
+model_compress: 3
 data_version: v1     # see reports/DATA_CHANGELOG.md and data/manifest.json
 official_runner: utsav-s-r
 mlflow_experiment: blindspy

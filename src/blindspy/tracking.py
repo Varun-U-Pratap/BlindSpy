@@ -125,7 +125,8 @@ def identity_tags(runner: str, experiment_id: str, config_path: Path, git: dict)
 def package_versions() -> dict:
     import importlib.metadata as md
 
-    names = ["scikit-learn", "numpy", "pandas", "mlflow", "pyarrow", "joblib"]
+    names = ["scikit-learn", "numpy", "pandas", "mlflow", "pyarrow", "joblib", "xgboost",
+             "lightgbm", "optuna", "imbalanced-learn"]  # fmt: skip
     return {f"pkg.{n}": md.version(n) for n in names}
 
 

@@ -42,7 +42,8 @@ def run_train(cfg: dict, base: dict) -> None:
     parts = data.load_task(cfg["task"], cfg["timeout"], data_version=version)
     mlflow.set_tags(tracking.data_tags(cfg["task"], cfg["timeout"], "v1", version))
     with tempfile.TemporaryDirectory() as tmp:
-        result = train.train_and_score(cfg, parts, base["seed"], base["cv_folds"], Path(tmp))
+        result = train.train_and_score(cfg, parts, base["seed"], base["cv_folds"], Path(tmp),
+                                       compress=base.get("model_compress", 0))  # fmt: skip
         _log_data_rules(version)
         tracking.log_result(result, Path(tmp))
 
@@ -56,7 +57,8 @@ def run_paper_benchmark(cfg: dict, base: dict) -> None:
         df = pd.concat(data.load_task(cfg["task"], cfg["timeout"], data_version=version))
     mlflow.set_tags(tracking.data_tags(cfg["task"], cfg["timeout"], cfg["rows"], version))
     with tempfile.TemporaryDirectory() as tmp:
-        result = train.paper_benchmark(cfg, df, base["seed"], cfg["folds"], Path(tmp))
+        result = train.paper_benchmark(cfg, df, base["seed"], cfg["folds"], Path(tmp),
+                                       compress=base.get("model_compress", 0))  # fmt: skip
         if cfg["rows"] != "published":
             _log_data_rules(version)
         tracking.log_result(result, Path(tmp))
