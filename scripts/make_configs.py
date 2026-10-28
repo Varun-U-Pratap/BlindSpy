@@ -42,6 +42,50 @@ SCREEN = [
     ("E06", "xgb", {}),  # XGBoost defaults (n_jobs=1, random_state=42 set by the builder)
     ("E06", "lgbm", {}),  # LightGBM defaults (n_jobs=1, random_state=42, verbose=-1)
 ]
+# E07 Optuna search ranges, fixed in the plan before running (50 trials each, TPESampler(seed=42),
+# maximising 5-fold CV macro F1 on train).
+SEARCH = {
+    "rf": {
+        "n_estimators": {"type": "int", "low": 100, "high": 1000},
+        "max_depth": {"type": "int_or_none", "low": 5, "high": 40},
+        "min_samples_leaf": {"type": "int", "low": 1, "high": 10},
+        "max_features": {"type": "choice_or_float", "choices": ["sqrt", "log2"], "low": 0.3,
+                         "high": 1.0},
+    },
+    "xgb": {
+        "n_estimators": {"type": "int", "low": 100, "high": 1000},
+        "learning_rate": {"type": "float", "low": 0.01, "high": 0.3, "log": True},
+        "max_depth": {"type": "int", "low": 3, "high": 12},
+        "subsample": {"type": "float", "low": 0.5, "high": 1.0},
+        "colsample_bytree": {"type": "float", "low": 0.5, "high": 1.0},
+        "min_child_weight": {"type": "int", "low": 1, "high": 50},
+    },
+    "lgbm": {
+        "n_estimators": {"type": "int", "low": 100, "high": 1000},
+        "learning_rate": {"type": "float", "low": 0.01, "high": 0.3, "log": True},
+        "num_leaves": {"type": "int", "low": 15, "high": 255},
+        "subsample": {"type": "float", "low": 0.5, "high": 1.0},
+        "colsample_bytree": {"type": "float", "low": 0.5, "high": 1.0},
+        "min_child_samples": {"type": "int", "low": 1, "high": 50},
+    },
+    "knn_log_standard": {
+        "n_neighbors": {"type": "int", "low": 1, "high": 50},
+        "weights": {"type": "categorical", "choices": ["uniform", "distance"]},
+        "metric": {"type": "categorical", "choices": ["euclidean", "manhattan"]},
+    },
+}  # fmt: skip
+# LightGBM ignores subsample unless subsample_freq > 0, so its searches fix subsample_freq=1
+FIXED = {"lgbm": {"subsample_freq": 1}}
+# E07 scope from reports/phase3_tables.md ("E07 scope"): best 2 of rf / xgb / lgbm per task by
+# 15 s validation macro F1, plus the KNN preprocessing with the higher 15 s score (E04 standard)
+TUNE = {
+    "A1": ["xgb", "rf", "knn_log_standard"],
+    "A2-VPN": ["xgb", "lgbm", "knn_log_standard"],
+    "A2-NonVPN": ["xgb", "lgbm", "knn_log_standard"],
+    "B": ["xgb", "lgbm", "knn_log_standard"],
+}
+TRIALS = 50
+
 # Winner reruns at the other timeouts: (experiment ID, registry name, task) -> timeouts
 RERUNS: dict[tuple[str, str, str], list[int]] = {
     ("E04", "knn_log_standard", "A2-NonVPN"): [30, 60, 120],  # +0.0376 over E02 tree at 15 s
@@ -85,6 +129,16 @@ def main() -> None:
                     "timeout": t, "model": model, "params": params, "save_model": True,
                 })  # fmt: skip
                 n += 1
+    for task, names in TUNE.items():
+        for model in names:
+            run = f"E07-{model}-{task}-15s"
+            write(f"E07_{model}_{task}_15s", {
+                "experiment_id": "E07", "run_name": run, "kind": "optuna", "task": task,
+                "timeout": 15, "model": model, "trials": TRIALS,
+                "search_space": SEARCH[model], "fixed_params": FIXED.get(model, {}),
+                "save_model": True,
+            })  # fmt: skip
+            n += 1
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")
 
 

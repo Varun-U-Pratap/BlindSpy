@@ -1,0 +1,29 @@
+experiment_id: E07
+run_name: E07-rf-A1-15s
+kind: optuna
+task: A1
+timeout: 15
+model: rf
+trials: 50
+search_space:
+  n_estimators:
+    type: int
+    low: 100
+    high: 1000
+  max_depth:
+    type: int_or_none
+    low: 5
+    high: 40
+  min_samples_leaf:
+    type: int
+    low: 1
+    high: 10
+  max_features:
+    type: choice_or_float
+    choices:
+    - sqrt
+    - log2
+    low: 0.3
+    high: 1.0
+fixed_params: {}
+save_model: true
