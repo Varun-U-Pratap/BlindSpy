@@ -9,9 +9,11 @@ from sklearn.dummy import DummyClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, RobustScaler, StandardScaler
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
+
+from blindspy.features import signed_log_step
 
 
 def _majority(params: dict, seed: int) -> Pipeline:
@@ -33,6 +35,18 @@ def _knn_minmax(params: dict, seed: int) -> Pipeline:
     return Pipeline([("scale", MinMaxScaler()), ("model", KNeighborsClassifier(**params))])
 
 
+def _knn_log_standard(params: dict, seed: int) -> Pipeline:
+    # E04: signed log, then standard scaling (features.py explains the signed log)
+    return Pipeline([("log", signed_log_step()), ("scale", StandardScaler()),
+                     ("model", KNeighborsClassifier(**params))])  # fmt: skip
+
+
+def _knn_log_robust(params: dict, seed: int) -> Pipeline:
+    # E04: signed log, then median / interquartile-range scaling
+    return Pipeline([("log", signed_log_step()), ("scale", RobustScaler()),
+                     ("model", KNeighborsClassifier(**params))])  # fmt: skip
+
+
 def _logreg(params: dict, seed: int) -> Pipeline:
     return Pipeline(
         [("scale", StandardScaler()), ("model", LogisticRegression(random_state=seed, **params))]
@@ -50,6 +64,8 @@ MODELS = {
     "tree": _tree,
     "knn": _knn,
     "knn_minmax": _knn_minmax,
+    "knn_log_standard": _knn_log_standard,
+    "knn_log_robust": _knn_log_robust,
     "logreg": _logreg,
     "svm_rbf": _svm_rbf,
 }
