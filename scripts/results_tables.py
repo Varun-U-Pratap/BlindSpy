@@ -236,6 +236,9 @@ def phase3() -> None:
             out += ["", f"## Winner rerun: {label}, {task}, every timeout", "",
                     R.md(R.timeout_table(s, label, task))]  # fmt: skip
         out += ["", f"## {exp} run details", "", R.md(R.run_details(s, exp))]
+        if exp == "E06":
+            out += ["", "## E07 scope: best 2 of RF / XGBoost / LightGBM per task, plus KNN",
+                    "", R.md(R.e07_candidates(s))]  # fmt: skip
         if exp == "E04":
             out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
                     "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip

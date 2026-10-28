@@ -545,6 +545,24 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
             "needed": 2,
         }
         out["E05b"]["supported"] = out["E05b"]["tasks_above"] >= 2
+    if any(k[0] == "E06-xgb" for k in f1):
+        xgb = [f1["E06-xgb", t, 15] for t in CORE_TASKS]
+        lgbm = [f1["E06-lgbm", t, 15] for t in CORE_TASKS]
+        prev = [best_run(s, t, 15, "E05")["metrics.val_f1_macro"] for t in CORE_TASKS]
+        gain = [max(a, b) - p for a, b, p in zip(xgb, lgbm, prev, strict=True)]
+        out["E06a"] = {
+            "gains_vs_best_after_E05": [round(g, 4) for g in gain],
+            "tasks_above": sum(g > 0 for g in gain),
+            "needed": 2,
+        }
+        out["E06a"]["supported"] = out["E06a"]["tasks_above"] >= 2
+        diff = [round(a - b, 4) for a, b in zip(xgb, lgbm, strict=True)]
+        out["E06b"] = {
+            "xgb_minus_lgbm": diff,
+            "tasks_within_0.02": sum(abs(d) <= 0.02 for d in diff),
+            "needed": 3,
+        }
+        out["E06b"]["supported"] = out["E06b"]["tasks_within_0.02"] >= 3
     return out  # fmt: skip
 
 
@@ -568,5 +586,28 @@ def robust_scaling_check(timeout: int = 15) -> pd.DataFrame:
             "max |x| RobustScaler": round(float(np.abs(RobustScaler().fit_transform(X)).max()), 1),
             "max |x| StandardScaler": round(
                 float(np.abs(StandardScaler().fit_transform(X)).max()), 1),
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e07_candidates(s: pd.DataFrame) -> pd.DataFrame:
+    """E07 scope (decided 28 Oct): per task, the best 2 of Random Forest (E05), XGBoost and
+    LightGBM (E06) by 15 s validation macro F1, plus the KNN preprocessing with the higher
+    15 s score (E03 vs E04)."""
+    fam = {"E05-rf": "rf", "E06-xgb": "xgb", "E06-lgbm": "lgbm"}
+    knn = {"E03-knn": "knn", "E04-knn_log_standard": "knn_log_standard",
+           "E04-knn_log_robust": "knn_log_robust"}  # fmt: skip
+    rows = []
+    for task in CORE_TASKS:
+        at = s[(s["params.task"] == task) & (s["params.timeout"] == 15)]
+        ens = at[at["label"].isin(fam)].sort_values("metrics.val_f1_macro", ascending=False)
+        kn = at[at["label"].isin(knn)].sort_values("metrics.val_f1_macro", ascending=False)
+        rows.append({
+            "task": task,
+            "ranking (15 s val macro F1)": ", ".join(
+                f"{fam[r['label']]} {r['metrics.val_f1_macro']:.4f}" for _, r in ens.iterrows()),
+            "tuned in E07": ", ".join(fam[x] for x in ens["label"].iloc[:2]),
+            "KNN preprocessing for E07": f"{knn[kn['label'].iloc[0]]} "
+                                         f"{kn['metrics.val_f1_macro'].iloc[0]:.4f}",
         })  # fmt: skip
     return pd.DataFrame(rows)
