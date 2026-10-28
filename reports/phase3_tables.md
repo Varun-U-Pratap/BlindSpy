@@ -434,7 +434,68 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E17 svm_rbf | 4 | 2.944 | 1.479 | 1.306 |
 | E17 tree | 4 | 0.732 | 0.275 | 0.07 |
 
-Whole store now: artifacts 664.1 MiB, mlflow.db 26.1 MiB.
+Whole store now: artifacts 1208.8 MiB, mlflow.db 28.3 MiB.
+
+## E09 feature-group ablation on the headline model per task (15 s, validation; "all" = the headline run)
+
+| task | feature set | features | val macro F1 | change vs all | CV macro F1 |
+|---|---|---|---|---|---|
+| A1 | all | 23 | 0.9308 | 0.0 | 0.9320 +- 0.0028 |
+| A1 | only_fiat | 4 | 0.8078 | -0.1229 | 0.8111 +- 0.0059 |
+| A1 | only_biat | 4 | 0.8243 | -0.1064 | 0.8136 +- 0.0100 |
+| A1 | only_flowiat | 4 | 0.8507 | -0.08 | 0.8456 +- 0.0043 |
+| A1 | only_active | 4 | 0.5489 | -0.3819 | 0.5618 +- 0.0124 |
+| A1 | only_idle | 4 | 0.5505 | -0.3803 | 0.5614 +- 0.0107 |
+| A1 | only_rates_duration | 3 | 0.8392 | -0.0915 | 0.8363 +- 0.0063 |
+| A1 | no_fiat | 19 | 0.9256 | -0.0052 | 0.9187 +- 0.0050 |
+| A1 | no_biat | 19 | 0.9152 | -0.0155 | 0.9161 +- 0.0050 |
+| A1 | no_flowiat | 19 | 0.9322 | 0.0014 | 0.9222 +- 0.0019 |
+| A1 | no_active | 19 | 0.9296 | -0.0011 | 0.9300 +- 0.0024 |
+| A1 | no_idle | 19 | 0.9304 | -0.0004 | 0.9302 +- 0.0031 |
+| A1 | no_rates_duration | 20 | 0.9185 | -0.0122 | 0.9133 +- 0.0054 |
+| A1 | timing_only | 22 | 0.9159 | -0.0148 | 0.9140 +- 0.0031 |
+| A2-VPN | all | 23 | 0.883 | 0.0 | 0.8893 +- 0.0044 |
+| A2-VPN | only_fiat | 4 | 0.7593 | -0.1237 | 0.7326 +- 0.0146 |
+| A2-VPN | only_biat | 4 | 0.7199 | -0.1631 | 0.6958 +- 0.0108 |
+| A2-VPN | only_flowiat | 4 | 0.7861 | -0.0969 | 0.7690 +- 0.0107 |
+| A2-VPN | only_active | 4 | 0.3252 | -0.5578 | 0.3222 +- 0.0193 |
+| A2-VPN | only_idle | 4 | 0.3067 | -0.5763 | 0.3208 +- 0.0145 |
+| A2-VPN | only_rates_duration | 3 | 0.779 | -0.104 | 0.7661 +- 0.0082 |
+| A2-VPN | no_fiat | 19 | 0.8651 | -0.0179 | 0.8723 +- 0.0037 |
+| A2-VPN | no_biat | 19 | 0.8724 | -0.0105 | 0.8760 +- 0.0037 |
+| A2-VPN | no_flowiat | 19 | 0.8752 | -0.0078 | 0.8833 +- 0.0054 |
+| A2-VPN | no_active | 19 | 0.886 | 0.003 | 0.8895 +- 0.0041 |
+| A2-VPN | no_idle | 19 | 0.8826 | -0.0004 | 0.8893 +- 0.0054 |
+| A2-VPN | no_rates_duration | 20 | 0.8435 | -0.0395 | 0.8449 +- 0.0083 |
+| A2-VPN | timing_only | 22 | 0.849 | -0.034 | 0.8410 +- 0.0095 |
+| A2-NonVPN | all | 23 | 0.9075 | 0.0 | 0.9310 +- 0.0058 |
+| A2-NonVPN | only_fiat | 4 | 0.7535 | -0.154 | 0.7720 +- 0.0087 |
+| A2-NonVPN | only_biat | 4 | 0.7271 | -0.1804 | 0.7407 +- 0.0140 |
+| A2-NonVPN | only_flowiat | 4 | 0.8165 | -0.091 | 0.8288 +- 0.0095 |
+| A2-NonVPN | only_active | 4 | 0.3355 | -0.572 | 0.3208 +- 0.0128 |
+| A2-NonVPN | only_idle | 4 | 0.3038 | -0.6037 | 0.3225 +- 0.0177 |
+| A2-NonVPN | only_rates_duration | 3 | 0.8471 | -0.0604 | 0.8396 +- 0.0110 |
+| A2-NonVPN | no_fiat | 19 | 0.9024 | -0.0051 | 0.9260 +- 0.0087 |
+| A2-NonVPN | no_biat | 19 | 0.8993 | -0.0082 | 0.9240 +- 0.0087 |
+| A2-NonVPN | no_flowiat | 19 | 0.903 | -0.0045 | 0.9189 +- 0.0065 |
+| A2-NonVPN | no_active | 19 | 0.9093 | 0.0018 | 0.9283 +- 0.0066 |
+| A2-NonVPN | no_idle | 19 | 0.9039 | -0.0036 | 0.9300 +- 0.0045 |
+| A2-NonVPN | no_rates_duration | 20 | 0.8774 | -0.0301 | 0.8980 +- 0.0037 |
+| A2-NonVPN | timing_only | 22 | 0.8744 | -0.0331 | 0.9000 +- 0.0060 |
+| B | all | 23 | 0.8428 | 0.0 | 0.8405 +- 0.0056 |
+| B | only_fiat | 4 | 0.64 | -0.2028 | 0.6399 +- 0.0089 |
+| B | only_biat | 4 | 0.6098 | -0.233 | 0.6147 +- 0.0121 |
+| B | only_flowiat | 4 | 0.6716 | -0.1712 | 0.6926 +- 0.0102 |
+| B | only_active | 4 | 0.2138 | -0.629 | 0.2262 +- 0.0072 |
+| B | only_idle | 4 | 0.2083 | -0.6345 | 0.2118 +- 0.0092 |
+| B | only_rates_duration | 3 | 0.7043 | -0.1385 | 0.6886 +- 0.0091 |
+| B | no_fiat | 19 | 0.8244 | -0.0184 | 0.8266 +- 0.0072 |
+| B | no_biat | 19 | 0.8163 | -0.0265 | 0.8189 +- 0.0067 |
+| B | no_flowiat | 19 | 0.8262 | -0.0166 | 0.8284 +- 0.0052 |
+| B | no_active | 19 | 0.8479 | 0.0051 | 0.8400 +- 0.0071 |
+| B | no_idle | 19 | 0.8428 | 0.0 | 0.8405 +- 0.0058 |
+| B | no_rates_duration | 20 | 0.7879 | -0.0549 | 0.7936 +- 0.0076 |
+| B | timing_only | 22 | 0.7987 | -0.0441 | 0.7949 +- 0.0062 |
 
 ## Threshold checks (pre-stated in the E## files)
 
@@ -642,6 +703,48 @@ Whole store now: artifacts 664.1 MiB, mlflow.db 26.1 MiB.
   "searches_with_log": 8,
   "needed": 6,
   "supported": true
+ },
+ "E09a": {
+  "best_single_group_minus_all": {
+   "A1": -0.08,
+   "A2-NonVPN": -0.0604,
+   "A2-VPN": -0.0969,
+   "B": -0.1385
+  },
+  "tasks_all_groups_below": 4,
+  "needed": 4,
+  "supported": true
+ },
+ "E09b": {
+  "worst_drop_one_group": {
+   "A1": -0.0155,
+   "A2-NonVPN": -0.0301,
+   "A2-VPN": -0.0395,
+   "B": -0.0549
+  },
+  "tasks_within_0.02": 1,
+  "needed": 3,
+  "supported": false
+ },
+ "E09c": {
+  "timing_only_minus_all": {
+   "A1": -0.0148,
+   "A2-NonVPN": -0.0331,
+   "A2-VPN": -0.034,
+   "B": -0.0441
+  },
+  "tasks_within_0.01": 0,
+  "needed": 3,
+  "supported": false
+ },
+ "E09_stop_and_ask": {
+  "sets_at_least_0.03_above_all": {
+   "A1": [],
+   "A2-NonVPN": [],
+   "A2-VPN": [],
+   "B": []
+  },
+  "triggered": false
  }
 }
 ```
