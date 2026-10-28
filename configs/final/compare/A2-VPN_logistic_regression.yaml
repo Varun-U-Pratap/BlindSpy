@@ -1,0 +1,17 @@
+experiment_id: E12
+run_name: E12-compare-logistic_regression-A2-VPN
+kind: train
+task: A2-VPN
+timeout: 15
+model: logreg
+params:
+  C: 29.915437757819987
+  max_iter: 1000
+  signed_log: true
+builds_on: E17-logreg-A2-VPN-15s
+source_run_id: d4488ac9b97c4077b6bea78d47938cbc
+source_val_f1_macro: 0.7263480402079557
+reason: 'Comparison set: the best 15 s validation variant of logistic regression for A2-VPN (0.7263, E17-logreg-A2-VPN-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

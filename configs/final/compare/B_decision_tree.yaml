@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-compare-decision_tree-B
+kind: train
+task: B
+timeout: 15
+model: tree
+params:
+  criterion: entropy
+builds_on: E02-tree-B-15s
+source_run_id: 0d54ff14d8e44fbe8ebd418158e0af1e
+source_val_f1_macro: 0.758547238633563
+reason: 'Comparison set: the best 15 s validation variant of decision tree for B (0.7585, E02-tree-B-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

@@ -1,0 +1,18 @@
+experiment_id: E12
+run_name: E12-compare-svm_rbf-A2-NonVPN
+kind: train
+task: A2-NonVPN
+timeout: 15
+model: svm_rbf
+params:
+  C: 292.574878533644
+  cache_size: 1000
+  gamma: 0.17827756360754166
+  signed_log: true
+builds_on: E17-svm_rbf-A2-NonVPN-15s
+source_run_id: 39bf5bece0104628b0951055afb6762c
+source_val_f1_macro: 0.905821510289994
+reason: 'Comparison set: the best 15 s validation variant of SVM-RBF for A2-NonVPN (0.9058, E17-svm_rbf-A2-NonVPN-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

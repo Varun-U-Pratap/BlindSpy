@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-compare-decision_tree-A2-NonVPN
+kind: train
+task: A2-NonVPN
+timeout: 15
+model: tree
+params:
+  criterion: entropy
+builds_on: E02-tree-A2-NonVPN-15s
+source_run_id: bb0be7d0641e4d859028b5e07722f69f
+source_val_f1_macro: 0.829353129774133
+reason: 'Comparison set: the best 15 s validation variant of decision tree for A2-NonVPN (0.8294, E02-tree-A2-NonVPN-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

@@ -1,0 +1,18 @@
+experiment_id: E12
+run_name: E12-compare-decision_tree-A1
+kind: train
+task: A1
+timeout: 15
+model: tree
+params:
+  ccp_alpha: 0.00032005927785036195
+  criterion: entropy
+  max_depth: null
+  min_samples_leaf: 1
+builds_on: E17-tree-A1-15s
+source_run_id: f54ca230785c4aaa93dd41a52cd92044
+source_val_f1_macro: 0.8905028543931407
+reason: 'Comparison set: the best 15 s validation variant of decision tree for A1 (0.8905, E17-tree-A1-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

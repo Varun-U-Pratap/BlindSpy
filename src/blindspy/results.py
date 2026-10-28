@@ -740,7 +740,8 @@ def run_settings(run_name: str, path: Path = ROOT / "reports" / "history.csv") -
 
     rid = load_history(path).set_index("run_name").loc[run_name, "run_id"]
     raw = pd.read_csv(path, dtype=str, keep_default_na=False).set_index("run_id").loc[rid]
-    params = {c.removeprefix("params.model."): yaml.safe_load(v)
+    # MLflow logs Python's None as the string "None", which YAML would read as text
+    params = {c.removeprefix("params.model."): None if v == "None" else yaml.safe_load(v)
               for c, v in raw.items() if c.startswith("params.model.") and v != ""}  # fmt: skip
     return {"model": raw["params.model"], "params": params}
 
@@ -833,4 +834,98 @@ def e07_candidates(s: pd.DataFrame) -> pd.DataFrame:
             "KNN preprocessing for E07": f"{knn[kn['label'].iloc[0]]} "
                                          f"{kn['metrics.val_f1_macro'].iloc[0]:.4f}",
         })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+# Final choice and comparison set (decided 28 Oct after E10)
+METHOD_TYPE = {
+    "tree": "decision tree",
+    "knn": "KNN",
+    "knn_log_standard": "KNN",
+    "knn_log_robust": "KNN",
+    "logreg": "logistic regression",
+    "svm_rbf": "SVM-RBF",
+    "rf": "Random Forest",
+    "xgb": "XGBoost",
+    "xgb_two_step": "XGBoost",
+    "lgbm": "LightGBM",
+}  # fmt: skip  (majority, E01, is a reference only)
+FILE_LIMIT_BYTES = 50 * 10**6  # GitHub warns at 50 MB
+
+
+def final_choice(s: pd.DataFrame) -> pd.DataFrame:
+    """Per task the headline model: the highest validation macro F1 of all model-selection runs
+    (any experiment, any timeout; ties keep the earlier experiment, then the shorter timeout).
+    Only fallback: a saved model file over 50 MB is skipped for the next best."""
+    rows = []
+    for task in CORE_TASKS:
+        c = s[(s["params.task"] == task) & s["params.model"].isin(METHOD_TYPE)]
+        c = c.assign(order=c["tags.experiment_id"].map(SELECTION_EXPS.index))
+        c = c.sort_values(["metrics.val_f1_macro", "order", "params.timeout"],
+                          ascending=[False, True, True])  # fmt: skip
+        skipped = c[c["metrics.model_file_bytes"] > FILE_LIMIT_BYTES]
+        pick = c[c["metrics.model_file_bytes"] <= FILE_LIMIT_BYTES].iloc[0]
+        above = skipped[skipped["metrics.val_f1_macro"] > pick["metrics.val_f1_macro"]]
+        rows.append({"task": task, "run": pick["run_name"], "run_id": pick["run_id"],
+                     "method type": METHOD_TYPE[pick["params.model"]],
+                     "timeout": int(pick["params.timeout"]),
+                     "val macro F1": pick["metrics.val_f1_macro"],
+                     "next best": next(iter(c[c["run_name"] != pick["run_name"]]["run_name"]),
+                                       "none"),
+                     "next best F1": next(iter(c[c["run_name"] != pick["run_name"]]
+                                               ["metrics.val_f1_macro"]), float("nan")),
+                     "model file MiB": round(pick["metrics.model_file_bytes"] / 2**20, 2),
+                     "skipped for file size": ", ".join(above["run_name"]) or "none"})  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def comparison_set(s: pd.DataFrame) -> pd.DataFrame:
+    """Per task and method type, the run with the highest 15 s validation macro F1 (its
+    default, tuned, balanced or two-step variants compete; ties keep the earlier experiment)."""
+    rows = []
+    at = s[(s["params.timeout"] == 15) & s["params.model"].isin(METHOD_TYPE)]
+    at = at.assign(type=at["params.model"].map(METHOD_TYPE),
+                   order=at["tags.experiment_id"].map(SELECTION_EXPS.index))  # fmt: skip
+    for task in CORE_TASKS:
+        for typ in dict.fromkeys(METHOD_TYPE.values()):
+            c = at[(at["params.task"] == task) & (at["type"] == typ)]
+            r = c.sort_values(["metrics.val_f1_macro", "order"], ascending=[False, True]).iloc[0]
+            rows.append({"task": task, "method type": typ, "run": r["run_name"],
+                         "run_id": r["run_id"], "val macro F1": r["metrics.val_f1_macro"],
+                         "variants compared": len(c)})  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+# The 28 Oct tie rule, kept only to show what it would have chosen (plan: its picks are scored
+# on the test set too). Simpler first: type, then default < tuned, then balancing, then direct.
+OLD_RULE_TYPE_RANK = {"decision tree": 0, "KNN": 1, "logistic regression": 2, "SVM-RBF": 3,
+                      "Random Forest": 4, "LightGBM": 5, "XGBoost": 5}  # fmt: skip
+OLD_RULE_BALANCE_RANK = {"none": 0, "class_weight": 1, "oversample": 2, "smote": 3}
+
+
+def old_rule_choice(s: pd.DataFrame) -> pd.DataFrame:
+    """What the superseded 28 Oct rule would pick per task: among runs within 0.03 of the best
+    validation macro F1 (any experiment, any timeout), the simplest (type, default < tuned,
+    balancing, direct < two-step), then the faster predictor, then 15 s."""
+    rows = []
+    for task in CORE_TASKS:
+        c = s[(s["params.task"] == task) & s["params.model"].isin(METHOD_TYPE)].copy()
+        best = c["metrics.val_f1_macro"].max()
+        c = c[best - c["metrics.val_f1_macro"] < WINNER_MARGIN]
+        builds = c["params.builds_on"] if "params.builds_on" in c else pd.Series("", c.index)
+        tuned = (c["tags.tuned"].astype(str) == "True") | builds.astype(str).str.match(r"E(07|17)-")
+        c = c.assign(
+            rank_type=c["params.model"].map(METHOD_TYPE).map(OLD_RULE_TYPE_RANK),
+            rank_tuned=tuned.astype(int),
+            rank_balance=c["params.class_balancing"].fillna("none").map(OLD_RULE_BALANCE_RANK),
+            rank_two_step=(c["params.model"] == "xgb_two_step").astype(int),
+        )
+        keys = ["rank_type", "rank_tuned", "rank_balance", "rank_two_step",
+                "metrics.predict_ms_per_1000", "params.timeout"]  # fmt: skip
+        pick = c.sort_values(keys).iloc[0]
+        rows.append({"task": task, "run": pick["run_name"], "run_id": pick["run_id"],
+                     "method type": METHOD_TYPE[pick["params.model"]],
+                     "val macro F1": pick["metrics.val_f1_macro"],
+                     "below the best by": round(best - pick["metrics.val_f1_macro"], 4),
+                     "runs within 0.03": len(c)})  # fmt: skip
     return pd.DataFrame(rows)

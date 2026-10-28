@@ -359,6 +359,57 @@ are excluded. Data version: v1.
 | B | E17-svm_rbf | 50 / 250 | 35 | 2.7 | signed_log=True, C=381, gamma=2.3 | 0.2777 -> 0.8228 | 0.2965 -> 0.8242 | 0.5277 | yes |
 | B | E17-tree | 50 / 250 | 18 | 0.3 | criterion=entropy, max_depth=None, min_samples_leaf=1, ccp_alpha=7.82e-06 | 0.7575 -> 0.7575 | 0.7585 -> 0.7585 | 0.0 | yes |
 
+## Final choice per task (highest validation macro F1, decided 28 Oct after E10; configs/final/<task>.yaml)
+
+| task | run | method type | timeout | val macro F1 | next best | next best F1 | model file MiB | skipped for file size |
+|---|---|---|---|---|---|---|---|---|
+| A1 | E17-lgbm-A1-15s | LightGBM | 15 | 0.9308 | E06-xgb-A1-15s | 0.9271 | 7.09 | none |
+| A2-VPN | E08-lgbm_class_weight-A2-VPN-15s | LightGBM | 15 | 0.883 | E08-lgbm_oversample-A2-VPN-15s | 0.883 | 25.12 | none |
+| A2-NonVPN | E08-lgbm_oversample-A2-NonVPN-15s | LightGBM | 15 | 0.9075 | E17-svm_rbf-A2-NonVPN-15s | 0.9058 | 4.32 | none |
+| B | E07-xgb-B-15s | XGBoost | 15 | 0.8428 | E08-xgb_class_weight-B-15s | 0.8364 | 4.31 | none |
+
+## Comparison set (best 15 s validation variant of each method type; configs/final/compare/)
+
+| task | method type | run | val macro F1 | variants compared |
+|---|---|---|---|---|
+| A1 | decision tree | E17-tree-A1-15s | 0.8905 | 2 |
+| A1 | KNN | E07-knn_log_standard-A1-15s | 0.9163 | 4 |
+| A1 | logistic regression | E17-logreg-A1-15s | 0.6517 | 2 |
+| A1 | SVM-RBF | E17-svm_rbf-A1-15s | 0.9259 | 2 |
+| A1 | Random Forest | E05-rf-A1-15s | 0.9203 | 2 |
+| A1 | XGBoost | E06-xgb-A1-15s | 0.9271 | 3 |
+| A1 | LightGBM | E17-lgbm-A1-15s | 0.9308 | 2 |
+| A2-VPN | decision tree | E17-tree-A2-VPN-15s | 0.8292 | 2 |
+| A2-VPN | KNN | E07-knn_log_standard-A2-VPN-15s | 0.8625 | 4 |
+| A2-VPN | logistic regression | E17-logreg-A2-VPN-15s | 0.7263 | 2 |
+| A2-VPN | SVM-RBF | E17-svm_rbf-A2-VPN-15s | 0.8707 | 2 |
+| A2-VPN | Random Forest | E17-rf-A2-VPN-15s | 0.8704 | 2 |
+| A2-VPN | XGBoost | E06-xgb-A2-VPN-15s | 0.8758 | 2 |
+| A2-VPN | LightGBM | E08-lgbm_class_weight-A2-VPN-15s | 0.883 | 4 |
+| A2-NonVPN | decision tree | E02-tree-A2-NonVPN-15s | 0.8294 | 2 |
+| A2-NonVPN | KNN | E07-knn_log_standard-A2-NonVPN-15s | 0.8929 | 4 |
+| A2-NonVPN | logistic regression | E17-logreg-A2-NonVPN-15s | 0.8002 | 2 |
+| A2-NonVPN | SVM-RBF | E17-svm_rbf-A2-NonVPN-15s | 0.9058 | 2 |
+| A2-NonVPN | Random Forest | E05-rf-A2-NonVPN-15s | 0.8941 | 2 |
+| A2-NonVPN | XGBoost | E07-xgb-A2-NonVPN-15s | 0.9025 | 2 |
+| A2-NonVPN | LightGBM | E08-lgbm_oversample-A2-NonVPN-15s | 0.9075 | 5 |
+| B | decision tree | E02-tree-B-15s | 0.7585 | 2 |
+| B | KNN | E07-knn_log_standard-B-15s | 0.8006 | 4 |
+| B | logistic regression | E17-logreg-B-15s | 0.5862 | 2 |
+| B | SVM-RBF | E17-svm_rbf-B-15s | 0.8242 | 2 |
+| B | Random Forest | E17-rf-B-15s | 0.8167 | 2 |
+| B | XGBoost | E07-xgb-B-15s | 0.8428 | 4 |
+| B | LightGBM | E07-lgbm-B-15s | 0.8352 | 2 |
+
+## What the superseded 28 Oct tie rule would pick (configs/final/old_rule/ where not in the comparison set)
+
+| task | run | method type | val macro F1 | below the best by | runs within 0.03 | in comparison set |
+|---|---|---|---|---|---|---|
+| A1 | E04-knn_log_standard-A1-15s | KNN | 0.9048 | 0.026 | 10 | no |
+| A2-VPN | E04-knn_log_standard-A2-VPN-15s | KNN | 0.8544 | 0.0286 | 11 | no |
+| A2-NonVPN | E07-knn_log_standard-A2-NonVPN-15s | KNN | 0.8929 | 0.0146 | 11 | yes |
+| B | E17-svm_rbf-B-15s | SVM-RBF | 0.8242 | 0.0186 | 9 | yes |
+
 ## Storage of the Phase 3 runs (mlruns/utsav-s-r, models saved with joblib compression level 3)
 
 Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included.

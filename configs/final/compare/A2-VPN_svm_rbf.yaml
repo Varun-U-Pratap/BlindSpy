@@ -1,0 +1,18 @@
+experiment_id: E12
+run_name: E12-compare-svm_rbf-A2-VPN
+kind: train
+task: A2-VPN
+timeout: 15
+model: svm_rbf
+params:
+  C: 879.2930670289833
+  cache_size: 1000
+  gamma: 2.4167986859808477
+  signed_log: true
+builds_on: E17-svm_rbf-A2-VPN-15s
+source_run_id: 67db1a2e9c9b4cecba0b2c64f35165c2
+source_val_f1_macro: 0.8707017427221284
+reason: 'Comparison set: the best 15 s validation variant of SVM-RBF for A2-VPN (0.8707, E17-svm_rbf-A2-VPN-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

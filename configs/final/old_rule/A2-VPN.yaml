@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-old_rule-A2-VPN
+kind: train
+task: A2-VPN
+timeout: 15
+model: knn_log_standard
+params:
+  n_neighbors: 5
+builds_on: E04-knn_log_standard-A2-VPN-15s
+source_run_id: 3dcf524022a84ac697757fd158380596
+source_val_f1_macro: 0.8543640134567895
+reason: 'What the superseded 28 Oct tie rule would pick for A2-VPN: E04-knn_log_standard-A2-VPN-15s (0.8544,
+  0.0286 below the best; the simplest of 11 runs within 0.03). Scored once on the test set in Phase 4
+  to show what the old rule would cost; never changes the headline model.'
+save_model: true

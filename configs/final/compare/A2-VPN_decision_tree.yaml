@@ -1,0 +1,18 @@
+experiment_id: E12
+run_name: E12-compare-decision_tree-A2-VPN
+kind: train
+task: A2-VPN
+timeout: 15
+model: tree
+params:
+  ccp_alpha: 0.0006619700722957577
+  criterion: entropy
+  max_depth: 35
+  min_samples_leaf: 1
+builds_on: E17-tree-A2-VPN-15s
+source_run_id: 3c942428846a4d878a6e21b674f58fdc
+source_val_f1_macro: 0.829165596366576
+reason: 'Comparison set: the best 15 s validation variant of decision tree for A2-VPN (0.8292, E17-tree-A2-VPN-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

@@ -1,0 +1,18 @@
+experiment_id: E12
+run_name: E12-compare-svm_rbf-B
+kind: train
+task: B
+timeout: 15
+model: svm_rbf
+params:
+  C: 380.65860013752206
+  cache_size: 1000
+  gamma: 2.2951817514109423
+  signed_log: true
+builds_on: E17-svm_rbf-B-15s
+source_run_id: e0f2268a0f4c4f26928fab320c40c91a
+source_val_f1_macro: 0.8241806986542773
+reason: 'Comparison set: the best 15 s validation variant of SVM-RBF for B (0.8242, E17-svm_rbf-B-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

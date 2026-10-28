@@ -1,0 +1,17 @@
+experiment_id: E12
+run_name: E12-compare-logistic_regression-B
+kind: train
+task: B
+timeout: 15
+model: logreg
+params:
+  C: 22.27205691442867
+  max_iter: 1000
+  signed_log: true
+builds_on: E17-logreg-B-15s
+source_run_id: 4fe372606f404d58b4a843d466274190
+source_val_f1_macro: 0.5862261477368422
+reason: 'Comparison set: the best 15 s validation variant of logistic regression for B (0.5862, E17-logreg-B-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true
