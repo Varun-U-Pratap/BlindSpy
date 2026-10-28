@@ -19,8 +19,9 @@ OUT = ROOT / "reports" / "baseline_tables.md"
 OUT3 = ROOT / "reports" / "phase3_tables.md"
 
 
-def storage(h: pd.DataFrame, runner: str) -> tuple[pd.DataFrame, dict]:
-    """Bytes in mlruns/<runner>/artifacts per run, grouped by model type."""
+def storage(h: pd.DataFrame, runner: str, by_experiment: bool = False) -> tuple[pd.DataFrame, dict]:
+    """Bytes in mlruns/<runner>/artifacts per run, grouped by model type (and experiment).
+    The *_MB columns are MiB (2**20 bytes)."""
     art = ROOT / "mlruns" / runner / "artifacts"
     rows = []
     for _, r in h.iterrows():
@@ -32,7 +33,8 @@ def storage(h: pd.DataFrame, runner: str) -> tuple[pd.DataFrame, dict]:
         )
         model_file = folder / "artifacts" / "model" / "model.joblib"
         rows.append({
-            "kind": f"{r['params.model']} ({r['tags.protocol']})", "run_bytes": size,
+            "kind": (f"{r['tags.experiment_id']} {r['params.model']}" if by_experiment
+                     else f"{r['params.model']} ({r['tags.protocol']})"), "run_bytes": size,
             "model_file_bytes": model_file.stat().st_size if model_file.exists() else 0,
         })  # fmt: skip
     df = pd.DataFrame(rows).groupby("kind").agg(
@@ -243,11 +245,12 @@ def phase3() -> None:
             out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
                     "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip
     runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
-    st, total = storage(p3, runner)
+    st, total = storage(p3, runner, by_experiment=True)
     out += ["", f"## Storage of the Phase 3 runs (mlruns/{runner}, models saved with joblib "
-            "compression level 3)", "", R.md(st), "",
-            f"Whole store now: artifacts {total['artifacts_MB']} MB, "
-            f"mlflow.db {total['mlflow_db_MB']} MB."]  # fmt: skip
+            "compression level 3)", "", "Sizes in MiB (2**20 bytes). Optuna trial runs save no "
+            "model and are not included.", "", R.md(st), "",
+            f"Whole store now: artifacts {total['artifacts_MB']} MiB, "
+            f"mlflow.db {total['mlflow_db_MB']} MiB."]  # fmt: skip
     v = R.phase3_verdicts(s)
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip

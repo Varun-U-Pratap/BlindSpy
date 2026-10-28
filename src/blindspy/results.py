@@ -429,7 +429,9 @@ def screen(s: pd.DataFrame, exp: str) -> pd.DataFrame:
 
 
 def timeout_table(s: pd.DataFrame, label: str, task: str) -> pd.DataFrame:
-    """A model's validation macro F1 at every timeout it ran, next to the best other run."""
+    """A model's validation macro F1 at every timeout it ran, next to the best other run of
+    the experiments up to its own (so later experiments don't change the table)."""
+    exp = label.split("-")[0]
     rows = []
     for t in TIMEOUTS:
         r = s[(s["label"] == label) & (s["params.task"] == task) & (s["params.timeout"] == t)]
@@ -437,7 +439,7 @@ def timeout_table(s: pd.DataFrame, label: str, task: str) -> pd.DataFrame:
             continue
         r = r.iloc[0]
         others = s[s["label"] != label]
-        b = best_run(others, task, t)
+        b = best_run(others, task, t, exp)
         rows.append({
             "task": task, "timeout": f"{t} s", "model": label,
             "val macro F1": round(r["metrics.val_f1_macro"], 4),

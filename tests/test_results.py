@@ -99,3 +99,12 @@ def test_current_best_winner_flag_and_trials_excluded():
     assert R.best_run(s, "A2-VPN", 15)["label"] == "E02-tree"
     assert R.best_run(s, "A1", 15)["label"] == "E04-knn"
     assert R.best_run(s, "A1", 15, upto="E03")["label"] == "E02-tree"
+
+
+def test_timeout_table_ignores_later_experiments():
+    rows = [("E02", "tree", "B", t, 0.70) for t in TIMEOUTS]
+    rows += [("E05", "rf", "B", t, 0.80) for t in TIMEOUTS]
+    rows += [("E07", "xgb", "B", 30, 0.95)]
+    s = R.selection_runs(fake_selection(rows))
+    tab = R.timeout_table(s, "E05-rf", "B").set_index("timeout")
+    assert tab.loc["30 s", "best other run"] == "E02-tree"
