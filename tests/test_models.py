@@ -184,3 +184,15 @@ def test_compressed_model_reloads_and_predicts_identically(tmp_path):
     X_val = parts[1].drop(columns="label")
     assert (reloaded.predict(X_val) == reference.predict(X_val)).all()
     assert np.array_equal(reloaded.predict_proba(X_val), reference.predict_proba(X_val))
+
+
+def test_random_forest_entry_uses_one_thread_and_reports_complexity():
+    X, y = toy(3)
+    pipe = models.build_model("rf", {"n_estimators": 20}, seed=42).fit(X, y)
+    est = pipe[-1]
+    assert est.n_jobs == 1 and est.random_state == 42 and est.class_weight is None
+    c = models.complexity(pipe)
+    depths = [t.get_depth() for t in est.estimators_]
+    assert c["n_trees"] == 20 and c["tree_depth_mean"] == pytest.approx(np.mean(depths))
+    assert c["tree_depth_max"] == max(depths)
+    assert c["tree_nodes_total"] == sum(t.tree_.node_count for t in est.estimators_)

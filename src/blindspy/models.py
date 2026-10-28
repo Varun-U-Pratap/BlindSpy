@@ -6,6 +6,7 @@ it is fitted on training rows (or training folds) only.
 
 import numpy as np
 from sklearn.dummy import DummyClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import Pipeline
@@ -47,6 +48,12 @@ def _knn_log_robust(params: dict, seed: int) -> Pipeline:
                      ("model", KNeighborsClassifier(**params))])  # fmt: skip
 
 
+def _rf(params: dict, seed: int) -> Pipeline:
+    # one thread per model; the CV folds run in parallel (train.CV_N_JOBS)
+    params = {"n_jobs": 1, **params}
+    return Pipeline([("model", RandomForestClassifier(random_state=seed, **params))])
+
+
 def _logreg(params: dict, seed: int) -> Pipeline:
     return Pipeline(
         [("scale", StandardScaler()), ("model", LogisticRegression(random_state=seed, **params))]
@@ -68,6 +75,7 @@ MODELS = {
     "knn_log_robust": _knn_log_robust,
     "logreg": _logreg,
     "svm_rbf": _svm_rbf,
+    "rf": _rf,
 }
 
 
@@ -87,9 +95,23 @@ def class_scores(pipe: Pipeline, X) -> np.ndarray:
     return np.column_stack([-s, s]) if s.ndim == 1 else s
 
 
+def _ensemble(depths: list[int], nodes: list[int]) -> dict:
+    return {
+        "n_trees": len(depths),
+        "tree_depth_mean": float(np.mean(depths)),
+        "tree_depth_max": int(max(depths)),
+        "tree_nodes_total": int(sum(nodes)),
+        "tree_nodes_mean": float(np.mean(nodes)),
+    }
+
+
 def complexity(pipe: Pipeline) -> dict:
-    """Tree depth / nodes / leaves, or SVM support-vector count; empty for other models."""
+    """Tree depth / nodes / leaves, ensemble size and depth, or SVM support-vector count;
+    empty for other models."""
     est = pipe[-1]
+    if isinstance(est, RandomForestClassifier):
+        trees = est.estimators_
+        return _ensemble([t.get_depth() for t in trees], [t.tree_.node_count for t in trees])
     if isinstance(est, DecisionTreeClassifier):
         return {
             "tree_depth": est.get_depth(),

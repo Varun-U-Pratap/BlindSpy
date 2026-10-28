@@ -38,6 +38,7 @@ ROWS = ["published", "v1"]
 SCREEN = [
     ("E04", "knn_log_standard", {"n_neighbors": 5}),
     ("E04", "knn_log_robust", {"n_neighbors": 5}),
+    ("E05", "rf", {"n_estimators": 300}),  # default depth, class_weight=None, n_jobs=1
 ]
 # Winner reruns at the other timeouts: (experiment ID, registry name, task) -> timeouts
 RERUNS: dict[tuple[str, str, str], list[int]] = {
