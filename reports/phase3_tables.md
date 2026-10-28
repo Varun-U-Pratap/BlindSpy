@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 46, status FINISHED: 46.
-- Git commit(s) of these runs: 016ccd3, 1955147, 2b9a93c, 3817307, 38ccc65, 4308ecb, 4ecf982, 7266637, 817757f, 84e82e2.
+- Phase 3 holdout runs: 62, status FINISHED: 62.
+- Git commit(s) of these runs: 016ccd3, 1955147, 2b9a93c, 3817307, 38ccc65, 4308ecb, 4ecf982, 7266637, 7aa4658, 817757f, 84e82e2.
 
 ## Current best at 15 s after E04
 
@@ -198,7 +198,7 @@ are excluded. Data version: v1.
 | task | model | trials / fits | best trial | search min | chosen settings | CV untuned -> tuned | val untuned -> tuned | val change | CV best == retrained CV |
 |---|---|---|---|---|---|---|---|---|---|
 | A1 | E07-knn_log_standard | 50 / 250 | 22 | 0.5 | n_neighbors=4, weights=distance, metric=manhattan | 0.9033 -> 0.9122 | 0.9048 -> 0.9163 | 0.0115 | yes |
-| A1 | E07-rf | 50 / 250 | 49 | 11.6 | n_estimators=181, max_depth=None, min_samples_leaf=4, max_features=0.434 | 0.9172 -> 0.9209 | 0.9203 -> 0.9181 | -0.0022 | yes |
+| A1 | E07-rf | 50 / 250 | 49 | 11.6 | n_estimators=181, max_depth=nan, min_samples_leaf=4, max_features=0.434 | 0.9172 -> 0.9209 | 0.9203 -> 0.9181 | -0.0022 | yes |
 | A1 | E07-xgb | 50 / 250 | 48 | 1.6 | n_estimators=694, learning_rate=0.051, max_depth=12, subsample=0.939, colsample_bytree=0.747, min_child_weight=5 | 0.9251 -> 0.9293 | 0.9271 -> 0.9259 | -0.0011 | yes |
 | A2-VPN | E07-knn_log_standard | 50 / 250 | 16 | 0.3 | n_neighbors=2, weights=distance, metric=euclidean | 0.8336 -> 0.8575 | 0.8544 -> 0.8625 | 0.0082 | yes |
 | A2-VPN | E07-lgbm | 50 / 250 | 11 | 11.2 | n_estimators=809, learning_rate=0.0188, num_leaves=125, subsample=0.842, colsample_bytree=0.962, min_child_samples=49 | 0.8827 -> 0.8902 | 0.8694 -> 0.8768 | 0.0074 | yes |
@@ -287,6 +287,78 @@ are excluded. Data version: v1.
 | direct 14-class | E07-xgb | 0.8428 | 0.8405 +- 0.0056 | 0.8794 | 2,711 | 327 | 180 | 147 | 0.9336 | 0.5505 |
 | two-step | E10-xgb_two_step | 0.8318 | 0.8274 +- 0.0083 | 0.8727 | 2,711 | 345 | 191 | 154 | 0.9295 | 0.5536 |
 
+## Current best at 15 s after E17
+
+| task | current best at 15 s | val macro F1 | CV macro F1 |
+|---|---|---|---|
+| A1 | E17-lgbm | 0.9308 | 0.9320 +- 0.0028 |
+| A2-VPN | E08-lgbm_class_weight | 0.883 | 0.8893 +- 0.0044 |
+| A2-NonVPN | E08-lgbm_oversample | 0.9075 | 0.9310 +- 0.0058 |
+| B | E07-xgb | 0.8428 | 0.8405 +- 0.0056 |
+
+## E17 at 15 s against the best run before it
+
+| task | model | val macro F1 | CV macro F1 | best before | best before F1 | gain | winner (gain >= 0.03) |
+|---|---|---|---|---|---|---|---|
+| A1 | E17-lgbm | 0.9308 | 0.9320 +- 0.0028 | E06-xgb | 0.9271 | 0.0037 | no |
+| A1 | E17-logreg | 0.6517 | 0.6762 +- 0.0051 | E06-xgb | 0.9271 | -0.2754 | no |
+| A1 | E17-svm_rbf | 0.9259 | 0.9187 +- 0.0044 | E06-xgb | 0.9271 | -0.0011 | no |
+| A1 | E17-tree | 0.8905 | 0.8915 +- 0.0043 | E06-xgb | 0.9271 | -0.0366 | no |
+| A2-VPN | E17-logreg | 0.7263 | 0.7344 +- 0.0074 | E08-lgbm_class_weight | 0.883 | -0.1566 | no |
+| A2-VPN | E17-rf | 0.8704 | 0.8707 +- 0.0069 | E08-lgbm_class_weight | 0.883 | -0.0126 | no |
+| A2-VPN | E17-svm_rbf | 0.8707 | 0.8668 +- 0.0074 | E08-lgbm_class_weight | 0.883 | -0.0123 | no |
+| A2-VPN | E17-tree | 0.8292 | 0.8129 +- 0.0071 | E08-lgbm_class_weight | 0.883 | -0.0538 | no |
+| A2-NonVPN | E17-logreg | 0.8002 | 0.8138 +- 0.0120 | E08-lgbm_oversample | 0.9075 | -0.1073 | no |
+| A2-NonVPN | E17-rf | 0.8829 | 0.9063 +- 0.0050 | E08-lgbm_oversample | 0.9075 | -0.0246 | no |
+| A2-NonVPN | E17-svm_rbf | 0.9058 | 0.9256 +- 0.0042 | E08-lgbm_oversample | 0.9075 | -0.0017 | no |
+| A2-NonVPN | E17-tree | 0.8294 | 0.8619 +- 0.0086 | E08-lgbm_oversample | 0.9075 | -0.0781 | no |
+| B | E17-logreg | 0.5862 | 0.5909 +- 0.0067 | E07-xgb | 0.8428 | -0.2566 | no |
+| B | E17-rf | 0.8167 | 0.8270 +- 0.0092 | E07-xgb | 0.8428 | -0.0261 | no |
+| B | E17-svm_rbf | 0.8242 | 0.8228 +- 0.0059 | E07-xgb | 0.8428 | -0.0186 | no |
+| B | E17-tree | 0.7585 | 0.7575 +- 0.0132 | E07-xgb | 0.8428 | -0.0843 | no |
+
+## E17 run details
+
+| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | complexity | train s | 5-fold CV s | predict ms/1k | model MiB (raw / file) | memory MiB (tracemalloc / child RSS) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| E17-lgbm-A1-15s | 0.931 | 0.931 | 0.931 | 0.93 | 0.001 | Non-VPN 0.93 | VPN 0.93 | 998 trees, depth 28.8 mean / 71 max, 302,618 nodes | 3.801 | 5.38 | 191.41 | 16.14 / 7.09 | 48.6 / 128.6 |
+| E17-logreg-A1-15s | 0.652 | 0.652 | 0.652 | 0.652 | 0.025 | Non-VPN 0.64 | VPN 0.67 |  | 0.14 | 0.31 | 0.39 | 0.00 / 0.00 | 6.7 / 7.0 |
+| E17-svm_rbf-A1-15s | 0.926 | 0.926 | 0.926 | 0.926 | -0.007 | Non-VPN 0.92 | VPN 0.93 | 3,982 support vectors | 1.534 | 2.0 | 158.33 | 0.78 / 0.53 | 6.7 / 295.6 |
+| E17-tree-A1-15s | 0.891 | 0.891 | 0.891 | 0.891 | 0.001 | Non-VPN 0.89 | VPN 0.89 | depth 24, 1,085 nodes | 0.181 | 0.32 | 0.18 | 0.08 / 0.02 | 2.4 / 1.9 |
+| E17-logreg-A2-NonVPN-15s | 0.8 | 0.871 | 0.874 | 0.798 | 0.014 | STREAMING 0.64 | VOIP 0.98 |  | 0.536 | 0.75 | 0.67 | 0.00 / 0.00 | 3.3 / 5.1 |
+| E17-rf-A2-NonVPN-15s | 0.883 | 0.925 | 0.926 | 0.874 | 0.023 | STREAMING 0.80 | VOIP 1.00 | 132 trees, depth 20.6 mean / 26 max, 97,704 nodes | 1.504 | 1.5 | 9.44 | 11.24 / 2.14 | 1.2 / 13.7 |
+| E17-svm_rbf-A2-NonVPN-15s | 0.906 | 0.943 | 0.943 | 0.897 | 0.02 | STREAMING 0.80 | VOIP 0.99 | 1,061 support vectors | 0.178 | 0.36 | 47.63 | 0.29 / 0.17 | 3.2 / 15.5 |
+| E17-tree-A2-NonVPN-15s | 0.829 | 0.891 | 0.89 | 0.836 | 0.033 | STREAMING 0.71 | VOIP 0.99 | depth 16, 743 nodes | 0.096 | 0.22 | 0.3 | 0.09 / 0.02 | 1.1 / 1.9 |
+| E17-logreg-A2-VPN-15s | 0.726 | 0.765 | 0.773 | 0.706 | 0.008 | VPN-CHAT 0.53 | VPN-VOIP 0.98 |  | 0.484 | 0.61 | 0.63 | 0.00 / 0.00 | 3.6 / 4.5 |
+| E17-rf-A2-VPN-15s | 0.87 | 0.886 | 0.888 | 0.862 | 0.0 | VPN-CHAT 0.72 | VPN-VOIP 0.99 | 910 trees, depth 20.6 mean / 28 max, 847,900 nodes | 21.68 | 20.15 | 71.63 | 97.42 / 19.65 | 2.2 / 114.1 |
+| E17-svm_rbf-A2-VPN-15s | 0.871 | 0.883 | 0.883 | 0.87 | -0.004 | VPN-CHAT 0.72 | VPN-VOIP 0.99 | 2,636 support vectors | 0.57 | 0.82 | 118.77 | 0.72 / 0.48 | 3.5 / 45.5 |
+| E17-tree-A2-VPN-15s | 0.829 | 0.853 | 0.853 | 0.827 | -0.016 | VPN-CHAT 0.66 | VPN-VOIP 0.99 | depth 19, 911 nodes | 0.124 | 0.26 | 0.29 | 0.11 / 0.02 | 1.3 / 1.9 |
+| E17-logreg-B-15s | 0.586 | 0.644 | 0.653 | 0.574 | 0.005 | CHAT 0.39 | P2P 0.84 |  | 1.149 | 1.54 | 0.41 | 0.01 / 0.00 | 8.2 / 6.9 |
+| E17-rf-B-15s | 0.817 | 0.861 | 0.862 | 0.809 | 0.01 | VPN-MAIL 0.60 | VOIP 0.99 | 708 trees, depth 25.2 mean / 33 max, 2,026,240 nodes | 33.966 | 32.16 | 59.51 | 340.43 / 45.77 | 2.9 / 396.6 |
+| E17-svm_rbf-B-15s | 0.824 | 0.857 | 0.858 | 0.82 | -0.001 | VPN-CHAT 0.68 | VOIP 0.99 | 5,711 support vectors | 2.036 | 2.99 | 302.79 | 2.16 / 1.31 | 6.7 / 72.3 |
+| E17-tree-B-15s | 0.759 | 0.81 | 0.81 | 0.759 | -0.001 | VPN-MAIL 0.55 | VOIP 0.98 | depth 30, 3,407 nodes | 0.301 | 0.43 | 0.2 | 0.57 / 0.07 | 2.4 / 2.0 |
+
+## E17 searches: size, chosen settings, tuned vs untuned
+
+| task | model | trials / fits | best trial | search min | chosen settings | CV untuned -> tuned | val untuned -> tuned | val change | CV best == retrained CV |
+|---|---|---|---|---|---|---|---|---|---|
+| A1 | E17-lgbm | 50 / 250 | 46 | 3.7 | n_estimators=998, learning_rate=0.0577, num_leaves=167, subsample=0.935, colsample_bytree=0.883, min_child_samples=21 | 0.9175 -> 0.9320 | 0.9181 -> 0.9308 | 0.0127 | yes |
+| A1 | E17-logreg | 50 / 250 | 23 | 0.2 | signed_log=True, C=33 | 0.5996 -> 0.6762 | 0.5847 -> 0.6517 | 0.067 | yes |
+| A1 | E17-svm_rbf | 50 / 250 | 47 | 3.0 | signed_log=True, C=5.63, gamma=2.77 | 0.6081 -> 0.9187 | 0.6016 -> 0.9259 | 0.3243 | yes |
+| A1 | E17-tree | 50 / 250 | 31 | 0.4 | criterion=entropy, max_depth=nan, min_samples_leaf=1, ccp_alpha=0.00032 | 0.8884 -> 0.8915 | 0.8901 -> 0.8905 | 0.0004 | yes |
+| A2-VPN | E17-logreg | 50 / 250 | 31 | 0.5 | signed_log=True, C=29.9 | 0.4105 -> 0.7344 | 0.4324 -> 0.7263 | 0.2939 | yes |
+| A2-VPN | E17-rf | 50 / 250 | 42 | 10.9 | n_estimators=910, max_depth=nan, min_samples_leaf=2, max_features=0.566 | 0.8637 -> 0.8707 | 0.8679 -> 0.8704 | 0.0025 | yes |
+| A2-VPN | E17-svm_rbf | 50 / 250 | 36 | 0.7 | signed_log=True, C=879, gamma=2.42 | 0.4484 -> 0.8668 | 0.4682 -> 0.8707 | 0.4025 | yes |
+| A2-VPN | E17-tree | 50 / 250 | 23 | 0.2 | criterion=entropy, max_depth=35, min_samples_leaf=1, ccp_alpha=0.000662 | 0.8103 -> 0.8129 | 0.8247 -> 0.8292 | 0.0044 | yes |
+| A2-NonVPN | E17-logreg | 50 / 250 | 48 | 0.5 | signed_log=True, C=985 | 0.4593 -> 0.8138 | 0.4487 -> 0.8002 | 0.3515 | yes |
+| A2-NonVPN | E17-rf | 50 / 250 | 44 | 3.2 | n_estimators=132, max_depth=30, min_samples_leaf=1, max_features=0.309 | 0.9048 -> 0.9063 | 0.8941 -> 0.8829 | -0.0111 | yes |
+| A2-NonVPN | E17-svm_rbf | 50 / 250 | 12 | 0.5 | signed_log=True, C=293, gamma=0.178 | 0.4787 -> 0.9256 | 0.4870 -> 0.9058 | 0.4188 | yes |
+| A2-NonVPN | E17-tree | 50 / 250 | 28 | 0.2 | criterion=entropy, max_depth=nan, min_samples_leaf=1, ccp_alpha=3e-06 | 0.8619 -> 0.8619 | 0.8294 -> 0.8294 | 0.0 | yes |
+| B | E17-logreg | 50 / 250 | 32 | 1.2 | signed_log=True, C=22.3 | 0.2993 -> 0.5909 | 0.3072 -> 0.5862 | 0.279 | yes |
+| B | E17-rf | 50 / 250 | 27 | 21.0 | n_estimators=708, max_depth=nan, min_samples_leaf=1, max_features=0.514 | 0.8102 -> 0.8270 | 0.8147 -> 0.8167 | 0.002 | yes |
+| B | E17-svm_rbf | 50 / 250 | 35 | 2.7 | signed_log=True, C=381, gamma=2.3 | 0.2777 -> 0.8228 | 0.2965 -> 0.8242 | 0.5277 | yes |
+| B | E17-tree | 50 / 250 | 18 | 0.3 | criterion=entropy, max_depth=nan, min_samples_leaf=1, ccp_alpha=7.82e-06 | 0.7575 -> 0.7575 | 0.7585 -> 0.7585 | 0.0 | yes |
+
 ## Storage of the Phase 3 runs (mlruns/utsav-s-r, models saved with joblib compression level 3)
 
 Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included.
@@ -305,8 +377,13 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E08 lgbm | 5 | 67.775 | 27.135 | 27.033 |
 | E08 xgb | 2 | 4.724 | 4.511 | 4.348 |
 | E10 xgb_two_step | 1 | 3.856 | 3.856 | 3.728 |
+| E17 lgbm | 1 | 7.215 | 7.215 | 7.092 |
+| E17 logreg | 4 | 0.515 | 0.199 | 0.004 |
+| E17 rf | 3 | 68.011 | 45.962 | 45.773 |
+| E17 svm_rbf | 4 | 2.944 | 1.479 | 1.306 |
+| E17 tree | 4 | 0.732 | 0.275 | 0.07 |
 
-Whole store now: artifacts 584.7 MiB, mlflow.db 18.1 MiB.
+Whole store now: artifacts 664.1 MiB, mlflow.db 26.1 MiB.
 
 ## Threshold checks (pre-stated in the E## files)
 
@@ -463,6 +540,56 @@ Whole store now: artifacts 584.7 MiB, mlflow.db 18.1 MiB.
  },
  "E10c": {
   "share_of_two_step_errors_from_step_1": 0.5536,
+  "supported": true
+ },
+ "E17a": {
+  "tuned_minus_untuned": {
+   "E17-lgbm A1": 0.0127,
+   "E17-logreg A1": 0.067,
+   "E17-logreg A2-NonVPN": 0.3515,
+   "E17-logreg A2-VPN": 0.2939,
+   "E17-logreg B": 0.279,
+   "E17-rf A2-NonVPN": -0.0111,
+   "E17-rf A2-VPN": 0.0025,
+   "E17-rf B": 0.002,
+   "E17-svm_rbf A1": 0.3243,
+   "E17-svm_rbf A2-NonVPN": 0.4188,
+   "E17-svm_rbf A2-VPN": 0.4025,
+   "E17-svm_rbf B": 0.5277,
+   "E17-tree A1": 0.0004,
+   "E17-tree A2-NonVPN": 0.0,
+   "E17-tree A2-VPN": 0.0044,
+   "E17-tree B": 0.0
+  },
+  "searches_above": 13,
+  "of": 16,
+  "needed": 12,
+  "supported": true
+ },
+ "E17b": {
+  "best_after_E17": {
+   "A1": "E17-lgbm",
+   "A2-VPN": "E08-lgbm_class_weight",
+   "A2-NonVPN": "E08-lgbm_oversample",
+   "B": "E07-xgb"
+  },
+  "tasks_won_by_xgb_or_lgbm": 4,
+  "needed": 3,
+  "supported": true
+ },
+ "E17c": {
+  "signed_log_chosen": {
+   "E17-logreg A1": "True",
+   "E17-logreg A2-VPN": "True",
+   "E17-logreg A2-NonVPN": "True",
+   "E17-logreg B": "True",
+   "E17-svm_rbf A1": "True",
+   "E17-svm_rbf A2-VPN": "True",
+   "E17-svm_rbf A2-NonVPN": "True",
+   "E17-svm_rbf B": "True"
+  },
+  "searches_with_log": 8,
+  "needed": 6,
   "supported": true
  }
 }

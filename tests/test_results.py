@@ -274,3 +274,16 @@ def test_e17_verdicts_against_untuned_versions():
     assert v["E17a"]["searches_above"] == 8 and v["E17a"]["of"] == 12
     assert v["E17b"]["best_after_E17"]["A1"] == "E17-tree" and not v["E17b"]["supported"]
     assert v["E17c"]["searches_with_log"] == 4 and not v["E17c"]["supported"]
+
+
+def test_e17_searches_table_shows_pipeline_options():
+    rows = [("E03", "svm_rbf", "A1", 15, 0.6), ("E17", "svm_rbf", "A1", 15, 0.9)]
+    df = fake_selection(rows)
+    df["params.search.space"] = json.dumps({"signed_log": {}, "C": {}})
+    df["params.estimator_params"] = json.dumps({"C": 5.0, "kernel": "rbf"})
+    df["params.model.signed_log"] = True
+    for m in ("search_n_trials", "search_total_fits", "search_best_trial", "search_time_s"):
+        df[f"metrics.{m}"] = 1.0
+    df["metrics.search_best_cv_f1_macro_mean"] = df["metrics.cv_f1_macro_mean"]
+    tab = R.e07_searches(R.selection_runs(df), "E17")
+    assert tab.loc[0, "chosen settings"] == "signed_log=True, C=5"
