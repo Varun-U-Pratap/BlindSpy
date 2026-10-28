@@ -146,3 +146,40 @@ def test_run_settings_copies_logged_strings_exactly(tmp_path):
         "model": "xgb",
         "params": {"learning_rate": 0.10125778281260306, "n_estimators": 505},
     }
+
+
+def test_e08_ladder_stops_at_the_first_step_that_does_not_help():
+    def run(exp, model, task, f1):
+        return {
+            "run_name": f"{exp}-{model}-{task}-15s",
+            "tags.protocol": "holdout",
+            "tags.experiment_id": exp,
+            "params.task": task,
+            "params.timeout": 15,
+            "params.model": model.split("_")[0],
+            "metrics.val_f1_macro": f1,
+            "tags.worst_class_f1": "C",
+            "metrics.val_f1.C": f1 - 0.2,
+            "tags.trial": "",
+        }
+
+    rows = []
+    for task in CORE_TASKS:
+        rows.append(run("E06", "xgb", task, 0.80))
+    rows += [run("E08", "xgb_class_weight", "A1", 0.79)]  # did not help -> stop
+    rows += [
+        run("E08", "xgb_class_weight", "A2-VPN", 0.81),  # helped -> next step
+        run("E08", "xgb_class_weight", "A2-NonVPN", 0.81),
+        run("E08", "xgb_oversample", "A2-NonVPN", 0.805),
+    ]  # below class_weight -> stop
+    rows += [run("E08", f"xgb_{st}", "B", f) for st, f in
+             [("class_weight", 0.81), ("oversample", 0.82), ("smote", 0.83)]]  # fmt: skip
+    s = R.selection_runs(pd.DataFrame(rows))
+    lad = R.e08_ladder(s, {t: "E06-xgb" for t in CORE_TASKS})
+    last = lad.groupby("task").tail(1).set_index("task")
+    assert last.loc["A1", "next"] == "stop: this step did not help"
+    assert last.loc["A2-VPN", "step"] == "oversample"
+    assert last.loc["A2-VPN", "next"] == "run this step"
+    assert last.loc["A2-NonVPN", "next"] == "stop: this step did not help"
+    assert last.loc["B", "next"] == "ladder complete"
+    assert lad.set_index(["task", "step"]).loc[("B", "smote"), "change vs none"] == 0.03

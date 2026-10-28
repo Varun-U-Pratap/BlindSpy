@@ -241,6 +241,9 @@ def phase3() -> None:
         if exp == "E06":
             out += ["", "## E07 scope: best 2 of RF / XGBoost / LightGBM per task, plus KNN",
                     "", R.md(R.e07_candidates(s))]  # fmt: skip
+        if exp == "E08":
+            out += ["", "## E08 balancing ladder (stop rule: a step runs only if every earlier "
+                    "step helped)", "", R.md(R.e08_ladder(s, R.E08_BASE))]  # fmt: skip
         if exp == "E07":
             out += ["", "## E07 searches: size, chosen settings, tuned vs untuned", "",
                     R.md(R.e07_searches(s))]  # fmt: skip
