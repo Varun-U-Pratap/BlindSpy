@@ -293,3 +293,60 @@ def test_train_and_score_with_smote_logs_balance_and_reloads(tmp_path):
     X_val = parts[1].drop(columns="label")
     ref = models.build_model("xgb", {"n_estimators": 10}, 42, balance="smote")
     assert (reloaded.predict(X_val) == ref.fit(*train._xy(parts[0])).predict(X_val)).all()
+
+
+def b_like_toy(n: int = 600, seed: int = 0) -> tuple[pd.DataFrame, pd.Series]:
+    """Four classes in two groups, like task B: VPN-x / x."""
+    rng = np.random.default_rng(seed)
+    k = rng.integers(0, 4, n)
+    X = pd.DataFrame(rng.normal(size=(n, 4)) + k[:, None] * 2.0, columns=list("abcd"))
+    names = np.array(["CHAT", "MAIL", "VPN-CHAT", "VPN-MAIL"])
+    return X, pd.Series(names[k], name="label")
+
+
+def test_two_step_routes_by_the_first_step_and_matches_its_parts():
+    from sklearn.base import clone
+
+    X, y = b_like_toy()
+    pipe = models.build_model("xgb_two_step", {"n_estimators": 20}, seed=42).fit(X, y)
+    est = pipe[-1]
+    assert list(est.classes_) == ["CHAT", "MAIL", "VPN-CHAT", "VPN-MAIL"]
+    vpn = y.str.startswith("VPN-").to_numpy()
+    # each part is the plain model trained on its own rows, with the same settings and seed
+    step1 = models.build_model("xgb", {"n_estimators": 20}, 42).fit(
+        X, np.where(vpn, "VPN", "Non-VPN"))  # fmt: skip
+    in_vpn = models.build_model("xgb", {"n_estimators": 20}, 42).fit(X[vpn], y[vpn])
+    in_non = models.build_model("xgb", {"n_estimators": 20}, 42).fit(X[~vpn], y[~vpn])
+    route = step1.predict(X) == "VPN"
+    expected = np.where(route, in_vpn.predict(X), in_non.predict(X))
+    assert (pipe.predict(X) == expected).all()
+    proba = pipe.predict_proba(X)
+    assert np.allclose(proba.sum(axis=1), 1.0)
+    assert (proba[route][:, :2] == 0).all() and (proba[~route][:, 2:] == 0).all()
+    assert est.get_params()["n_jobs"] == 1
+    c = models.complexity(pipe)
+    assert c["n_trees"] == sum(models.complexity(m)["n_trees"] for m in (step1, in_vpn, in_non))
+    again = clone(pipe).fit(X, y)
+    assert (again.predict(X) == pipe.predict(X)).all()
+
+
+def test_two_step_needs_both_groups():
+    X, y = toy(3)
+    with pytest.raises(ValueError, match="VPN"):
+        models.build_model("xgb_two_step", {}, 42).fit(X, y)
+
+
+def test_train_and_score_runs_a_two_step_model(tmp_path):
+    X, y = b_like_toy()
+    df = X.assign(label=y.to_numpy())
+    parts = (df.iloc[:420], df.iloc[420:510], df.iloc[510:])
+    cfg = {"experiment_id": "E_test", "task": "B", "timeout": 15, "model": "xgb_two_step",
+           "params": {"n_estimators": 10}, "save_model": True}  # fmt: skip
+    logged = train.train_and_score(cfg, parts, seed=42, cv_folds=5, out_dir=tmp_path, compress=3)
+    p, m = logged["params"], logged["metrics"]
+    assert p["pipeline_steps"] == "TwoStep" and p["model_n_jobs"] == "1"
+    assert m["model_n_trees"] > 0 and m["val_f1_macro"] > 0.5
+    reloaded = joblib.load(tmp_path / "model" / "model.joblib")
+    X_val = parts[1].drop(columns="label")
+    ref = models.build_model("xgb_two_step", {"n_estimators": 10}, 42)
+    assert (reloaded.predict(X_val) == ref.fit(*train._xy(parts[0])).predict(X_val)).all()

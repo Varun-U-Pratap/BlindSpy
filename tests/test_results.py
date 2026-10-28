@@ -223,3 +223,16 @@ def test_e08_verdicts_use_the_best_step_that_ran(monkeypatch):
         "B": -0.05,
     }
     assert v["E08c"]["supported"]
+
+
+def test_vpn_group_errors_splits_cross_group_and_type_errors():
+    names = ["CHAT", "MAIL", "VPN-CHAT", "VPN-MAIL"]
+    cm = pd.DataFrame([[8, 1, 1, 0],
+                       [0, 9, 0, 1],
+                       [2, 0, 7, 1],
+                       [0, 0, 0, 10]], index=names, columns=names)  # fmt: skip
+    g = R.vpn_group_errors(cm)
+    assert g["rows"] == 40 and g["errors"] == 6
+    assert g["group errors (VPN / non-VPN wrong)"] == 4
+    assert g["type errors (right group, wrong type)"] == 2
+    assert g["group accuracy"] == 0.9 and g["share of errors from the group"] == round(4 / 6, 4)

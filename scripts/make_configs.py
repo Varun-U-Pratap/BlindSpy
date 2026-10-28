@@ -103,6 +103,9 @@ E08_STEPS = {
     "A2-NonVPN": ["class_weight", "oversample", "smote"],  # oversample helped -> round 3
     "B": ["class_weight"],  # round 1; class_weight did not help -> stopped
 }
+# E10 task B: the two-step structure with the current best B model and settings after E08
+# (E07-xgb-B-15s, no balancing); the direct 14-class model is that run itself
+E10_BASE = "E07-xgb-B-15s"
 
 
 def write(name: str, cfg: dict) -> None:
@@ -162,6 +165,14 @@ def main() -> None:
                 "save_model": True,
             })  # fmt: skip
             n += 1
+    settings = results.run_settings(E10_BASE)
+    model = f"{settings['model']}_two_step"
+    write(f"E10_{model}_B_15s", {
+        "experiment_id": "E10", "run_name": f"E10-{model}-B-15s", "kind": "train", "task": "B",
+        "timeout": 15, "model": model, "params": settings["params"], "builds_on": E10_BASE,
+        "save_model": True,
+    })  # fmt: skip
+    n += 1
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")
 
 
