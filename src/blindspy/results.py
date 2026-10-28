@@ -620,6 +620,28 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
     return out  # fmt: skip
 
 
+def vpn_group_errors(cm: pd.DataFrame) -> dict:
+    """Task B errors from a 14-class confusion matrix (rows true, columns predicted), split
+    into errors that cross the VPN / non-VPN line (for the E10 two-step: exactly the errors
+    of a wrong first step) and errors inside the right group (wrong application type)."""
+    vpn_t = cm.index.str.startswith("VPN-")
+    vpn_p = cm.columns.str.startswith("VPN-")
+    v = cm.to_numpy()
+    total = int(v.sum())
+    correct = int(np.trace(v))
+    cross = int(v[np.ix_(vpn_t, ~vpn_p)].sum() + v[np.ix_(~vpn_t, vpn_p)].sum())
+    return {"rows": total, "errors": total - correct, "group errors (VPN / non-VPN wrong)": cross,
+            "type errors (right group, wrong type)": total - correct - cross,
+            "group accuracy": round(1 - cross / total, 4),
+            "share of errors from the group": round(cross / (total - correct), 4)}  # fmt: skip
+
+
+def run_confusion(run_id: str, runner: str) -> pd.DataFrame:
+    """A run's validation confusion matrix from its MLflow artifacts."""
+    path = ROOT / "mlruns" / runner / "artifacts" / run_id / "artifacts" / "eval"
+    return pd.read_csv(path / "confusion_matrix.csv", index_col=0)
+
+
 E08_ORDER = ["none", "class_weight", "oversample", "smote"]
 # the current best per task after E07 (table "Current best at 15 s after E07"): E08's "none" step
 E08_BASE = {"A1": "E06-xgb", "A2-VPN": "E07-lgbm", "A2-NonVPN": "E07-lgbm", "B": "E07-xgb"}

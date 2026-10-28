@@ -6,6 +6,7 @@ it is fitted on training rows (or training folds) only.
 
 import numpy as np
 from lightgbm import LGBMClassifier
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.dummy import DummyClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -101,6 +102,48 @@ def _lgbm(params: dict, seed: int) -> Pipeline:
     return Pipeline([("model", LGBMClassifier(random_state=seed, **params))])
 
 
+class TwoStep(ClassifierMixin, BaseEstimator):
+    """E10 task B as two steps: a VPN / non-VPN model routes each flow to one of two 7-class
+    models (VPN classes start with "VPN-"). All three are `base` models with the same params
+    and seed; step 1 and both 7-class models train on the rows given to fit (B training rows
+    or a CV training fold), the 7-class models on the rows of their own group."""
+
+    def __init__(self, base: str = "xgb", params: dict | None = None, seed: int = 42,
+                 n_jobs: int = 1):  # fmt: skip
+        self.base = base
+        self.params = params
+        self.seed = seed
+        self.n_jobs = n_jobs
+
+    def _part(self) -> Pipeline:
+        return build_model(self.base, {"n_jobs": self.n_jobs, **(self.params or {})}, self.seed)
+
+    def fit(self, X, y):
+        y = np.asarray(y).astype(str)
+        vpn = np.char.startswith(y, "VPN-")
+        if vpn.all() or not vpn.any():
+            raise ValueError("two-step needs VPN- and non-VPN classes")
+        self.step1_ = self._part().fit(X, np.where(vpn, "VPN", "Non-VPN"))
+        self.vpn_ = self._part().fit(X[vpn], y[vpn])
+        self.nonvpn_ = self._part().fit(X[~vpn], y[~vpn])
+        self.classes_ = np.unique(y)
+        return self
+
+    def predict_proba(self, X) -> np.ndarray:
+        """The routed group's 7-class probabilities; 0 for the other group's classes, so the
+        argmax is the routed model's prediction."""
+        route = self.step1_.predict(X) == "VPN"
+        out = np.zeros((len(X), len(self.classes_)))
+        for rows, part in ((route, self.vpn_), (~route, self.nonvpn_)):
+            if rows.any():
+                cols = np.searchsorted(self.classes_, part.classes_)
+                out[np.ix_(rows, cols)] = part.predict_proba(X[rows])
+        return out
+
+    def predict(self, X) -> np.ndarray:
+        return self.classes_[self.predict_proba(X).argmax(axis=1)]
+
+
 def _logreg(params: dict, seed: int) -> Pipeline:
     return Pipeline(
         [("scale", StandardScaler()), ("model", LogisticRegression(random_state=seed, **params))]
@@ -139,6 +182,10 @@ def build_model(name: str, params: dict, seed: int, balance: str | None = None) 
     balance = balance or "none"
     if balance not in BALANCE:
         raise ValueError(f"unknown balance {balance!r}; one of {BALANCE}")
+    if name.endswith("_two_step"):  # E10: e.g. "xgb_two_step" = TwoStep of xgb models
+        if balance != "none":
+            raise ValueError("balance is not supported for two-step models")
+        return Pipeline([("model", TwoStep(name.removesuffix("_two_step"), params, seed))])
     params = dict(params or {})
     if balance == "class_weight":
         if "class_weight" not in MODELS[name]({}, seed)[-1].get_params():
@@ -207,4 +254,17 @@ def complexity(pipe: Pipeline) -> dict:
         }
     if isinstance(est, SVC):
         return {"support_vectors": int(est.n_support_.sum())}
+    if isinstance(est, TwoStep):  # all trees of the three models together
+        parts = [complexity(m) for m in (est.step1_, est.vpn_, est.nonvpn_)]
+        if not all("n_trees" in c for c in parts):
+            return {}
+        n = sum(c["n_trees"] for c in parts)
+        nodes = sum(c["tree_nodes_total"] for c in parts)
+        return {
+            "n_trees": n,
+            "tree_depth_mean": sum(c["tree_depth_mean"] * c["n_trees"] for c in parts) / n,
+            "tree_depth_max": max(c["tree_depth_max"] for c in parts),
+            "tree_nodes_total": nodes,
+            "tree_nodes_mean": nodes / n,
+        }
     return {}
