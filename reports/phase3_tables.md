@@ -8,8 +8,8 @@ Winner rule: a 15 s validation macro F1 at least 0.03 above the task's
 current best -> rerun at 30, 60 and 120 s with the same settings. Optuna trial runs
 are excluded. Data version: v1.
 
-- Phase 3 holdout runs: 15, status FINISHED: 15.
-- Git commit(s) of these runs: 1955147, 3817307, 817757f.
+- Phase 3 holdout runs: 18, status FINISHED: 18.
+- Git commit(s) of these runs: 016ccd3, 1955147, 3817307, 817757f.
 
 ## Current best at 15 s after E04
 
@@ -44,19 +44,19 @@ are excluded. Data version: v1.
 
 ## E04 run details
 
-| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | train s | predict ms/1k | model MB (raw / file) | memory MB (tracemalloc / child RSS) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| E04-knn_log_robust-A1-15s | 0.893 | 0.893 | 0.893 | 0.893 | -0.006 | Non-VPN 0.89 | VPN 0.90 | 0.028 | 11.5 | 2.31 / 1.44 | 6.7 / 6.5 |
-| E04-knn_log_standard-A1-15s | 0.905 | 0.905 | 0.905 | 0.904 | -0.001 | Non-VPN 0.90 | VPN 0.91 | 0.023 | 11.26 | 2.31 / 1.44 | 6.7 / 6.4 |
-| E04-knn_log_robust-A2-NonVPN-15s | 0.854 | 0.901 | 0.903 | 0.843 | 0.015 | STREAMING 0.73 | VOIP 0.99 | 0.015 | 7.75 | 1.12 / 0.69 | 3.2 / 4.1 |
-| E04-knn_log_standard-A2-NonVPN-15s | 0.867 | 0.913 | 0.915 | 0.858 | 0.019 | STREAMING 0.74 | VOIP 0.99 | 0.014 | 8.27 | 1.12 / 0.68 | 3.2 / 3.9 |
-| E04-knn_log_standard-A2-NonVPN-30s | 0.852 | 0.899 | 0.9 | 0.842 | -0.004 | STREAMING 0.69 | VOIP 0.99 | 0.013 | 9.2 | 0.86 / 0.55 | 2.5 / 1.9 |
-| E04-knn_log_standard-A2-NonVPN-60s | 0.859 | 0.902 | 0.903 | 0.85 | 0.005 | STREAMING 0.69 | VOIP 0.98 | 0.013 | 8.1 | 1.05 / 0.69 | 3.0 / 2.8 |
-| E04-knn_log_standard-A2-NonVPN-120s | 0.849 | 0.902 | 0.904 | 0.823 | -0.025 | CHAT 0.69 | VOIP 0.97 | 0.006 | 7.74 | 0.64 / 0.42 | 1.8 / 2.1 |
-| E04-knn_log_robust-A2-VPN-15s | 0.837 | 0.853 | 0.854 | 0.838 | -0.019 | VPN-CHAT 0.63 | VPN-VOIP 0.99 | 0.021 | 8.03 | 1.21 / 0.77 | 3.5 / 4.1 |
-| E04-knn_log_standard-A2-VPN-15s | 0.854 | 0.87 | 0.871 | 0.858 | -0.021 | VPN-CHAT 0.69 | VPN-VOIP 0.99 | 0.016 | 7.95 | 1.21 / 0.77 | 3.5 / 3.9 |
-| E04-knn_log_robust-B-15s | 0.742 | 0.797 | 0.799 | 0.742 | 0.014 | VPN-CHAT 0.56 | VOIP 0.97 | 0.033 | 11.03 | 2.32 / 1.44 | 6.7 / 6.5 |
-| E04-knn_log_standard-B-15s | 0.764 | 0.819 | 0.82 | 0.765 | 0.015 | MAIL 0.56 | VOIP 0.97 | 0.027 | 10.8 | 2.32 / 1.44 | 6.7 / 6.4 |
+| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | complexity | train s | 5-fold CV s | predict ms/1k | model MiB (raw / file) | memory MiB (tracemalloc / child RSS) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| E04-knn_log_robust-A1-15s | 0.893 | 0.893 | 0.893 | 0.893 | -0.006 | Non-VPN 0.89 | VPN 0.90 | stores the training rows | 0.028 | 2.64 | 11.5 | 2.31 / 1.44 | 6.7 / 6.5 |
+| E04-knn_log_standard-A1-15s | 0.905 | 0.905 | 0.905 | 0.904 | -0.001 | Non-VPN 0.90 | VPN 0.91 | stores the training rows | 0.023 | 0.27 | 11.26 | 2.31 / 1.44 | 6.7 / 6.4 |
+| E04-knn_log_robust-A2-NonVPN-15s | 0.854 | 0.901 | 0.903 | 0.843 | 0.015 | STREAMING 0.73 | VOIP 0.99 | stores the training rows | 0.015 | 2.02 | 7.75 | 1.12 / 0.69 | 3.2 / 4.1 |
+| E04-knn_log_standard-A2-NonVPN-15s | 0.867 | 0.913 | 0.915 | 0.858 | 0.019 | STREAMING 0.74 | VOIP 0.99 | stores the training rows | 0.014 | 0.17 | 8.27 | 1.12 / 0.68 | 3.2 / 3.9 |
+| E04-knn_log_standard-A2-NonVPN-30s | 0.852 | 0.899 | 0.9 | 0.842 | -0.004 | STREAMING 0.69 | VOIP 0.99 | stores the training rows | 0.013 | 2.44 | 9.2 | 0.86 / 0.55 | 2.5 / 1.9 |
+| E04-knn_log_standard-A2-NonVPN-60s | 0.859 | 0.902 | 0.903 | 0.85 | 0.005 | STREAMING 0.69 | VOIP 0.98 | stores the training rows | 0.013 | 2.03 | 8.1 | 1.05 / 0.69 | 3.0 / 2.8 |
+| E04-knn_log_standard-A2-NonVPN-120s | 0.849 | 0.902 | 0.904 | 0.823 | -0.025 | CHAT 0.69 | VOIP 0.97 | stores the training rows | 0.006 | 0.06 | 7.74 | 0.64 / 0.42 | 1.8 / 2.1 |
+| E04-knn_log_robust-A2-VPN-15s | 0.837 | 0.853 | 0.854 | 0.838 | -0.019 | VPN-CHAT 0.63 | VPN-VOIP 0.99 | stores the training rows | 0.021 | 0.19 | 8.03 | 1.21 / 0.77 | 3.5 / 4.1 |
+| E04-knn_log_standard-A2-VPN-15s | 0.854 | 0.87 | 0.871 | 0.858 | -0.021 | VPN-CHAT 0.69 | VPN-VOIP 0.99 | stores the training rows | 0.016 | 0.18 | 7.95 | 1.21 / 0.77 | 3.5 / 3.9 |
+| E04-knn_log_robust-B-15s | 0.742 | 0.797 | 0.799 | 0.742 | 0.014 | VPN-CHAT 0.56 | VOIP 0.97 | stores the training rows | 0.033 | 0.25 | 11.03 | 2.32 / 1.44 | 6.7 / 6.5 |
+| E04-knn_log_standard-B-15s | 0.764 | 0.819 | 0.82 | 0.765 | 0.015 | MAIL 0.56 | VOIP 0.97 | stores the training rows | 0.027 | 0.26 | 10.8 | 2.32 / 1.44 | 6.7 / 6.4 |
 
 ## E04: columns RobustScaler leaves unscaled (training rows, after the signed log)
 
@@ -85,14 +85,36 @@ are excluded. Data version: v1.
 | A2-NonVPN | E05-rf | 0.8941 | 0.9048 +- 0.0049 | E04-knn_log_standard | 0.867 | 0.0271 | no |
 | B | E05-rf | 0.8147 | 0.8102 +- 0.0090 | E04-knn_log_standard | 0.7644 | 0.0503 | yes |
 
+## Winner rerun: E05-rf, B, every timeout
+
+| task | timeout | model | val macro F1 | CV macro F1 | best other run | its F1 | difference |
+|---|---|---|---|---|---|---|---|
+| B | 15 s | E05-rf | 0.8147 | 0.8102 +- 0.0090 | E04-knn_log_standard | 0.7644 | 0.0503 |
+| B | 30 s | E05-rf | 0.8114 | 0.7979 +- 0.0119 | E02-tree | 0.7476 | 0.0638 |
+| B | 60 s | E05-rf | 0.7771 | 0.7656 +- 0.0136 | E02-tree | 0.7058 | 0.0713 |
+| B | 120 s | E05-rf | 0.7835 | 0.7562 +- 0.0083 | E02-tree | 0.7158 | 0.0677 |
+
 ## E05 run details
 
-| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | train s | predict ms/1k | model MB (raw / file) | memory MB (tracemalloc / child RSS) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| E05-rf-A1-15s | 0.92 | 0.92 | 0.921 | 0.92 | -0.003 | Non-VPN 0.92 | VPN 0.92 | 4.563 | 22.85 | 44.66 / 9.37 | 2.5 / 46.9 |
-| E05-rf-A2-NonVPN-15s | 0.894 | 0.932 | 0.933 | 0.886 | 0.011 | STREAMING 0.81 | VOIP 1.00 | 2.038 | 21.91 | 28.66 / 5.31 | 1.4 / 33.1 |
-| E05-rf-A2-VPN-15s | 0.868 | 0.882 | 0.883 | 0.859 | -0.004 | VPN-CHAT 0.71 | VPN-VOIP 0.99 | 2.657 | 25.88 | 48.40 / 8.38 | 1.5 / 61.6 |
-| E05-rf-B-15s | 0.815 | 0.857 | 0.859 | 0.805 | -0.005 | VPN-MAIL 0.62 | VOIP 0.99 | 6.059 | 27.28 | 171.86 / 22.44 | 2.5 / 187.9 |
+| run | val macro F1 | weighted F1 | accuracy | balanced acc. | CV - val | worst F1 | best F1 | complexity | train s | 5-fold CV s | predict ms/1k | model MiB (raw / file) | memory MiB (tracemalloc / child RSS) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| E05-rf-A1-15s | 0.92 | 0.92 | 0.921 | 0.92 | -0.003 | Non-VPN 0.92 | VPN 0.92 | 300 trees, depth 26.5 mean / 33 max, 583,926 nodes | 4.563 | 6.97 | 22.85 | 44.66 / 9.37 | 2.5 / 46.9 |
+| E05-rf-A2-NonVPN-15s | 0.894 | 0.932 | 0.933 | 0.886 | 0.011 | STREAMING 0.81 | VOIP 1.00 | 300 trees, depth 20.3 mean / 30 max, 249,282 nodes | 2.038 | 3.93 | 21.91 | 28.66 / 5.31 | 1.4 / 33.1 |
+| E05-rf-A2-VPN-15s | 0.868 | 0.882 | 0.883 | 0.859 | -0.004 | VPN-CHAT 0.71 | VPN-VOIP 0.99 | 300 trees, depth 23.3 mean / 30 max, 421,764 nodes | 2.657 | 5.16 | 25.88 | 48.40 / 8.38 | 1.5 / 61.6 |
+| E05-rf-B-15s | 0.815 | 0.857 | 0.859 | 0.805 | -0.005 | VPN-MAIL 0.62 | VOIP 0.99 | 300 trees, depth 26.2 mean / 33 max, 1,023,108 nodes | 6.059 | 5.93 | 27.28 | 171.86 / 22.44 | 2.5 / 187.9 |
+| E05-rf-B-30s | 0.811 | 0.857 | 0.858 | 0.805 | -0.013 | MAIL 0.61 | VPN-VOIP 0.99 | 300 trees, depth 25.6 mean / 32 max, 857,632 nodes | 4.671 | 7.06 | 29.62 | 144.09 / 18.98 | 2.0 / 172.1 |
+| E05-rf-B-60s | 0.777 | 0.834 | 0.836 | 0.766 | -0.011 | VPN-CHAT 0.56 | VOIP 0.93 | 300 trees, depth 26.0 mean / 34 max, 989,750 nodes | 5.001 | 6.74 | 30.7 | 166.27 / 21.86 | 2.1 / 187.7 |
+| E05-rf-B-120s | 0.784 | 0.825 | 0.829 | 0.759 | -0.027 | STREAMING 0.49 | VOIP 1.00 | 300 trees, depth 24.4 mean / 33 max, 684,238 nodes | 3.147 | 3.22 | 32.72 | 114.99 / 15.12 | 1.5 / 150.0 |
+
+## Storage of the Phase 3 runs (mlruns/utsav-s-r, models saved with joblib compression level 3)
+
+| kind | runs | total_MB | per_run_max_MB | model_file_max_MB |
+|---|---|---|---|---|
+| knn_log_robust (holdout) | 4 | 4.678 | 1.577 | 1.435 |
+| knn_log_standard (holdout) | 7 | 6.54 | 1.579 | 1.437 |
+| rf (holdout) | 7 | 102.403 | 22.6 | 22.436 |
+
+Whole store now: artifacts 390.4 MB, mlflow.db 11.2 MB.
 
 ## Threshold checks (pre-stated in the E## files)
 

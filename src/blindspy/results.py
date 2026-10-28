@@ -461,8 +461,24 @@ def current_best(s: pd.DataFrame, upto: str | None = None) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _complexity_text(r: pd.Series) -> str:
+    def m(k):
+        v = r.get(f"metrics.model_{k}")
+        return None if v is None or v != v else v
+
+    if m("n_trees") is not None:
+        depth = f"depth {m('tree_depth_mean'):.1f} mean / {int(m('tree_depth_max'))} max"
+        return f"{int(m('n_trees'))} trees, {depth}, {int(m('tree_nodes_total')):,} nodes"
+    if m("tree_depth") is not None:
+        return f"depth {int(m('tree_depth'))}, {int(m('tree_nodes')):,} nodes"
+    if m("support_vectors") is not None:
+        return f"{int(m('support_vectors')):,} support vectors"
+    return "stores the training rows" if "knn" in r["params.model"] else ""
+
+
 def run_details(s: pd.DataFrame, exp: str) -> pd.DataFrame:
-    """Per run of `exp`: scores, F1 gap, best/worst class, cost (time, memory, sizes)."""
+    """Per run of `exp`: scores, F1 gap, best/worst class, complexity and cost (time,
+    memory, sizes; MiB = 2**20 bytes)."""
     rows = []
     for _, r in s[s["tags.experiment_id"] == exp].sort_values(
             ["params.task", "params.timeout", "run_name"]).iterrows():  # fmt: skip
@@ -475,11 +491,13 @@ def run_details(s: pd.DataFrame, exp: str) -> pd.DataFrame:
             "worst F1": f"{r['tags.worst_class_f1']} "
                         f"{_v(r, 'f1', r['tags.worst_class_f1']):.2f}",
             "best F1": f"{r['tags.best_class_f1']} {_v(r, 'f1', r['tags.best_class_f1']):.2f}",
+            "complexity": _complexity_text(r),
             "train s": round(r["metrics.train_time_s"], 3),
+            "5-fold CV s": round(r["metrics.cv_time_s"], 2),
             "predict ms/1k": round(r["metrics.predict_ms_per_1000"], 2),
-            "model MB (raw / file)": f"{r['metrics.model_size_bytes'] / 2**20:.2f} / "
+            "model MiB (raw / file)": f"{r['metrics.model_size_bytes'] / 2**20:.2f} / "
                                      f"{r['metrics.model_file_bytes'] / 2**20:.2f}",
-            "memory MB (tracemalloc / child RSS)": f"{r['metrics.peak_memory_mb']:.1f} / "
+            "memory MiB (tracemalloc / child RSS)": f"{r['metrics.peak_memory_mb']:.1f} / "
                                                    f"{r['metrics.child_peak_rss_mb']:.1f}",
         })  # fmt: skip
     return pd.DataFrame(rows)

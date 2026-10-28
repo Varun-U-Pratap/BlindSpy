@@ -239,6 +239,12 @@ def phase3() -> None:
         if exp == "E04":
             out += ["", "## E04: columns RobustScaler leaves unscaled (training rows, after "
                     "the signed log)", "", R.md(R.robust_scaling_check())]  # fmt: skip
+    runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
+    st, total = storage(p3, runner)
+    out += ["", f"## Storage of the Phase 3 runs (mlruns/{runner}, models saved with joblib "
+            "compression level 3)", "", R.md(st), "",
+            f"Whole store now: artifacts {total['artifacts_MB']} MB, "
+            f"mlflow.db {total['mlflow_db_MB']} MB."]  # fmt: skip
     v = R.phase3_verdicts(s)
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip
