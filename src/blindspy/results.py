@@ -764,8 +764,10 @@ def e07_searches(s: pd.DataFrame, exp: str = "E07") -> pd.DataFrame:
         est = json.loads(r["params.estimator_params"])
         chosen = []
         for k in space:
-            # pipeline options such as signed_log are not estimator settings: use the logged param
+            # estimator_params leaves out None settings; pipeline options such as signed_log are
+            # not estimator settings, so they come from the logged param
             v = est[k] if k in est else r.get(f"params.model.{k}")
+            v = None if v is None or v != v else v
             chosen.append(f"{k}={v:.3g}" if isinstance(v, float) else f"{k}={v}")
         rows.append({
             "task": r["params.task"], "model": r["label"],

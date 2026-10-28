@@ -96,11 +96,12 @@ Validation macro F1 at 15 s, untuned -> tuned (chosen settings in table "E17 sea
 | B | 0.7585 -> 0.7585 | 0.3072 -> 0.5862 | 0.2965 -> 0.8242 | 0.8147 -> 0.8167 | (tuned in E07) |
 
 - SVM gains most: +0.32 to +0.53. Every SVM and logistic-regression search chose the signed log
-  (8 of 8), with large C (5.6-879) and gamma 0.18-2.77. Tuned SVM is now close to the boosters:
+  (8 of 8); SVM chose C 5.6-879 and gamma 0.18-2.77, logistic regression C 22.3-985.2. Tuned SVM is now close to the boosters:
   A1 0.9259 (best 0.9308), A2-NonVPN 0.9058 (best 0.9075), A2-VPN 0.8707 (0.8830), B 0.8242
   (0.8428). Its E03 score (0.30-0.60) came from the raw feature scales, not from the method.
-- Logistic regression gains +0.07 to +0.35 but stays far below every other type (0.59-0.80): a
-  linear boundary does not fit these data, even after the signed log.
+- Logistic regression gains +0.07 to +0.35 but stays below every other type in every task
+  (0.59-0.80): even after the signed log, a linear model separates these classes much worse
+  than the non-linear ones (why exactly is not tested here).
 - Decision tree: the searches settle on (almost) the E02 tree, an unpruned entropy tree (largest
   ccp_alpha chosen 0.00066). Change +0.0000 to +0.0044; in A2-NonVPN and B the tuned tree scores
   exactly the same as E02 (equal to all digits). More pruning did not help on these data.
@@ -120,7 +121,15 @@ Validation macro F1 at 15 s, untuned -> tuned (chosen settings in table "E17 sea
 - Cost (table "E17 run details"): tuned SVM predicts slowly (47.6-302.8 ms per 1,000 flows; 1,061-
   5,711 support vectors) but is small (0.17-1.31 MiB as saved); tuned LightGBM A1 7.1 MiB and
   191 ms per 1,000 flows; tuned Random Forest B 340.4 MiB uncompressed / 45.8 MiB as saved
-  (708 trees, 2.03 million nodes), the largest model file so far.
+  (708 trees, 2.03 million nodes), the second-largest Phase 3 model file (largest: E07
+  LightGBM B, 62.5 MiB).
+- Threads: Random Forest and LightGBM run with n_jobs = 1. SVM has no n_jobs setting (libsvm fits
+  on one thread), the decision tree neither, and logistic regression logs n_jobs = None,
+  scikit-learn's default, which means one job; so every model's own setting is one job, as the
+  28 Oct thread decision requires (CV folds in parallel). Numerical libraries underneath (BLAS,
+  used by logistic regression) keep their default threading, as in every earlier run.
+- 5-fold CV agrees with validation within 0.033 (CV - val -0.016 to +0.033; largest: tree
+  A2-NonVPN); CV std 0.0028-0.0132.
 
 Storage: the 16 retrained E17 runs take 79.4 MiB (forest 68.0, LightGBM 7.2, SVM 2.9, tree 0.7,
 logistic regression 0.5); trials save no model. Whole store now: artifacts 664.1 MiB, mlflow.db
