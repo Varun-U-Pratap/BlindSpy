@@ -11,7 +11,7 @@ Draper-Gil et al. (ICISSP 2016):
 ## Setup
 
 Requires [uv](https://docs.astral.sh/uv/) (it downloads Python 3.12 itself) and git.
-On macOS also run `brew install libomp` (needed later by XGBoost and LightGBM).
+On macOS also run `brew install libomp` (needed by XGBoost and LightGBM).
 
 ```bash
 git clone https://github.com/Varun-U-Pratap/BlindSpy.git

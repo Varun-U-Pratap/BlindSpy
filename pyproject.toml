@@ -5,18 +5,22 @@ description = "Encrypted traffic classification (ISCXVPN2016) from flow timing f
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+    "imbalanced-learn>=0.14.2",
     "joblib>=1.6.0",
     "jupyterlab>=4.6.4",
     "liac-arff>=2.5.0",
+    "lightgbm>=4.7.0",
     "matplotlib>=3.11.2",
     "mlflow==3.17.2",
     "numpy>=2.5.4",
+    "optuna>=5.0.0",
     "pandas>=3.1.0",
     "pyarrow>=25.0.1",
     "pyyaml>=6.0.3",
     "scikit-learn>=1.9.1",
     "seaborn>=0.13.2",
     "shap>=0.54.1",
+    "xgboost>=3.4.1",
 ]
 
 [build-system]

@@ -2,9 +2,11 @@
 
 import json
 
+import joblib
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.pipeline import Pipeline
 
 from blindspy import evaluate, models, train
@@ -131,8 +133,6 @@ def test_training_time_is_measured_without_tracemalloc():
     second fit of a clone with tracemalloc on, and the first fit is the model kept."""
     import tracemalloc
 
-    from sklearn.base import BaseEstimator, ClassifierMixin
-
     seen = []
 
     class Probe(ClassifierMixin, BaseEstimator):
@@ -146,3 +146,41 @@ def test_training_time_is_measured_without_tracemalloc():
     seconds, peak = train._fit_measured(pipe, X, y)
     assert seen == [False, True]
     assert hasattr(pipe[-1], "classes_") and seconds >= 0 and peak >= 0
+
+
+class Allocates(ClassifierMixin, BaseEstimator):
+    """Holds about 80 MB during fit (module level, so a spawned child can unpickle it)."""
+
+    def fit(self, X, y):
+        block = np.ones(10_000_000)
+        self.classes_ = np.unique(y)
+        self.total_ = float(block.sum())
+        return self
+
+    def predict(self, X):
+        return np.full(len(X), self.classes_[0])
+
+
+def test_child_process_rss_sees_memory_of_the_fit():
+    X, y = toy(2)
+    mb = train._child_peak_rss_mb(Pipeline([("model", Allocates())]), X, y)
+    assert 70 <= mb <= 200
+
+
+def test_compressed_model_reloads_and_predicts_identically(tmp_path):
+    X, y = toy(3, n=400)
+    df = X.assign(label=y.to_numpy())
+    parts = (df.iloc[:280], df.iloc[280:340], df.iloc[340:])
+    cfg = {"experiment_id": "E_test", "task": "toy", "timeout": 15, "model": "tree",
+           "params": {}, "save_model": True}  # fmt: skip
+    logged = train.train_and_score(cfg, parts, seed=42, cv_folds=5, out_dir=tmp_path, compress=3)
+    m, p = logged["metrics"], logged["params"]
+    path = tmp_path / "model" / "model.joblib"
+    assert path.stat().st_size == m["model_file_bytes"] < m["model_size_bytes"]
+    assert p["model_compress"] == 3 and p["cv_n_jobs"] == -1 and "model_n_jobs" in p
+    assert m["child_peak_rss_mb"] >= 0
+    reference = models.build_model("tree", {}, seed=42).fit(*train._xy(parts[0]))
+    reloaded = joblib.load(path)
+    X_val = parts[1].drop(columns="label")
+    assert (reloaded.predict(X_val) == reference.predict(X_val)).all()
+    assert np.array_equal(reloaded.predict_proba(X_val), reference.predict_proba(X_val))
