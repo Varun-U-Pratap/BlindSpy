@@ -13,7 +13,7 @@ Usage: uv run python scripts/make_configs.py
 
 import yaml
 
-from blindspy import results
+from blindspy import features, results
 from blindspy.data import CORE_TASKS, ROOT, TIMEOUTS
 
 OUT = ROOT / "configs" / "experiments"
@@ -131,6 +131,9 @@ E08_STEPS = {
 # E10 task B: the two-step structure with the current best B model and settings after E08
 # (E07-xgb-B-15s, no balancing); the direct 14-class model is that run itself
 E10_BASE = "E07-xgb-B-15s"
+# E09 feature-group ablation on the headline model per task (configs/final/<task>.yaml): the
+# same model and settings with one feature set; "all" is the headline run itself (not rerun)
+E09_SETS = [f for f in features.FEATURE_SETS if f != "all"]
 
 
 def write(name: str, cfg: dict) -> None:
@@ -201,6 +204,17 @@ def main() -> None:
         "save_model": True,
     })  # fmt: skip
     n += 1
+    for task in CORE_TASKS:
+        final = yaml.safe_load((ROOT / "configs" / "final" / f"{task}.yaml").read_text())
+        keep = {
+            k: final[k] for k in ("task", "timeout", "model", "params", "balance") if k in final
+        }
+        for fs in E09_SETS:
+            write(f"E09_{fs}_{task}_15s", {
+                "experiment_id": "E09", "run_name": f"E09-{fs}-{task}-15s", "kind": "train",
+                **keep, "feature_set": fs, "builds_on": final["builds_on"], "save_model": True,
+            })  # fmt: skip
+            n += 1
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")
 
 

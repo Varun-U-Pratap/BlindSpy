@@ -339,3 +339,22 @@ def test_old_rule_picks_the_simplest_run_within_003():
     o = R.old_rule_choice(R.selection_runs(df)).set_index("task")
     assert o.loc["A1", "run"] == "E04-knn_log_standard-A1-15s"  # KNN, and default < tuned
     assert o.loc["A1", "below the best by"] == 0.025 and o.loc["A1", "runs within 0.03"] == 3
+
+
+def test_e09_verdicts_on_a_table():
+    rows = []
+    cases = [("A1", -0.10, -0.01, 0.0), ("A2-VPN", -0.2, -0.03, 0.005),
+             ("A2-NonVPN", -0.05, -0.015, -0.02), ("B", 0.035, 0.0, 0.0)]  # fmt: skip
+    for task, only_best, worst_drop, timing in cases:
+        rows += [
+            {"task": task, "feature set": "all", "change vs all": 0.0},
+            {"task": task, "feature set": "only_fiat", "change vs all": only_best},
+            {"task": task, "feature set": "only_idle", "change vs all": only_best - 0.1},
+            {"task": task, "feature set": "no_fiat", "change vs all": worst_drop},
+            {"task": task, "feature set": "timing_only", "change vs all": timing},
+        ]
+    v = R.e09_verdicts(pd.DataFrame(rows))
+    assert v["E09a"]["tasks_all_groups_below"] == 3 and not v["E09a"]["supported"]
+    assert v["E09b"]["tasks_within_0.02"] == 3 and v["E09b"]["supported"]
+    assert v["E09c"]["tasks_within_0.01"] == 3 and v["E09c"]["supported"]
+    assert v["E09_stop_and_ask"]["sets_at_least_0.03_above_all"]["B"] == ["only_fiat"]

@@ -2,6 +2,7 @@
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from blindspy import features, models
 
@@ -49,3 +50,31 @@ def test_preprocessing_param_names_the_function():
         ]
         == "none"
     )
+
+
+A1_COLS = ["duration", "min_fiat", "min_biat", "max_fiat", "max_biat", "mean_fiat", "mean_biat",
+           "std_fiat", "std_biat", "flowPktsPerSecond", "flowBytesPerSecond", "min_flowiat",
+           "max_flowiat", "mean_flowiat", "std_flowiat", "min_active", "mean_active",
+           "max_active", "std_active", "min_idle", "mean_idle", "max_idle", "std_idle"]  # fmt: skip
+A2_COLS = [c.replace("std_fiat", "total_fiat").replace("std_biat", "total_biat") for c in A1_COLS]
+
+
+@pytest.mark.parametrize("cols", [A1_COLS, A2_COLS])
+def test_feature_groups_split_all_23_features(cols):
+    groups = features.feature_groups(cols)
+    assert list(groups) == ["fiat", "biat", "flowiat", "active", "idle", "rates_duration"]
+    assert sorted(sum(groups.values(), [])) == sorted(cols)  # every feature in exactly one group
+    assert all(len(g) == 4 for k, g in groups.items() if k != "rates_duration")
+    assert groups["rates_duration"] == ["duration", "flowPktsPerSecond", "flowBytesPerSecond"]
+
+
+def test_feature_sets():
+    sel = features.select_features
+    assert sel(A1_COLS, "all") == A1_COLS
+    assert set(sel(A2_COLS, "only_fiat")) == {"total_fiat", "min_fiat", "max_fiat", "mean_fiat"}
+    assert "min_flowiat" not in sel(A1_COLS, "only_fiat")  # "fiat" is not a suffix of "flowiat"
+    assert len(sel(A1_COLS, "no_idle")) == 19 and "min_idle" not in sel(A1_COLS, "no_idle")
+    assert sel(A1_COLS, "timing_only") == [c for c in A1_COLS if c != "flowBytesPerSecond"]
+    assert features.FEATURE_SETS[0] == "all" and len(features.FEATURE_SETS) == 14
+    with pytest.raises(ValueError, match="feature set"):
+        sel(A1_COLS, "only_size")

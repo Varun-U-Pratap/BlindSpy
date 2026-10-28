@@ -23,7 +23,7 @@ from sklearn.base import clone
 from sklearn.metrics import f1_score
 from sklearn.model_selection import StratifiedKFold, cross_validate
 
-from blindspy import evaluate, models
+from blindspy import evaluate, features, models
 
 CV_N_JOBS = -1  # CV folds run in parallel; each model itself uses one thread (n_jobs=1)
 
@@ -153,6 +153,7 @@ def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> 
         "seed": seed,
         "class_balancing": cfg.get("balance") or "none",
         **({"builds_on": cfg["builds_on"]} if cfg.get("builds_on") else {}),
+        **({"feature_set": cfg["feature_set"]} if cfg.get("feature_set") else {}),
         "features": ",".join(X.columns),
         "n_features": X.shape[1],
         "save_model": bool(cfg.get("save_model", True)),
@@ -171,6 +172,9 @@ def train_and_score(
     train, val, test = parts
     X_tr, y_tr = _xy(train)
     X_val, y_val = _xy(val)
+    if cfg.get("feature_set"):  # E09: keep one feature set (names from the data's columns)
+        keep = features.select_features(X_tr.columns, cfg["feature_set"])
+        X_tr, X_val = X_tr[keep], X_val[keep]
     pipe = models.build_model(cfg["model"], cfg.get("params"), seed, cfg.get("balance"))
 
     cv = StratifiedKFold(cv_folds, shuffle=True, random_state=seed)

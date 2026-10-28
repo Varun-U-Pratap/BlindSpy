@@ -929,3 +929,53 @@ def old_rule_choice(s: pd.DataFrame) -> pd.DataFrame:
                      "below the best by": round(best - pick["metrics.val_f1_macro"], 4),
                      "runs within 0.03": len(c)})  # fmt: skip
     return pd.DataFrame(rows)
+
+
+def e09_table(h: pd.DataFrame, s: pd.DataFrame) -> pd.DataFrame:
+    """E09 per task and feature set (15 s, validation): "all" is the headline run itself."""
+    from blindspy.features import FEATURE_SETS
+
+    head = final_choice(s).set_index("task")
+    e = h[(h["tags.experiment_id"] == "E09") & (h["tags.protocol"] == "holdout")]
+    rows = []
+    for task in CORE_TASKS:
+        base = h[h["run_name"] == head.loc[task, "run"]].iloc[0]
+        ref = base["metrics.val_f1_macro"]
+        for fs in FEATURE_SETS:
+            r = base if fs == "all" else e[e["run_name"] == f"E09-{fs}-{task}-15s"]
+            if fs != "all":
+                if r.empty:
+                    continue
+                r = r.iloc[0]
+            rows.append({
+                "task": task, "feature set": fs, "features": int(r["params.n_features"]),
+                "val macro F1": round(r["metrics.val_f1_macro"], 4),
+                "change vs all": round(r["metrics.val_f1_macro"] - ref, 4),
+                "CV macro F1": f"{r['metrics.cv_f1_macro_mean']:.4f} +- "
+                               f"{r['metrics.cv_f1_macro_std']:.4f}",
+            })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e09_verdicts(t: pd.DataFrame) -> dict:
+    """E09 thresholds on e09_table: (a) no group alone reaches all 23 features (4 of 4 tasks);
+    (b) dropping any one group costs at most 0.02 (3 of 4 tasks); (c) timing-only within 0.01
+    (3 of 4 tasks). Also flags any set at least 0.03 above all 23 (stop and ask the user)."""
+    by = {task: g.set_index("feature set")["change vs all"] for task, g in t.groupby("task")}
+    only = {k: round(float(v[v.index.str.startswith("only_")].max()), 4) for k, v in by.items()}
+    drop = {k: round(float(v[v.index.str.startswith("no_")].min()), 4) for k, v in by.items()}
+    timing = {k: float(v["timing_only"]) for k, v in by.items()}
+    above = {k: v[v >= WINNER_MARGIN].index.tolist() for k, v in by.items()}
+    return {
+        "E09a": {"best_single_group_minus_all": only,
+                 "tasks_all_groups_below": sum(x < 0 for x in only.values()), "needed": 4,
+                 "supported": all(x < 0 for x in only.values())},
+        "E09b": {"worst_drop_one_group": drop,
+                 "tasks_within_0.02": sum(x >= -0.02 for x in drop.values()), "needed": 3,
+                 "supported": sum(x >= -0.02 for x in drop.values()) >= 3},
+        "E09c": {"timing_only_minus_all": timing,
+                 "tasks_within_0.01": sum(abs(x) <= 0.01 for x in timing.values()), "needed": 3,
+                 "supported": sum(abs(x) <= 0.01 for x in timing.values()) >= 3},
+        "E09_stop_and_ask": {"sets_at_least_0.03_above_all": above,
+                             "triggered": any(above.values())},
+    }  # fmt: skip
