@@ -1,0 +1,26 @@
+experiment_id: E17
+run_name: E17-svm_rbf-A2-NonVPN-15s
+kind: optuna
+task: A2-NonVPN
+timeout: 15
+model: svm_rbf
+trials: 50
+search_space:
+  signed_log:
+    type: categorical
+    choices:
+    - false
+    - true
+  C:
+    type: float
+    low: 0.01
+    high: 1000.0
+    log: true
+  gamma:
+    type: float
+    low: 0.0001
+    high: 10.0
+    log: true
+fixed_params:
+  cache_size: 1000
+save_model: true

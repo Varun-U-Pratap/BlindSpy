@@ -366,7 +366,7 @@ def duplicate_profile() -> pd.DataFrame:
 # ---- Phase 3 -------------------------------------------------------------------------------
 
 # Experiments whose holdout runs compete for "current best", in the order they ran.
-SELECTION_EXPS = ["E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E10"]
+SELECTION_EXPS = ["E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E10", "E17"]
 WINNER_MARGIN = 0.03  # decided 28 Oct: above the largest Phase 2 CV std (0.025)
 
 
@@ -628,6 +628,26 @@ def phase3_verdicts(s: pd.DataFrame, runner: str | None = None) -> dict:
         out["E10c"] = {"share_of_two_step_errors_from_step_1":
                        t["share of errors from the group"],
                        "supported": t["share of errors from the group"] > 0.5}  # fmt: skip
+    if any(k[0].startswith("E17-") for k in f1):
+        e17 = sorted(k for k in f1 if k[0].startswith("E17-") and k[2] == 15)
+        better = {f"{lab} {t}": round(f1[lab, t, 15] - f1[UNTUNED[lab], t, 15], 4)
+                  for lab, t, _ in e17}  # fmt: skip
+        out["E17a"] = {"tuned_minus_untuned": better,
+                       "searches_above": sum(g > 0 for g in better.values()),
+                       "of": len(better), "needed": 12}  # fmt: skip
+        out["E17a"]["supported"] = out["E17a"]["searches_above"] >= 12
+        best = {t: best_run(s, t, 15, "E17")["label"] for t in CORE_TASKS}
+        boosted = sum(lab.split("-", 1)[1].split("_")[0] in ("xgb", "lgbm")
+                      for lab in best.values())  # fmt: skip
+        out["E17b"] = {"best_after_E17": best, "tasks_won_by_xgb_or_lgbm": boosted,
+                       "needed": 3, "supported": boosted >= 3}  # fmt: skip
+        logs = {
+            f"{r['label']} {r['params.task']}": str(r.get("params.model.signed_log"))
+            for _, r in s[s["label"].isin(["E17-logreg", "E17-svm_rbf"])].iterrows()
+        }
+        n_log = sum(v == "True" for v in logs.values())
+        out["E17c"] = {"signed_log_chosen": logs, "searches_with_log": n_log, "needed": 6,
+                       "supported": n_log >= 6}  # fmt: skip
     return out  # fmt: skip
 
 
@@ -727,14 +747,16 @@ def run_settings(run_name: str, path: Path = ROOT / "reports" / "history.csv") -
 
 # E07: each tuned model's untuned version (same model type and preprocessing)
 UNTUNED = {"E07-xgb": "E06-xgb", "E07-lgbm": "E06-lgbm", "E07-rf": "E05-rf",
-           "E07-knn_log_standard": "E04-knn_log_standard"}  # fmt: skip
+           "E07-knn_log_standard": "E04-knn_log_standard",
+           "E17-tree": "E02-tree", "E17-logreg": "E03-logreg", "E17-svm_rbf": "E03-svm_rbf",
+           "E17-rf": "E05-rf", "E17-lgbm": "E06-lgbm"}  # fmt: skip
 
 
-def e07_searches(s: pd.DataFrame) -> pd.DataFrame:
-    """Per Optuna search: size, time, the chosen settings, and the retrained model next to
-    its untuned version (CV on train and validation)."""
+def e07_searches(s: pd.DataFrame, exp: str = "E07") -> pd.DataFrame:
+    """Per Optuna search of `exp` (E07 or E17): size, time, the chosen settings, and the
+    retrained model next to its untuned version (CV on train and validation)."""
     rows = []
-    e07 = s[(s["tags.experiment_id"] == "E07") & (s["params.timeout"] == 15)]
+    e07 = s[(s["tags.experiment_id"] == exp) & (s["params.timeout"] == 15)]
     for _, r in e07.sort_values(["params.task", "label"]).iterrows():
         u = s[(s["label"] == UNTUNED[r["label"]]) & (s["params.task"] == r["params.task"])
               & (s["params.timeout"] == 15)].iloc[0]  # fmt: skip

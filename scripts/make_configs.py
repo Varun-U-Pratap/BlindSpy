@@ -75,9 +75,27 @@ SEARCH = {
         "weights": {"type": "categorical", "choices": ["uniform", "distance"]},
         "metric": {"type": "categorical", "choices": ["euclidean", "manhattan"]},
     },
+    # E17 (equal tuning budget, decided 28 Oct after E10; ranges fixed in E17.md before running)
+    "tree": {
+        "criterion": {"type": "categorical", "choices": ["gini", "entropy"]},
+        "max_depth": {"type": "int_or_none", "low": 3, "high": 40},
+        "min_samples_leaf": {"type": "int", "low": 1, "high": 50},
+        "ccp_alpha": {"type": "float", "low": 1e-6, "high": 1e-2, "log": True},
+    },
+    "logreg": {
+        "signed_log": {"type": "categorical", "choices": [False, True]},
+        "C": {"type": "float", "low": 1e-3, "high": 1e3, "log": True},
+    },
+    "svm_rbf": {
+        "signed_log": {"type": "categorical", "choices": [False, True]},
+        "C": {"type": "float", "low": 1e-2, "high": 1e3, "log": True},
+        "gamma": {"type": "float", "low": 1e-4, "high": 1e1, "log": True},
+    },
 }  # fmt: skip
-# LightGBM ignores subsample unless subsample_freq > 0, so its searches fix subsample_freq=1
-FIXED = {"lgbm": {"subsample_freq": 1}}
+# LightGBM ignores subsample unless subsample_freq > 0, so its searches fix subsample_freq=1.
+# E17: logistic regression keeps E03's max_iter; SVM cache_size only speeds up fitting.
+FIXED = {"lgbm": {"subsample_freq": 1}, "logreg": {"max_iter": 1000},
+         "svm_rbf": {"cache_size": 1000}}  # fmt: skip
 # E07 scope from reports/phase3_tables.md ("E07 scope"): best 2 of rf / xgb / lgbm per task by
 # 15 s validation macro F1, plus the KNN preprocessing with the higher 15 s score (E04 standard)
 TUNE = {
@@ -87,6 +105,13 @@ TUNE = {
     "B": ["xgb", "lgbm", "knn_log_standard"],
 }
 TRIALS = 50
+# E17: every method type not tuned in E07 gets the same search (decided 28 Oct after E10)
+TUNE_E17 = {
+    "A1": ["tree", "logreg", "svm_rbf", "lgbm"],
+    "A2-VPN": ["tree", "logreg", "svm_rbf", "rf"],
+    "A2-NonVPN": ["tree", "logreg", "svm_rbf", "rf"],
+    "B": ["tree", "logreg", "svm_rbf", "rf"],
+}
 
 # Winner reruns at the other timeouts: (experiment ID, registry name, task) -> timeouts
 RERUNS: dict[tuple[str, str, str], list[int]] = {
@@ -110,6 +135,15 @@ E10_BASE = "E07-xgb-B-15s"
 
 def write(name: str, cfg: dict) -> None:
     (OUT / f"{name}.yaml").write_text(yaml.safe_dump(cfg, sort_keys=False))
+
+
+def write_search(exp: str, model: str, task: str) -> int:
+    write(f"{exp}_{model}_{task}_15s", {
+        "experiment_id": exp, "run_name": f"{exp}-{model}-{task}-15s", "kind": "optuna",
+        "task": task, "timeout": 15, "model": model, "trials": TRIALS,
+        "search_space": SEARCH[model], "fixed_params": FIXED.get(model, {}), "save_model": True,
+    })  # fmt: skip
+    return 1
 
 
 def main() -> None:
@@ -144,16 +178,10 @@ def main() -> None:
                     "timeout": t, "model": model, "params": params, "save_model": True,
                 })  # fmt: skip
                 n += 1
-    for task, names in TUNE.items():
-        for model in names:
-            run = f"E07-{model}-{task}-15s"
-            write(f"E07_{model}_{task}_15s", {
-                "experiment_id": "E07", "run_name": run, "kind": "optuna", "task": task,
-                "timeout": 15, "model": model, "trials": TRIALS,
-                "search_space": SEARCH[model], "fixed_params": FIXED.get(model, {}),
-                "save_model": True,
-            })  # fmt: skip
-            n += 1
+    for exp, tune in (("E07", TUNE), ("E17", TUNE_E17)):
+        for task, names in tune.items():
+            for model in names:
+                n += write_search(exp, model, task)
     for task, steps in E08_STEPS.items():
         base = f"{results.E08_BASE[task]}-{task}-15s"
         settings = results.run_settings(base)

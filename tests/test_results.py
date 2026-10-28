@@ -257,3 +257,20 @@ def test_e10_verdicts_from_confusion_matrices(monkeypatch):
     assert v["E10b"]["two_step_group_errors"] == 3 and not v["E10b"]["supported"]
     assert v["E10c"]["share_of_two_step_errors_from_step_1"] == 1.0
     assert "E10a" not in R.phase3_verdicts(R.selection_runs(s))  # no runner -> skipped
+
+
+def test_e17_verdicts_against_untuned_versions():
+    rows = []
+    for t in CORE_TASKS:
+        rows += [("E02", "tree", t, 15, 0.80), ("E03", "logreg", t, 15, 0.50),
+                 ("E03", "svm_rbf", t, 15, 0.50), ("E17", "tree", t, 15, 0.82),
+                 ("E17", "logreg", t, 15, 0.70), ("E17", "svm_rbf", t, 15, 0.49)]  # fmt: skip
+    df = fake_selection(rows)
+    df["params.model.signed_log"] = [
+        "True" if n.startswith("E17-logreg") else ("False" if n.startswith("E17-svm") else "")
+        for n in df["run_name"]
+    ]
+    v = R.phase3_verdicts(R.selection_runs(df))
+    assert v["E17a"]["searches_above"] == 8 and v["E17a"]["of"] == 12
+    assert v["E17b"]["best_after_E17"]["A1"] == "E17-tree" and not v["E17b"]["supported"]
+    assert v["E17c"]["searches_with_log"] == 4 and not v["E17c"]["supported"]

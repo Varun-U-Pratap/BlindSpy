@@ -144,16 +144,19 @@ class TwoStep(ClassifierMixin, BaseEstimator):
         return self.classes_[self.predict_proba(X).argmax(axis=1)]
 
 
+def _scaled(params: dict, model) -> Pipeline:
+    """StandardScaler + model; params["signed_log"] = True puts the E04 signed log first (E17
+    searches it for logistic regression and SVM)."""
+    log = [("log", signed_log_step())] if params.pop("signed_log", False) else []
+    return Pipeline([*log, ("scale", StandardScaler()), ("model", model(params))])
+
+
 def _logreg(params: dict, seed: int) -> Pipeline:
-    return Pipeline(
-        [("scale", StandardScaler()), ("model", LogisticRegression(random_state=seed, **params))]
-    )
+    return _scaled(params, lambda p: LogisticRegression(random_state=seed, **p))
 
 
 def _svm_rbf(params: dict, seed: int) -> Pipeline:
-    return Pipeline(
-        [("scale", StandardScaler()), ("model", SVC(kernel="rbf", random_state=seed, **params))]
-    )
+    return _scaled(params, lambda p: SVC(kernel="rbf", random_state=seed, **p))
 
 
 MODELS = {

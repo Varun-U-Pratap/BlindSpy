@@ -350,3 +350,13 @@ def test_train_and_score_runs_a_two_step_model(tmp_path):
     X_val = parts[1].drop(columns="label")
     ref = models.build_model("xgb_two_step", {"n_estimators": 10}, 42)
     assert (reloaded.predict(X_val) == ref.fit(*train._xy(parts[0])).predict(X_val)).all()
+
+
+@pytest.mark.parametrize("name", ["logreg", "svm_rbf"])
+def test_signed_log_option_adds_the_log_step(name):
+    plain = [s for s, _ in models.build_model(name, {}, 42).steps]
+    logged = models.build_model(name, {"signed_log": True}, 42)
+    assert plain == ["scale", "model"]
+    assert [s for s, _ in logged.steps] == ["log", "scale", "model"]
+    assert "signed_log" not in logged[-1].get_params()
+    assert [s for s, _ in models.build_model(name, {"signed_log": False}, 42).steps] == plain
