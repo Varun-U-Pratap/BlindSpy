@@ -594,6 +594,29 @@ def phase3_verdicts(s: pd.DataFrame) -> dict:
             "needed": 4,
         }
         out["E07c"]["supported"] = out["E07c"]["tasks_knn_below"] == 4
+    if any(k[0].startswith("E08-") for k in f1):
+        lad = e08_ladder(s, E08_BASE)
+        ran = lad[(lad["step"] != "none") & (lad["run"] != "not run yet")]
+        best = ran.loc[ran.groupby("task")["val macro F1"].idxmax()].set_index("task")
+        imb = ["A2-VPN", "A2-NonVPN", "B"]
+        gain = {t: best.loc[t, "change vs none"] for t in imb}
+        out["E08a"] = {"best_step": {t: best.loc[t, "step"] for t in imb},
+                       "best_step_minus_none": gain,
+                       "tasks_with_gain_ge_0.01": sum(round(g, 10) >= 0.01 for g in gain.values()),
+                       "needed": 2}  # fmt: skip
+        out["E08a"]["supported"] = out["E08a"]["tasks_with_gain_ge_0.01"] >= 2
+        a1 = ran[ran["task"] == "A1"]["change vs none"].tolist()
+        out["E08b"] = {"A1_changes": a1, "all_within_0.01": all(abs(c) <= 0.01 for c in a1)}
+        out["E08b"]["supported"] = out["E08b"]["all_within_0.01"]
+        weak = {}
+        for t in imb:
+            none = lad[(lad["task"] == t) & (lad["step"] == "none")].iloc[0]
+            col = "F1 of weakest class without balancing"
+            weak[t] = round(float(best.loc[t, col].split()[-1])
+                            - float(none[col].split()[-1]), 4)  # fmt: skip
+        out["E08c"] = {"weakest_class_f1_change_with_best_step": weak,
+                       "tasks_raised": sum(w > 0 for w in weak.values()), "needed": 2}  # fmt: skip
+        out["E08c"]["supported"] = out["E08c"]["tasks_raised"] >= 2
     return out  # fmt: skip
 
 
