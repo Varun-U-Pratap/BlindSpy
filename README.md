@@ -103,6 +103,9 @@ store. `E02_paper_j48_<rows>_<task>_<timeout>s.yaml` and `E03_paper_ibk_…` rer
 
 ## Phase 3 results, notebooks and report
 
+Tag `v0.2-tuned` marks the end of Phase 3; how it was verified (data rebuilt byte-identical, 13
+runs rerun from a fresh clone with identical scores) is recorded in `reports/phase3_evidence.md`.
+
 Phase 3 (E04-E17) configs are in `configs/experiments/` too, and the chosen models in
 `configs/final/` (`<task>.yaml` = headline model per task, `compare/` = the 28-model comparison
 set, `old_rule/` = the picks of the superseded tie rule); `scripts/write_final_configs.py`
