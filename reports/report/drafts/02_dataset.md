@@ -522,9 +522,10 @@ no row is left over at 12 significant digits, and the labels are the same. It ha
 rows, their count after removing 18,719 duplicates. Only 3,676 of those duplicates lie within one
 file; 7,093 distinct flows appear in two (2,475), three (1,286) or four (3,332) timeout files. Most
 of their "duplicates" are therefore the same flow built with different timeouts, and a random
-80/20 split of the stacked file puts versions of one flow in both training and test sets. The file
+80/20 split of the stacked file mixes all four timeout settings in training and test. The file
 also carries the A2 feature pair (`total_*`), not the paper's (`std_*`). E16 reproduces their
-setup and measures the effect of keeping timeouts apart.
+setup and measures the effect of keeping timeouts apart (Section 4): the drop it finds is
+explained by training-set size, not by the mixing itself.
 
 ## 2.10 Data versions
 

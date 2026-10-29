@@ -63,10 +63,14 @@ rows of those files (5,151 + 5,631 + 8,965 + 9,793 + 6,917 + 7,734 + 8,580 + 6,9
 left over and the same labels. It has 40,987 unique rows, exactly their count. 7,093 distinct
 flows appear in two to four timeout files, while only 3,676 rows are duplicates within one file
 (E00). So most of their 18,719 "duplicates" are the same flows repeated across timeout versions,
-and a random 80/20 split of the stacked file lets the same flow (built with a different timeout)
-appear in both training and test data. The file also uses the A2 feature set (`total_fiat` and
-`total_biat` in place of the paper's `std_fiat` and `std_biat`; Section 2). [Reproduction and
-corrected protocol: E16.]
+and a random 80/20 split of the stacked file mixes the four flow-building settings in both
+training and test data. E16 reproduces their 88.01% (0.8796 on the same split) and shows that
+with the timeouts kept apart the same method scores 0.82-0.87 (mean 0.8430). A size control in
+E16 attributes that drop to training-set size, not to the mixing itself: stacking the four files
+gives 2.3-4.3 times as many training rows, and at equal size the mixed setup scores no higher
+(0.8395). Their score is therefore not comparable with a single-timeout score. The file also uses
+the A2 feature set (`total_fiat` and `total_biat` in place of the paper's `std_fiat` and
+`std_biat`; Section 2).
 
 ## 1.5 Contributions
 
