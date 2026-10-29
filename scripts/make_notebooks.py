@@ -171,7 +171,7 @@ NB04 = [
 
 This notebook **reads** results; it trains nothing (see notebook 03 for how runs are made and
 exported). It is written by `scripts/make_notebooks.py`; the same tables, in text, are in
-`reports/phase3_tables.md`. Section 4 (E10) reads confusion matrices from the official MLflow
+`reports/phase3_tables.md`. Section 3 (E10) reads confusion matrices from the official MLflow
 store `mlruns/<runner>/` (git-ignored), so it runs only on the machine that holds the store.
 
 - **E07:** Optuna, 50 trials per search (TPESampler seed 42, 5-fold CV macro F1 on train), on
@@ -594,7 +594,7 @@ def build(cells: list[tuple[str, str]]) -> nbformat.NotebookNode:
         nb.cells.append(nbformat.v4.new_markdown_cell(src) if kind == "markdown"
                         else nbformat.v4.new_code_cell(src))  # fmt: skip
     for i, c in enumerate(nb.cells):
-        c["id"] = f"cell-{i:02d}"
+        c["id"] = str(i)  # the ids nbstripout gives on commit
     return nb
 
 
