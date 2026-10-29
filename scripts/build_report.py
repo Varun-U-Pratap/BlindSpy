@@ -119,6 +119,9 @@ def load_drafts() -> list[dict]:
         if blocks:
             blocks.append({"t": "pagebreak"})
         blocks += part
+    # the reference list, kept in one file from the start and copied into the report
+    refs = (ROOT / "reports" / "references.md").read_text().split("\n", 1)[1]
+    blocks += [{"t": "pagebreak"}, *parse("# References\n" + refs, ROOT / "reports")]
     for b in blocks:
         if b["t"] == "table":
             b["font_pt"], b["anywhere"] = table_font(b["plain"])
