@@ -329,6 +329,8 @@ def md(df: pd.DataFrame) -> str:
                 cells.append("yes" if v else "no")
             elif isinstance(v, int | np.integer):
                 cells.append(f"{v:,}")
+            elif isinstance(v, float) and np.isnan(v):  # e.g. no spread for a single run
+                cells.append("")
             else:
                 cells.append(str(v))
         lines.append("| " + " | ".join(cells) + " |")

@@ -459,3 +459,8 @@ def test_e16_size_control_verdict_and_table():
     assert list(t["training rows (timeouts mixed)"]) == ["1,000", "400", "200"]
     assert list(t["(b) same rows, one timeout"]) == ["", "15s: 0.8500", "120s: 0.8300"]
     assert t.loc[1, "test accuracy mean"] == 0.86 and t.loc[1, "15s test rows"] == 0.86
+
+
+def test_md_writes_missing_values_as_empty_cells():
+    out = R.md(pd.DataFrame([{"a": 1, "b": float("nan"), "c": 0.5}]))
+    assert out.splitlines()[-1] == "| 1 |  | 0.5 |"

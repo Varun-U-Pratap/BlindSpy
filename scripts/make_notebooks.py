@@ -379,9 +379,8 @@ verdict_table(R.e14_verdicts(t14), ("E14",))""",
     ),
     (
         "code",
-        """widths = {"width_ratios": [1, 2, 2, 4]}
-fig, axes = plt.subplots(1, 4, figsize=(20, 5.2), gridspec_kw=widths)
-for ax, task in zip(axes, CORE_TASKS, strict=True):
+        """fig, axes = plt.subplots(2, 2, figsize=(14, 13))
+for ax, task in zip(axes.flat, CORE_TASKS, strict=True):
     cm = pd.read_csv(ROOT / "reports" / "e14_mean_confusion" / f"{task}.csv", index_col=0)
     norm = cm.div(cm.sum(axis=1), axis=0)
     ax.imshow(norm.to_numpy(), cmap="Blues", vmin=0, vmax=1)
