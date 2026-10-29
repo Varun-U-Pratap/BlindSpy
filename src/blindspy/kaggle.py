@@ -133,6 +133,15 @@ def build(version: str, root: Path = ROOT, path: Path = CSV) -> dict:
     return manifest
 
 
+def subsample(train: pd.DataFrame, n: int, seed: int) -> pd.DataFrame:
+    """E16 (d): a stratified sample of n training rows, in train_test_split's order."""
+    if n >= len(train):
+        return train
+    keep, _ = train_test_split(train.index.to_numpy(), train_size=n, stratify=train["label"],
+                               random_state=seed)  # fmt: skip
+    return train.loc[keep]
+
+
 def load_split(version: str, name: str, root: Path = ROOT) -> tuple[pd.DataFrame, pd.DataFrame]:
     """(train, test) rows for split `name`: "isnan" or "per_timeout_<t>s"."""
     folder = processed_dir(version, root)

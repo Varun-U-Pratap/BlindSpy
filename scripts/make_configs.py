@@ -11,6 +11,8 @@ its model and settings from reports/history.csv.
 Usage: uv run python scripts/make_configs.py
 """
 
+import json
+
 import yaml
 
 from blindspy import features, results
@@ -145,6 +147,10 @@ E14_SEEDS = list(range(42, 52))
 # headline model (configs/final/B.yaml) per timeout, settings fixed
 E16_GRID = {"n_estimators": [100, 200, 300], "max_depth": [None, 20, 30],
             "min_samples_split": [2, 5], "min_samples_leaf": [1, 2]}  # fmt: skip
+# E16 (d) size control: (a)'s forest (its grid pick, read from reports/history.csv) on the
+# timeouts-mixed training rows cut to each per-timeout training size, 5 subsample seeds; plus
+# all training rows once (must reproduce (a)); scored on (a)'s test rows
+E16_SIZE_SEEDS = [42, 43, 44, 45, 46]
 
 
 def write(name: str, cfg: dict) -> None:
@@ -275,6 +281,20 @@ def main() -> None:
             "split": f"per_timeout_{t}s", "model": final_b["model"], "params": final_b["params"],
             "builds_on": final_b["builds_on"]})  # fmt: skip
         n += 2
+    isnan = results.load_history().set_index("run_name").loc["E16-isnan-rf"]
+    pick = json.loads(isnan["params.grid_best_params"])
+    kaggle_manifest = json.loads((ROOT / "data" / "kaggle_k1_manifest.json").read_text())
+    sizes = [kaggle_manifest["per_timeout"][str(t)]["train"] for t in TIMEOUTS]
+    size_common = {**common, "timeout": "mixed", "split": "isnan", "model": "rf",
+                   "params": pick, "builds_on": "E16-isnan-rf"}  # fmt: skip
+    write("E16_size_full", {**size_common, "run_name": "E16-size-full"})
+    n += 1
+    for rows in sizes:
+        for seed in E16_SIZE_SEEDS:
+            run = f"E16-size-{rows}-s{seed}"
+            cfg = {**size_common, "run_name": run, "train_rows": rows, "subsample_seed": seed}
+            write(f"E16_size_{rows}_s{seed}", cfg)
+            n += 1
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")
 
 

@@ -434,7 +434,7 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E13 xgb | 25 | 73.528 | 4.188 | 4.025 |
 | E14 lgbm | 30 | 372.146 | 25.859 | 25.759 |
 | E14 xgb | 10 | 44.771 | 4.494 | 4.336 |
-| E16 rf | 5 | 120.026 | 35.049 | 34.902 |
+| E16 rf | 26 | 453.605 | 35.049 | 34.902 |
 | E16 xgb | 4 | 17.765 | 4.829 | 4.697 |
 | E17 lgbm | 1 | 7.215 | 7.215 | 7.092 |
 | E17 logreg | 4 | 0.515 | 0.199 | 0.004 |
@@ -442,7 +442,7 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E17 svm_rbf | 4 | 2.944 | 1.479 | 1.306 |
 | E17 tree | 4 | 0.732 | 0.275 | 0.07 |
 
-Whole store now: artifacts 2311.7 MiB, mlflow.db 34.8 MiB.
+Whole store now: artifacts 2645.3 MiB, mlflow.db 35.8 MiB.
 
 ## E09 feature-group ablation on the headline model per task (15 s, validation; "all" = the headline run)
 
@@ -518,6 +518,16 @@ Whole store now: artifacts 2311.7 MiB, mlflow.db 34.8 MiB.
 | E16-per_timeout-xgb-15s | per_timeout_15s | 14,459 / 3,615 | fixed (configs/final/B.yaml) |  | 0.8924 | 0.8919 | 0.8637 |
 | E16-per_timeout-xgb-30s | per_timeout_30s | 10,910 / 2,728 | fixed (configs/final/B.yaml) |  | 0.8728 | 0.872 | 0.8327 |
 | E16-per_timeout-xgb-60s | per_timeout_60s | 11,783 / 2,946 | fixed (configs/final/B.yaml) |  | 0.8551 | 0.8544 | 0.8076 |
+
+## E16 (d) training-size control (data version kaggle-k1; (a)'s forest on the timeouts-mixed training rows cut to each per-timeout training size, 5 subsample seeds; scored on (a)'s test rows)
+
+| training rows (timeouts mixed) | runs | test accuracy mean | std | min - max | 15s test rows | 30s test rows | 60s test rows | 120s test rows | (b) same rows, one timeout |
+|---|---|---|---|---|---|---|---|---|---|
+| 32,789 | 1 | 0.8796 |  |  | 0.8913 | 0.9038 | 0.8982 | 0.8222 |  |
+| 14,459 | 5 | 0.8504 | 0.0021 | 0.8470 - 0.8529 | 0.8643 | 0.8798 | 0.8655 | 0.7887 | 15s: 0.8658 |
+| 11,783 | 5 | 0.8435 | 0.0028 | 0.8401 - 0.8464 | 0.8592 | 0.8742 | 0.8558 | 0.7809 | 60s: 0.8316 |
+| 10,910 | 5 | 0.8396 | 0.0024 | 0.8367 - 0.8430 | 0.8559 | 0.8708 | 0.8517 | 0.7755 | 30s: 0.8537 |
+| 7,671 | 5 | 0.8243 | 0.0038 | 0.8202 - 0.8302 | 0.8402 | 0.8576 | 0.8372 | 0.7583 | 120s: 0.8206 |
 
 ## E13 learning curve on the headline model per task (15 s, validation; 5 subsample seeds per fraction, 100% = the headline run)
 
@@ -827,6 +837,16 @@ Mean validation confusion matrices over the 10 resplits: reports/e14_mean_confus
  "E16c": {
   "per_timeout_xgb_mean": 0.8647,
   "per_timeout_rf_mean": 0.843,
+  "supported": true
+ },
+ "E16d": {
+  "isnan_accuracy": 0.8796,
+  "size_matched_mixed_mean": 0.8395,
+  "per_timeout_rf_mean": 0.843,
+  "size_part": 0.0402,
+  "rest": -0.0035,
+  "sizes": 4,
+  "full_reproduces_a": true,
   "supported": true
  },
  "E13a": {

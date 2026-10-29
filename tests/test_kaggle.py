@@ -40,3 +40,15 @@ def test_refuses_to_overwrite(built):
     root, _ = built
     with pytest.raises(FileExistsError):
         kaggle.build("k1", root=root)
+
+
+def test_subsample_stratified_and_inside_train(built):
+    root, _ = built
+    tr, _ = kaggle.load_split("k1", "isnan", root=root)
+    sub = kaggle.subsample(tr, 7671, 42)
+    assert len(sub) == 7671 and set(sub.index) <= set(tr.index)
+    share = sub["label"].value_counts(normalize=True) - tr["label"].value_counts(normalize=True)
+    assert share.abs().max() < 0.001
+    assert sub.index.equals(kaggle.subsample(tr, 7671, 42).index)  # same seed, same rows
+    assert not sub.index.equals(kaggle.subsample(tr, 7671, 43).index)
+    assert kaggle.subsample(tr, len(tr), 42) is tr

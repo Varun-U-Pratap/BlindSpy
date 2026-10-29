@@ -304,6 +304,11 @@ def phase3() -> None:
             "",
             R.md(R.e16_table(h)),
         ]
+        if R.e16_size_table(h).shape[0]:
+            out += ["", "## E16 (d) training-size control (data version kaggle-k1; (a)'s forest "
+                    "on the timeouts-mixed training rows cut to each per-timeout training size, "
+                    "5 subsample seeds; scored on (a)'s test rows)", "",
+                    R.md(R.e16_size_table(h))]  # fmt: skip
         v.update(R.e16_verdicts(h))
     if (h["tags.experiment_id"] == "E13").any():
         t13 = R.e13_table(h, s)

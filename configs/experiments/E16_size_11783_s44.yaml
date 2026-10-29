@@ -1,0 +1,17 @@
+experiment_id: E16
+kind: kaggle
+task: kaggle
+data_version: kaggle-k1
+save_model: true
+timeout: mixed
+split: isnan
+model: rf
+params:
+  max_depth: null
+  min_samples_leaf: 1
+  min_samples_split: 2
+  n_estimators: 200
+builds_on: E16-isnan-rf
+run_name: E16-size-11783-s44
+train_rows: 11783
+subsample_seed: 44
