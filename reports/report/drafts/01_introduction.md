@@ -78,11 +78,15 @@ the A2 feature set (`total_fiat` and `total_biat` in place of the paper's `std_f
    precision with precision and recall with recall. [E02, E03, paper benchmark]
 2. A leakage-safe protocol (stratified 70/15/15 split, cross-validation inside the training set
    only, test set scored once) applied to all three tasks and all four timeouts.
-3. Stronger models (Random Forest, XGBoost, LightGBM), tuned with the same search budget as the
-   best baseline. [E05–E08]
-4. A check of the dataset itself: whether the ARFF column names match the data, duplicates, odd
+3. Stronger models (Random Forest, XGBoost, LightGBM) and a fair comparison of seven method
+   types: every type tuned with the same search budget, plus class balancing and a two-step model
+   for task B. [E04–E08, E10, E17]
+4. A reproduction of a recent published result on a copy of this dataset (Isnan et al.), then a
+   corrected version that keeps the timeout files apart, with a control that separates the effect
+   of training-set size from the effect of mixing timeouts. [E16]
+5. A check of the dataset itself: whether the ARFF column names match the data, duplicates, odd
    values and the class mix across timeouts, recorded as versioned data with a step-by-step
    cleaning log. [E00]
-5. Analyses of what the models learned and how far the results can be trusted: feature-group
+6. Analyses of what the models learned and how far the results can be trusted: feature-group
    ablation, SHAP, learning curve, split-seed stability and calibration. [E09, E13–E15]
-6. A full history: every run, data version and experiment, traceable to a commit.
+7. A full history: every run, data version and experiment, traceable to a commit.

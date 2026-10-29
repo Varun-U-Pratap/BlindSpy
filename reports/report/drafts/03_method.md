@@ -10,7 +10,8 @@ package versions are fixed in `uv.lock`, so every team member and every rerun us
 library versions. The main libraries are pandas and NumPy (data), liac-arff and pyarrow (reading
 ARFF, writing Parquet), scikit-learn [3] (models, pipelines, metrics), MLflow [8] (run tracking),
 matplotlib and seaborn (figures) and SHAP [6] (explanations). XGBoost [4], LightGBM [5],
-Optuna [7] and imbalanced-learn [9] are added at the experiments that first need them.
+Optuna [7] and imbalanced-learn [9] were added together in one commit before the first Phase 3
+run, so every Phase 3 run uses the same locked library versions.
 
 The flow of data and results is:
 
