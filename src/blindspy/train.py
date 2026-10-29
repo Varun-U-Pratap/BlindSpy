@@ -160,7 +160,7 @@ def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> 
             k: cfg[k]
             for k in ("train_fraction", "train_rows", "subsample_seed", "split_seed")
             if k in cfg
-        },  # fmt: skip
+        },
         "n_train_rows": len(X),
         "features": ",".join(X.columns),
         "n_features": X.shape[1],
