@@ -1091,7 +1091,7 @@ ISNAN = {"accuracy": 0.8801, "f1_weighted": 0.8797}  # Isnan et al. 2026, test s
 
 def e16_table(h: pd.DataFrame) -> pd.DataFrame:
     """E16 runs on the Kaggle data: protocol, rows, the grid's pick and the one test score."""
-    e = h[h["tags.experiment_id"] == "E16"]
+    e = h[(h["tags.experiment_id"] == "E16") & ~h["run_name"].str.startswith("E16-size-")]
     rows = []
     for _, r in e.sort_values("run_name").iterrows():
         rows.append({
@@ -1108,16 +1108,51 @@ def e16_table(h: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def _e16_size_runs(h: pd.DataFrame) -> pd.DataFrame:
+    e = h[h["tags.experiment_id"] == "E16"]
+    return e[e["run_name"].str.startswith("E16-size-") & (e["run_name"] != "E16-size-full")]
+
+
+def e16_size_table(h: pd.DataFrame) -> pd.DataFrame:
+    """E16 (d): (a)'s forest on the timeouts-mixed training rows cut to each per-timeout
+    training size (5 subsample seeds), scored on (a)'s test rows (overall and per timeout),
+    next to (b)'s forest trained on that many rows of one timeout (its own test rows)."""
+    e = h[h["tags.experiment_id"] == "E16"].set_index("run_name")
+    per_t = [c for c in e.columns if c.startswith("metrics.kaggle_test_accuracy_")]
+    order = sorted(per_t, key=lambda c: int(c.rsplit("_", 1)[1].removesuffix("s")))
+    b = e[e.index.str.startswith("E16-per_timeout-rf-")]
+    rows = []
+    groups = [("all", e.loc[["E16-size-full"]])] if "E16-size-full" in e.index else []
+    size = _e16_size_runs(h).set_index("run_name")
+    groups += [(n, g) for n, g in size.groupby(size["params.n_train"].astype(int))]
+    for _, g in sorted(groups, key=lambda x: -int(x[1]["params.n_train"].iloc[0])):
+        acc = g["metrics.kaggle_test_accuracy"]
+        match = b[b["params.n_train"].astype(int) == int(g["params.n_train"].iloc[0])]
+        rows.append({
+            "training rows (timeouts mixed)": f"{int(g['params.n_train'].iloc[0]):,}",
+            "runs": len(g),
+            "test accuracy mean": round(acc.mean(), 4),
+            "std": round(acc.std(), 4) if len(g) > 1 else "",
+            "min - max": f"{acc.min():.4f} - {acc.max():.4f}" if len(g) > 1 else "",
+            **{f"{c.rsplit('_', 1)[1]} test rows": round(g[c].mean(), 4) for c in order},
+            "(b) same rows, one timeout": (f"{match.index[0].rsplit('-', 1)[1]}: "
+                                           f"{match['metrics.kaggle_test_accuracy'].iloc[0]:.4f}"
+                                           if len(match) else ""),
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
 def e16_verdicts(h: pd.DataFrame) -> dict:
     """(a) accuracy and weighted F1 within 0.01 of Isnan et al.'s; (b) mean per-timeout forest
     accuracy at least 0.01 below (a)'s; (c) mean per-timeout XGBoost accuracy at least the
-    forest's."""
+    forest's; (d), once its runs exist: with the training rows cut to the per-timeout sizes,
+    mixing timeouts adds less than 0.01 accuracy over (b)."""
     e = h[h["tags.experiment_id"] == "E16"].set_index("run_name")
     a = e.loc["E16-isnan-rf"]
     acc, wf1 = a["metrics.kaggle_test_accuracy"], a["metrics.kaggle_test_f1_weighted"]
     rf = e[e.index.str.startswith("E16-per_timeout-rf-")]["metrics.kaggle_test_accuracy"]
     xgb = e[e.index.str.startswith("E16-per_timeout-xgb-")]["metrics.kaggle_test_accuracy"]
-    return {
+    out = {
         "E16a": {"accuracy": round(acc, 4), "weighted_f1": round(wf1, 4), "isnan": ISNAN,
                  "supported": bool(abs(acc - ISNAN["accuracy"]) <= 0.01
                                    and abs(wf1 - ISNAN["f1_weighted"]) <= 0.01)},
@@ -1128,3 +1163,15 @@ def e16_verdicts(h: pd.DataFrame) -> dict:
                  "per_timeout_rf_mean": round(rf.mean(), 4),
                  "supported": bool(xgb.mean() >= rf.mean())},
     }  # fmt: skip
+    size = _e16_size_runs(h)
+    if len(size):
+        # (d): mean over the sizes of each size's mean over seeds, vs (b)'s mean
+        mixed = size.groupby("params.n_train")["metrics.kaggle_test_accuracy"].mean().mean()
+        full = e.loc["E16-size-full", "metrics.kaggle_test_accuracy"]
+        out["E16d"] = {"isnan_accuracy": round(acc, 4), "size_matched_mixed_mean": round(mixed, 4),
+                       "per_timeout_rf_mean": round(rf.mean(), 4),
+                       "size_part": round(acc - mixed, 4), "rest": round(mixed - rf.mean(), 4),
+                       "sizes": int(size["params.n_train"].nunique()),
+                       "full_reproduces_a": bool(full == acc),
+                       "supported": bool(round(mixed - rf.mean(), 10) < 0.01)}  # fmt: skip
+    return out

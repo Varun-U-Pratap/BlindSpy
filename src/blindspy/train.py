@@ -154,8 +154,13 @@ def _base_params(cfg: dict, pipe, X: pd.DataFrame, seed: int, compress: int) -> 
         "class_balancing": cfg.get("balance") or "none",
         **({"builds_on": cfg["builds_on"]} if cfg.get("builds_on") else {}),
         **({"feature_set": cfg["feature_set"]} if cfg.get("feature_set") else {}),
-        # E13 / E14 resampling (splits.resample); n_train_rows = training rows actually used
-        **{k: cfg[k] for k in ("train_fraction", "subsample_seed", "split_seed") if k in cfg},
+        # E13 / E14 resampling (splits.resample), E16 (d) train_rows (kaggle.subsample);
+        # n_train_rows = training rows actually used
+        **{
+            k: cfg[k]
+            for k in ("train_fraction", "train_rows", "subsample_seed", "split_seed")
+            if k in cfg
+        },  # fmt: skip
         "n_train_rows": len(X),
         "features": ",".join(X.columns),
         "n_features": X.shape[1],
@@ -323,6 +328,10 @@ def kaggle_run(
     m, info = evaluate.evaluate(y_te, pred, models.class_scores(pipe, X_te), classes,
                                 out_dir / "eval")  # fmt: skip
     metrics = {f"kaggle_test_{k}": v for k, v in m.items()}
+    if test["timeout"].nunique() > 1:  # test rows from several timeouts: accuracy per timeout
+        for t, rows in test.groupby("timeout"):
+            hit = pred[test["timeout"].to_numpy() == t] == rows["label"].to_numpy()
+            metrics[f"kaggle_test_accuracy_{t}s"] = float(hit.mean())
     metrics.update(grid_metrics)
     metrics.update(cost)
     metrics.update({f"model_{k}": v for k, v in models.complexity(pipe).items()})

@@ -272,6 +272,41 @@ the final configs changes.
 
 MLflow runs: E16-isnan-rf, E16-per_timeout-rf-<t>s, E16-per_timeout-xgb-<t>s
 
+#### Addendum (29 Oct, recheck): (d) training-size control, written before its runs
+
+Why: the result above explains the (a) - (b) gap by timeout mixing ("the same flow can sit in
+training at one timeout and in test at another"). That was not measured. (a) also trains on far
+more rows than (b): 32,789 against 7,671-14,459 per timeout (2.3-4.3 times as many), and E13
+shows our models gain from more training rows. So the gap may come mainly from training-set
+size. Disclosure: before this addendum, one unlogged check in a scratch folder (subsample seed
+42 only, nothing kept) fitted (a)'s forest on 7,671-14,459 timeouts-mixed training rows and
+scored 0.82-0.85 on (a)'s test rows; that check is why (d) exists, and (d) repeats it as logged
+runs with 5 seeds.
+
+Change vs (a) (one change: the number of training rows): (a)'s forest with (a)'s grid pick
+(200 trees, no depth limit, split 2, leaf 1, Gini, sqrt features, random_state 42, read from
+`reports/history.csv` by `scripts/make_configs.py`), trained on a stratified sample of (a)'s
+32,789 timeouts-mixed training rows (`kaggle.subsample`) of the size of each per-timeout training
+set in (b) (14,459 / 10,910 / 11,783 / 7,671, from the kaggle-k1 manifest), subsample seeds
+42-46, and scored once on (a)'s 8,198 test rows: overall and per timeout (new metrics
+`kaggle_test_accuracy_<t>s`). No grid search (settings fixed). Plus one run on all 32,789 rows
+(`E16-size-full`), which must reproduce (a)'s test accuracy exactly and adds (a)'s per-timeout
+breakdown. 4 x 5 + 1 = 21 runs; configs `configs/experiments/E16_size_*.yaml`.
+
+Hypothesis (d): at equal training size, mixing timeouts adds little: the size-matched
+timeouts-mixed accuracy is close to (b)'s, so most of the 0.0366 gap is the training-set size.
+
+Threshold (set before running, never moved afterwards): (d) supported if the mean over the 4
+sizes (each size: the mean of its 5 seeds) of the timeouts-mixed test accuracy is less than
+0.01 above (b)'s mean (0.8430). Reported in any case: the size part ((a) minus that mean) and
+the rest (that mean minus (b)'s), the per-timeout accuracies, and (b) at the same row count.
+Caveat stated with the result: (d) is scored on (a)'s test rows (all timeouts mixed), (b) on
+each timeout's own test rows, so the per-timeout comparison is between different test rows.
+
+Winner rule (decided 28 Oct): not applicable (Kaggle rows; no model selection).
+
+Result: (after the runs)
+
 ### E14 — Split-seed stability of the headline models (2026-10-28, utsav-s-r)
 
 Purpose (plan, analysis only): how much the headline model's validation score depends on which

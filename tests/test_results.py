@@ -416,3 +416,46 @@ def test_e16_verdicts():
     assert v["E16a"]["supported"]  # 0.885 vs 0.8801, 0.884 vs 0.8797
     assert v["E16b"]["gap"] == 0.025 and v["E16b"]["supported"]
     assert v["E16c"]["supported"]  # 0.8625 >= 0.86
+
+
+def test_e16_size_control_verdict_and_table():
+    base = [
+        {
+            "run_name": "E16-isnan-rf",
+            "tags.experiment_id": "E16",
+            "params.n_train": "1000",
+            "metrics.kaggle_test_accuracy": 0.88,
+            "metrics.kaggle_test_f1_weighted": 0.88,
+        }
+    ]
+    base += [{"run_name": f"E16-per_timeout-rf-{t}s", "tags.experiment_id": "E16",
+              "params.n_train": str(n), "metrics.kaggle_test_accuracy": a,
+              "metrics.kaggle_test_f1_weighted": a}
+             for t, n, a in [(15, 400, 0.85), (120, 200, 0.83)]]  # fmt: skip
+    base += [{"run_name": f"E16-per_timeout-xgb-{t}s", "tags.experiment_id": "E16",
+              "metrics.kaggle_test_accuracy": 0.86, "metrics.kaggle_test_f1_weighted": 0.86}
+             for t in (15, 120)]  # fmt: skip
+    assert "E16d" not in R.e16_verdicts(pd.DataFrame(base))  # before (d) runs exist
+    size = [
+        {
+            "run_name": "E16-size-full",
+            "tags.experiment_id": "E16",
+            "params.n_train": "1000",
+            "metrics.kaggle_test_accuracy": 0.88,
+            "metrics.kaggle_test_accuracy_15s": 0.9,
+        }
+    ]
+    size += [{"run_name": f"E16-size-{n}-s{seed}", "tags.experiment_id": "E16",
+              "params.n_train": str(n), "metrics.kaggle_test_accuracy": a,
+              "metrics.kaggle_test_accuracy_15s": a}
+             for n, seed, a in [(400, 42, 0.85), (400, 43, 0.87),
+                                (200, 42, 0.84), (200, 43, 0.84)]]  # fmt: skip
+    h = pd.DataFrame(base + size)
+    v = R.e16_verdicts(h)["E16d"]
+    # mixed mean = mean(0.86, 0.84) = 0.85; (b) mean 0.84; rest 0.01 -> not below 0.01
+    assert v["size_matched_mixed_mean"] == 0.85 and v["size_part"] == 0.03
+    assert v["rest"] == 0.01 and not v["supported"] and v["full_reproduces_a"]
+    t = R.e16_size_table(h)
+    assert list(t["training rows (timeouts mixed)"]) == ["1,000", "400", "200"]
+    assert list(t["(b) same rows, one timeout"]) == ["", "15s: 0.8500", "120s: 0.8300"]
+    assert t.loc[1, "test accuracy mean"] == 0.86 and t.loc[1, "15s test rows"] == 0.86

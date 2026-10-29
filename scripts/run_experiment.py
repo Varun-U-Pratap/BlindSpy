@@ -96,6 +96,8 @@ def run_kaggle(cfg: dict, base: dict) -> None:
     """E16: a split of the Kaggle data version (kaggle-k1, scripts/prepare_kaggle.py)."""
     version = cfg["data_version"].removeprefix("kaggle-")
     train_rows, test_rows = kaggle.load_split(version, cfg["split"])
+    if cfg.get("train_rows"):  # E16 (d): fewer training rows, same test rows
+        train_rows = kaggle.subsample(train_rows, cfg["train_rows"], cfg["subsample_seed"])
     files = json.loads((kaggle.processed_dir(version) / "manifest.json").read_text())[
         "files_sha256"
     ]
