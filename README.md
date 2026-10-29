@@ -101,6 +101,35 @@ store. `E02_paper_j48_<rows>_<task>_<timeout>s.yaml` and `E03_paper_ibk_…` rer
 10-fold benchmark. To rebuild the result tables from the official history:
 `uv run python scripts/results_tables.py` (writes `reports/baseline_tables.md`).
 
+## Phase 3 results, notebooks and report
+
+Phase 3 (E04-E17) configs are in `configs/experiments/` too, and the chosen models in
+`configs/final/` (`<task>.yaml` = headline model per task, `compare/` = the 28-model comparison
+set, `old_rule/` = the picks of the superseded tie rule); `scripts/write_final_configs.py`
+writes them from `reports/history.csv`. Rebuild the outputs from the official history:
+
+```bash
+uv run python scripts/results_tables.py --phase 3
+```
+
+```bash
+uv run python scripts/make_notebooks.py
+```
+
+The first writes `reports/phase3_tables.md`; the second writes `notebooks/03_models.ipynb` and
+`notebooks/04_tuning.ipynb` (run them in Jupyter to redraw the figures in `reports/figures/`).
+The report (`reports/report/BlindSpy_report_<tag>.pdf` and `.docx`) is assembled from the
+markdown drafts in `reports/report/drafts/`. It needs Google Chrome and Node.js with the `docx`
+package, installed once into any folder outside the repository:
+
+```bash
+npm install --prefix ~/blindspy-report-node docx
+```
+
+```bash
+uv run python scripts/build_report.py --tag v0.2-tuned --node-modules ~/blindspy-report-node
+```
+
 ## Development
 
 ```bash

@@ -90,6 +90,8 @@ for (const b of spec.blocks) {
 
 const doc = new Document({
   title: spec.title,
+  creator: "BlindSpy team",
+  lastModifiedBy: "BlindSpy team",
   styles: {
     default: { document: { run: { font: "Arial", size: 20 } } },
     paragraphStyles: [
