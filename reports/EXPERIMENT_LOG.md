@@ -478,7 +478,7 @@ Reliability diagrams: `reports/figures/e15_reliability.png` (from each run's
 
 - All four headline models are overconfident on validation: mean confidence 0.9861 against
   accuracy 0.9309 (A1), 0.9692 against 0.8984 (A2-VPN), 0.9910 against 0.9479 (A2-NonVPN), 0.9144
-  against 0.8794 (B). The isotonic confidence is within 0.005 of the accuracy in every task.
+  against 0.8794 (B). The mean isotonic confidence is within 0.005 of the accuracy in every task.
 - The hypothesis that the two A2 models (class weights, oversampling) are the least calibrated holds
   only for A2-VPN (ECE 0.0714, the highest); A2-NonVPN (0.0444) is below A1 (0.0552).
 - A1's uncalibrated ECE (0.0552) is close to the 0.05 line; the rule is applied as written.
