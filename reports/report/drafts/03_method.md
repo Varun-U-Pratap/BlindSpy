@@ -55,7 +55,7 @@ version, so every run on that version uses exactly the same rows.
   per task, Section 3.8) is fixed before the test set is opened and scored the same way, once; it
   never changes the chosen configuration. 26 differences are tested, fixed before the test set is
   opened (E12): per task the chosen model against each of the other six method types, and against
-  the old-rule pick in A1 and A2-VPN. Each test is a two-sided paired bootstrap on macro F1 (the
+  the old-rule pick (Section 3.8) in A1 and A2-VPN. Each test is a two-sided paired bootstrap on macro F1 (the
   same resampled rows for both models), Holm-corrected over all 26 at alpha 0.05; other
   differences and metrics are only described. 10,000 resamples are needed because with 1,000 the
   smallest possible p-value (0.0020) is above Holm's first threshold (0.05 / 26 = 0.0019).
