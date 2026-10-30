@@ -1,0 +1,16 @@
+experiment_id: E12
+run_name: E12-compare-svm_rbf-B
+task: B
+timeout: 15
+model: svm_rbf
+params:
+  C: 380.65860013752206
+  cache_size: 1000
+  gamma: 2.2951817514109423
+  signed_log: true
+builds_on: E17-svm_rbf-B-15s
+source_run_id: e0f2268a0f4c4f26928fab320c40c91a
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.8241806986542773

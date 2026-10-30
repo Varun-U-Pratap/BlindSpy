@@ -1,0 +1,16 @@
+experiment_id: E12
+run_name: E12-compare-decision_tree-A2-VPN
+task: A2-VPN
+timeout: 15
+model: tree
+params:
+  ccp_alpha: 0.0006619700722957577
+  criterion: entropy
+  max_depth: 35
+  min_samples_leaf: 1
+builds_on: E17-tree-A2-VPN-15s
+source_run_id: 3c942428846a4d878a6e21b674f58fdc
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.829165596366576

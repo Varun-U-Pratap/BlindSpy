@@ -307,6 +307,117 @@ def calibration_run(
     return {"params": params, "metrics": metrics, "tags": tags, "info": info}
 
 
+def final_parts(
+    parts: tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame], rehearsal: bool
+) -> tuple[pd.DataFrame, pd.DataFrame, str]:
+    """(rows to fit on, rows to score, name of the scored rows) for E12.
+
+    Official: fit on train + validation, score the test rows once. Rehearsal (scratch store
+    only): fit on train, score validation; the test rows are not returned at all."""
+    train, val, test = parts
+    if rehearsal:
+        return train, val, "rehearsal"
+    return pd.concat([train, val]), test, "test"
+
+
+def final_run(
+    cfg: dict, fit: pd.DataFrame, score: pd.DataFrame, name: str, seed: int, cv_folds: int,
+    out_dir: Path, compress: int = 0,
+) -> dict:  # fmt: skip
+    """E12: fit the config's model on `fit`, 5-fold CV on the same rows, predict `score` once.
+
+    Metrics are prefixed with `name` ("test", or "rehearsal" in the scratch rehearsal). Every
+    row's prediction is saved (predictions/<name>_predictions.csv: raw_row, true, predicted,
+    confidence, the model's class scores and, with cfg["calibrate"] == "isotonic", the
+    calibrated probabilities), so intervals and tests are computed later without refitting.
+    With calibration (E15) the predicted class stays the model's own; the confidence is the
+    calibrated probability of that class, and the saved model is the calibrator (its base
+    model is the plain fit)."""
+    out_dir = Path(out_dir)
+    X_fit, y_fit = _xy(fit)
+    X_s, y_s = _xy(score)
+    pipe = models.build_model(cfg["model"], cfg.get("params"), seed, cfg.get("balance"))
+    cv = StratifiedKFold(cv_folds, shuffle=True, random_state=seed)
+    t0 = time.perf_counter()
+    cv_res = cross_validate(clone(pipe), X_fit, y_fit, cv=cv, scoring=CV_SCORES, n_jobs=CV_N_JOBS)
+    cv_time = time.perf_counter() - t0
+
+    cost = _cost(pipe, X_fit, y_fit, X_s, out_dir, False, compress)
+    classes = [str(c) for c in pipe.classes_]
+    pred = pipe.predict(X_s)
+    scores = np.asarray(models.class_scores(pipe, X_s), dtype=float)
+    m, info = evaluate.evaluate(y_s, pred, scores, classes, out_dir / "eval")
+    has_proba = hasattr(pipe, "predict_proba")
+    correct = pred == y_s.to_numpy()
+    conf_raw = scores[np.arange(len(pred)), np.searchsorted(classes, pred)] if has_proba else None
+    saved, conf, cal_proba = pipe, conf_raw, None
+    calibrate = cfg.get("calibrate") or "none"
+    if calibrate == "isotonic":
+        t1 = time.perf_counter()
+        saved = calibration.fit_calibrated(pipe, X_fit, y_fit, seed)
+        cost["calibration_fit_time_s"] = time.perf_counter() - t1
+        label, conf, cal_proba = calibration.predict_with_confidence(saved, X_s)
+        if not (label == pred).all():
+            raise RuntimeError("calibrator's base model predicts differently from the plain fit")
+    elif calibrate != "none":
+        raise ValueError(f"unknown calibrate {calibrate!r}")
+    raw, file_bytes = _model_sizes(saved, out_dir, cfg.get("save_model", True), compress)
+    cost.update({"model_size_bytes": raw, "model_file_bytes": file_bytes})
+
+    metrics = {f"{name}_{k}": v for k, v in m.items()}
+    for cv_name in CV_SCORES:
+        metrics[f"cv_{cv_name}_mean"] = float(cv_res[f"test_{cv_name}"].mean())
+        metrics[f"cv_{cv_name}_std"] = float(cv_res[f"test_{cv_name}"].std())
+    metrics[f"gen_gap_f1_macro_cv_minus_{name}"] = metrics["cv_f1_macro_mean"] - m["f1_macro"]
+    if has_proba:
+        metrics[f"{name}_ece_uncalibrated"] = calibration.ece(conf_raw, correct)
+        metrics[f"{name}_ece_used"] = calibration.ece(conf, correct)
+        metrics[f"{name}_mean_confidence_used"] = float(np.mean(conf))
+    metrics["cv_time_s"] = cv_time
+    metrics.update(cost)
+    metrics.update({f"model_{k}": v for k, v in models.complexity(pipe).items()})
+    has_imp = evaluate.feature_importance(pipe, list(X_fit.columns), out_dir / "eval")
+    _save_booster_config(pipe, out_dir)
+
+    kind = "proba" if has_proba else "decision"
+    cols = {f"{kind}.{c}": scores[:, i] for i, c in enumerate(classes)}
+    preds = pd.DataFrame({"raw_row": score.index, "true": y_s.to_numpy(), "predicted": pred,
+                          "confidence": conf if has_proba else np.nan, **cols})  # fmt: skip
+    if cal_proba is not None:
+        for i, c in enumerate(classes):
+            preds[f"calibrated_proba.{c}"] = cal_proba[:, i]
+    (out_dir / "predictions").mkdir(parents=True, exist_ok=True)
+    preds.to_csv(out_dir / "predictions" / f"{name}_predictions.csv", index=False)
+    counts = {"fit": fit["label"].value_counts().sort_index().to_dict(),
+              name: score["label"].value_counts().sort_index().to_dict()}  # fmt: skip
+    (out_dir / "data").mkdir(parents=True, exist_ok=True)
+    (out_dir / "data" / "class_counts.json").write_text(json.dumps(counts, indent=1))
+
+    fit_desc = "train" if name == "rehearsal" else "train + validation"
+    score_desc = "validation (rehearsal)" if name == "rehearsal" else "test, once"
+    params = {
+        **_base_params(cfg, pipe, X_fit, seed, compress),
+        "protocol": f"final: {cv_folds}-fold stratified CV and fit on {fit_desc}, "
+                    f"score {score_desc}",
+        "cv_folds": cv_folds, "n_fit": len(fit), f"n_{name}": len(score),
+        "classes": ",".join(classes), "score_kind": kind, "calibrate": calibrate,
+        **({"calibration.method": "CalibratedClassifierCV(method='isotonic', cv=StratifiedKFold("
+                                  f"5, shuffle=True, random_state={seed}), ensemble=False)"}
+           if calibrate == "isotonic" else {}),
+        **{k: cfg[k] for k in ("source_run_id", "source_val_f1_macro", "role") if k in cfg},
+        **{f"class_counts.{k}": json.dumps(v) for k, v in counts.items()},
+    }  # fmt: skip
+    tags = {
+        "protocol": "final_test" if name == "test" else "final_rehearsal",
+        "feature_importance": "impurity" if has_imp else "n/a",
+        **{k: v for k, v in info.items() if k.endswith(("f1", "recall"))},
+    }
+    tags["top_confusion_pairs"] = "; ".join(
+        f"{q['true']} -> {q['predicted']}: {q['count']}" for q in info["top_confusion_pairs"]
+    )
+    return {"params": params, "metrics": metrics, "tags": tags, "info": info}
+
+
 def paper_benchmark(
     cfg: dict, df: pd.DataFrame, seed: int, folds: int, out_dir: Path, compress: int = 0
 ) -> dict:

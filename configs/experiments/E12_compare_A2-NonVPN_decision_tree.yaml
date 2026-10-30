@@ -1,0 +1,13 @@
+experiment_id: E12
+run_name: E12-compare-decision_tree-A2-NonVPN
+task: A2-NonVPN
+timeout: 15
+model: tree
+params:
+  criterion: entropy
+builds_on: E02-tree-A2-NonVPN-15s
+source_run_id: bb0be7d0641e4d859028b5e07722f69f
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.829353129774133

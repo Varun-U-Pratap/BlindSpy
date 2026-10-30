@@ -1,0 +1,12 @@
+experiment_id: E12
+run_name: E12-compare-xgboost-A2-VPN
+task: A2-VPN
+timeout: 15
+model: xgb
+params: {}
+builds_on: E06-xgb-A2-VPN-15s
+source_run_id: d67740453f9a487b8a2c7dd21518c181
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.8758104818708317

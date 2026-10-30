@@ -1268,3 +1268,238 @@ def e15_reliability_figure(h: pd.DataFrame, runner: str, path: Path) -> None:
     fig.tight_layout()
     fig.savefig(path, dpi=110)
     plt.close(fig)
+
+
+# ---- E12: test-set scores, bootstrap intervals and the 26 paired tests (E12 addendum) ------
+
+N_BOOT = 10_000  # E12 addendum item 2: stratified paired resamples per task
+BOOT_SEED = 42
+HOLM_ALPHA = 0.05
+
+
+def stratified_indices(y, n_boot: int = N_BOOT, seed: int = BOOT_SEED) -> np.ndarray:
+    """(n_boot, len(y)) row positions: every resample draws, within each true class (in sorted
+    class order), as many rows as the class has, with replacement, from numpy default_rng(seed).
+    One index set per task, shared by every model of the task (paired)."""
+    y = np.asarray(y).astype(str)
+    rng = np.random.default_rng(seed)
+    out = np.empty((n_boot, len(y)), dtype=np.int64)
+    col = 0
+    for c in np.unique(y):
+        pos = np.flatnonzero(y == c)
+        out[:, col : col + len(pos)] = pos[rng.integers(0, len(pos), size=(n_boot, len(pos)))]
+        col += len(pos)
+    return out
+
+
+def _codes(y, pred, classes) -> tuple[np.ndarray, np.ndarray]:
+    lookup = {c: i for i, c in enumerate(classes)}
+    return (np.array([lookup[str(v)] for v in y]), np.array([lookup[str(v)] for v in pred]))
+
+
+def macro_f1_resampled(y, pred, idx: np.ndarray, classes) -> np.ndarray:
+    """Macro F1 over `classes` on each resample (rows idx[b]); a class with no true and no
+    predicted rows scores 0, as sklearn's f1_score(average="macro", zero_division=0)."""
+    yi, pi = _codes(y, pred, classes)
+    yt, pt = yi[idx], pi[idx]
+    f1 = np.zeros((idx.shape[0], len(classes)))
+    for k in range(len(classes)):
+        t, p = yt == k, pt == k
+        tp = (t & p).sum(axis=1)
+        den = t.sum(axis=1) + p.sum(axis=1)
+        f1[:, k] = np.where(den > 0, 2 * tp / np.maximum(den, 1), 0.0)
+    return f1.mean(axis=1)
+
+
+def accuracy_resampled(y, pred, idx: np.ndarray) -> np.ndarray:
+    hit = np.asarray(y).astype(str) == np.asarray(pred).astype(str)
+    return hit[idx].mean(axis=1)
+
+
+def percentile_interval(draws: np.ndarray) -> tuple[float, float]:
+    lo, hi = np.percentile(draws, [2.5, 97.5])
+    return float(lo), float(hi)
+
+
+def paired_p(d: np.ndarray) -> float:
+    """Two-sided bootstrap p for H0 d = 0 (E12 addendum item 1):
+    min(1, 2 * min((1 + #{d* <= 0}) / (B + 1), (1 + #{d* >= 0}) / (B + 1)))."""
+    b = len(d)
+    lo = (1 + np.sum(d <= 0)) / (b + 1)
+    hi = (1 + np.sum(d >= 0)) / (b + 1)
+    return float(min(1.0, 2 * min(lo, hi)))
+
+
+def holm(p: dict, alpha: float = HOLM_ALPHA) -> dict:
+    """Holm step-down: {name: (adjusted p, rejected)}. Adjusted p_(i) = max over j <= i of
+    min(1, (m - j + 1) p_(j)) in ascending order; rejected where adjusted p <= alpha."""
+    m = len(p)
+    out, running = {}, 0.0
+    for j, (k, v) in enumerate(sorted(p.items(), key=lambda kv: kv[1])):
+        running = max(running, min(1.0, (m - j) * v))
+        out[k] = (running, running <= alpha)
+    return out
+
+
+def final_predictions(run_id: str, runner: str, name: str = "test", root: Path = ROOT):
+    """A final run's saved predictions, sorted by raw_row (so every model of a task lines up)."""
+    path = root / "mlruns" / runner / "artifacts" / run_id / "artifacts" / "predictions"
+    return pd.read_csv(path / f"{name}_predictions.csv").sort_values("raw_row", ignore_index=True)
+
+
+ROLE_ORDER = {"headline": 0, "comparison": 1, "old_rule": 2}
+
+
+def e12_runs(h: pd.DataFrame, protocol: str = "final_test") -> pd.DataFrame:
+    e = h[(h["tags.experiment_id"] == "E12") & (h["tags.protocol"] == protocol)].copy()
+    e["type"] = e["params.model"].map(METHOD_TYPE)
+    e["order"] = e["params.role"].map(ROLE_ORDER)
+    return e.sort_values(["params.task", "order", "type"])
+
+
+def e12_scores(
+    h: pd.DataFrame, runner: str, name: str = "test", protocol: str = "final_test",
+    root: Path = ROOT, n_boot: int = N_BOOT,
+) -> tuple[pd.DataFrame, dict]:  # fmt: skip
+    """One row per final run: test macro F1 and accuracy with 95% percentile intervals from the
+    task's stratified paired resamples, against the source run's validation macro F1, plus the
+    other described metrics. Returns (table, {run name: macro F1 draws}) for the paired tests.
+    `name` is the scored rows' metric prefix ("rehearsal" in the scratch rehearsal)."""
+    e = e12_runs(h, protocol)
+    rows, draws = [], {}
+    for task in CORE_TASKS:
+        g = e[e["params.task"] == task]
+        if g.empty:
+            continue
+        preds = {r["run_name"]: final_predictions(r["run_id"], runner, name, root)
+                 for _, r in g.iterrows()}  # fmt: skip
+        first = next(iter(preds.values()))
+        for p in preds.values():  # every model of the task scored on the same rows
+            if not (p["raw_row"].equals(first["raw_row"]) and p["true"].equals(first["true"])):
+                raise ValueError(f"{task}: final runs were not scored on the same rows")
+        y = first["true"].astype(str).to_numpy()
+        classes = sorted(set(y))
+        idx = stratified_indices(y, n_boot)
+        for _, r in g.iterrows():
+            p = preds[r["run_name"]]["predicted"].astype(str).to_numpy()
+            f1 = macro_f1_resampled(y, p, idx, classes)
+            acc = accuracy_resampled(y, p, idx)
+            point = float(macro_f1_resampled(y, p, np.arange(len(y))[None, :], classes)[0])
+            if not np.isclose(point, r[f"metrics.{name}_f1_macro"], atol=1e-12):
+                raise ValueError(f"{r['run_name']}: saved predictions do not match logged F1")
+            draws[r["run_name"]] = f1
+            val = float(r["params.source_val_f1_macro"])
+            f_lo, f_hi = percentile_interval(f1)
+            a_lo, a_hi = percentile_interval(acc)
+            rows.append({
+                "task": task, "role": r["params.role"], "method type": r["type"],
+                "run": r["run_name"], "source run": r["params.builds_on"],
+                "val macro F1": round(val, 4),
+                f"{name} macro F1": round(point, 4),
+                "95% interval": f"{f_lo:.4f}-{f_hi:.4f}",
+                f"{name} - val": round(point - val, 4),
+                f"{name} accuracy": round(r[f"metrics.{name}_accuracy"], 4),
+                "accuracy 95% interval": f"{a_lo:.4f}-{a_hi:.4f}",
+                f"{name} weighted F1": round(r[f"metrics.{name}_f1_weighted"], 4),
+                f"{name} balanced accuracy": round(r[f"metrics.{name}_balanced_accuracy"], 4),
+                "CV macro F1 (fit rows)": round(r["metrics.cv_f1_macro_mean"], 4),
+                f"CV - {name}": round(r["metrics.cv_f1_macro_mean"] - point, 4),
+                "calibration": r["params.calibrate"],
+                "_val": val, "_point": point,  # unrounded, for the verdicts; not printed
+            })  # fmt: skip
+    return pd.DataFrame(rows), draws
+
+
+def e12_tests(scores: pd.DataFrame, draws: dict) -> pd.DataFrame:
+    """The 26 confirmatory paired tests (E12 addendum item 1): per task the headline model
+    against every other final run (6 comparison members + the old-rule pick where it is not a
+    member); d = headline - other macro F1 on the same resamples; two-sided bootstrap p; Holm
+    over all of them at 0.05."""
+    rows = []
+    for task, g in scores.groupby("task", sort=False):
+        head = g[g["role"] == "headline"].iloc[0]
+        for _, o in g[g["role"] != "headline"].iterrows():
+            d = draws[head["run"]] - draws[o["run"]]
+            lo, hi = percentile_interval(d)
+            rows.append({"task": task, "headline": head["run"], "other": o["run"],
+                         "other role": o["role"], "other type": o["method type"],
+                         "d (headline - other)": round(head["_point"] - o["_point"], 4),
+                         "d 95% interval": f"{lo:.4f}-{hi:.4f}", "p": paired_p(d)})  # fmt: skip
+    t = pd.DataFrame(rows)
+    adj = holm(dict(zip(t["other"], t["p"], strict=True)))
+    t["Holm p"] = t["other"].map(lambda k: adj[k][0])
+    t["different (Holm, 0.05)"] = t["other"].map(lambda k: adj[k][1])
+    return t
+
+
+def e12_verdicts(scores: pd.DataFrame, h: pd.DataFrame) -> dict:
+    """(a) |test - val| <= 0.03 for every headline model; (b) the headline above the old rule's
+    pick in at least 3 of 4 tasks (point estimates); (c) Spearman >= 0.8 between the validation
+    and test order of the 7 method types in at least 3 of 4 tasks."""
+    from scipy.stats import spearmanr
+
+    head = scores[scores["role"] == "headline"].set_index("task")
+    gap_full = (head["_point"] - head["_val"]).to_dict()
+    gap = {k: round(v, 4) for k, v in gap_full.items()}
+    old = old_rule_choice(selection_runs(h)).set_index("task")["run"]
+    beats, rho = {}, {}
+    for task, g in scores.groupby("task", sort=False):
+        pick = g[g["source run"] == old[task]].iloc[0]
+        beats[task] = bool(head.loc[task, "_point"] > pick["_point"])
+        types = g[g["role"] != "old_rule"]
+        rho[task] = round(float(spearmanr(types["_val"], types["_point"]).statistic), 4)
+    return {
+        "E12a": {"headline_minus_val": gap, "needed": "all |gap| <= 0.03",
+                 "supported": all(abs(v) <= 0.03 for v in gap_full.values())},
+        "E12b": {"headline_above_old_rule_pick": beats, "tasks": sum(beats.values()),
+                 "needed": 3, "supported": sum(beats.values()) >= 3},
+        "E12c": {"spearman_val_vs_test_7_types": rho,
+                 "tasks_at_least_0.8": sum(v >= 0.8 for v in rho.values()), "needed": 3,
+                 "supported": sum(v >= 0.8 for v in rho.values()) >= 3},
+    }  # fmt: skip
+
+
+def e12_headline_details(h: pd.DataFrame) -> pd.DataFrame:
+    """The described (untested) extras of the 4 headline test runs: test ECE with the
+    probabilities used (calibrated where E15 adopted it) and uncalibrated, mean confidence, best
+    and worst class by F1 and recall, the top-5 confusion pairs, model file size and cost."""
+    e = e12_runs(h)
+    rows = []
+    for _, r in e[e["params.role"] == "headline"].iterrows():
+        classes = r["params.classes"].split(",")
+        f1 = {c: r[f"metrics.test_f1.{c}"] for c in classes}
+        rec = {c: r[f"metrics.test_recall.{c}"] for c in classes}
+        best_f, worst_f = max(f1, key=f1.get), min(f1, key=f1.get)
+        best_r, worst_r = max(rec, key=rec.get), min(rec, key=rec.get)
+        rows.append({
+            "task": r["params.task"], "run": r["run_name"], "calibration": r["params.calibrate"],
+            "test ECE (probabilities used)": round(r["metrics.test_ece_used"], 4),
+            "test ECE uncalibrated": round(r["metrics.test_ece_uncalibrated"], 4),
+            "mean confidence": round(r["metrics.test_mean_confidence_used"], 4),
+            "test accuracy": round(r["metrics.test_accuracy"], 4),
+            "weighted - macro F1 gap": round(r["metrics.test_f1_gap_weighted_minus_macro"], 4),
+            "best class F1": f"{best_f} {f1[best_f]:.4f}",
+            "worst class F1": f"{worst_f} {f1[worst_f]:.4f}",
+            "best class recall": f"{best_r} {rec[best_r]:.4f}",
+            "worst class recall": f"{worst_r} {rec[worst_r]:.4f}",
+            "top-5 confusion pairs (true -> predicted: flows)": r["tags.top_confusion_pairs"],
+            "model file MiB": round(r["metrics.model_file_bytes"] / 2**20, 2),
+            "train time s": round(r["metrics.train_time_s"], 2),
+            "predict ms per 1,000 flows": round(r["metrics.predict_ms_per_1000"], 1),
+        })  # fmt: skip
+    t = pd.DataFrame(rows)
+    return t.sort_values("task", key=lambda c: c.map(CORE_TASKS.index), ignore_index=True)
+
+
+def e12_per_class(h: pd.DataFrame, task: str) -> pd.DataFrame:
+    """Per-class test precision, recall and F1 of the task's headline model."""
+    e = e12_runs(h)
+    r = e[(e["params.task"] == task) & (e["params.role"] == "headline")].iloc[0]
+    counts = json.loads(r["params.class_counts.test"])
+    return pd.DataFrame([
+        {"class": c, "test rows": counts[c],
+         "precision": round(r[f"metrics.test_precision.{c}"], 4),
+         "recall": round(r[f"metrics.test_recall.{c}"], 4),
+         "F1": round(r[f"metrics.test_f1.{c}"], 4)}
+        for c in r["params.classes"].split(",")
+    ])  # fmt: skip

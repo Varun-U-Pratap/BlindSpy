@@ -1,0 +1,115 @@
+# E12 rehearsal check: clone of exp/E12-final at 2601b4b, runner 'rehearsal', 30 runs fitted on train and scored on validation (no test row used); run 2026-10-31 01:41 IST
+PASS 30 runs, names = configs (30)
+PASS all FINISHED
+PASS 4 headline runs
+PASS one commit {'2601b4b'}
+PASS lock hash = main uv.lock
+PASS clean tree
+PASS data v1
+PASS data + split hashes = manifest
+PASS no test metric anywhere ([])
+PASS rehearsal F1 == source val F1 exactly (max diff 0.00e+00)
+PASS calibrated runs: ['A1', 'A2-VPN']
+PASS calibrated runs log ECE used
+PASS headline ECE logged
+PASS tracked fields present ({})
+PASS ROC-AUC for every A1 run
+PASS every run has predictions, model, eval files, config (30/30)
+PASS every prediction file = the validation rows, no test row
+PASS intervals for all 30 models
+PASS 26 paired tests (26)
+PASS p in [2/10001, 1], Holm p >= raw p
+PASS verdicts (a)-(c) computable
+         task        role          method type                                        run                          source run  val macro F1  rehearsal macro F1   95% interval  rehearsal - val  rehearsal accuracy accuracy 95% interval  rehearsal weighted F1  rehearsal balanced accuracy  CV macro F1 (fit rows)  CV - rehearsal calibration
+0          A1    headline             LightGBM                               E12-final-A1                     E17-lgbm-A1-15s        0.9308              0.9308  0.9211-0.9401              0.0              0.9309         0.9213-0.9401                 0.9309                       0.9305                  0.9320          0.0012    isotonic
+1          A1  comparison                  KNN                         E12-compare-knn-A1         E07-knn_log_standard-A1-15s        0.9163              0.9163  0.9059-0.9267              0.0              0.9165         0.9061-0.9268                 0.9164                       0.9160                  0.9122         -0.0041        none
+2          A1  comparison        Random Forest               E12-compare-random_forest-A1                       E05-rf-A1-15s        0.9203              0.9203  0.9100-0.9304              0.0              0.9205         0.9102-0.9305                 0.9205                       0.9199                  0.9172         -0.0032        none
+3          A1  comparison              SVM-RBF                     E12-compare-svm_rbf-A1                  E17-svm_rbf-A1-15s        0.9259              0.9259  0.9159-0.9356              0.0              0.9261         0.9161-0.9357                 0.9261                       0.9256                  0.9187         -0.0073        none
+4          A1  comparison              XGBoost                     E12-compare-xgboost-A1                      E06-xgb-A1-15s        0.9271              0.9271  0.9173-0.9367              0.0              0.9272         0.9176-0.9368                 0.9272                       0.9269                  0.9251         -0.0020        none
+5          A1  comparison        decision tree               E12-compare-decision_tree-A1                     E17-tree-A1-15s        0.8905              0.8905  0.8783-0.9020              0.0              0.8906         0.8784-0.9021                 0.8906                       0.8907                  0.8915          0.0009        none
+6          A1  comparison  logistic regression         E12-compare-logistic_regression-A1                   E17-logreg-A1-15s        0.6517              0.6517  0.6339-0.6698              0.0              0.6523         0.6345-0.6704                 0.6522                       0.6517                  0.6762          0.0245        none
+7          A1    old_rule                  KNN                            E12-old_rule-A1         E04-knn_log_standard-A1-15s        0.9048              0.9048  0.8937-0.9156              0.0              0.9050         0.8939-0.9157                 0.9050                       0.9043                  0.9033         -0.0014        none
+8      A2-VPN    headline             LightGBM                           E12-final-A2-VPN    E08-lgbm_class_weight-A2-VPN-15s        0.8830              0.8830  0.8633-0.9017              0.0              0.8984         0.8827-0.9133                 0.8977                       0.8792                  0.8893          0.0063    isotonic
+9      A2-VPN  comparison                  KNN                     E12-compare-knn-A2-VPN     E07-knn_log_standard-A2-VPN-15s        0.8625              0.8625  0.8423-0.8824              0.0              0.8778         0.8607-0.8941                 0.8781                       0.8657                  0.8575         -0.0051        none
+10     A2-VPN  comparison        Random Forest           E12-compare-random_forest-A2-VPN                   E17-rf-A2-VPN-15s        0.8704              0.8704  0.8498-0.8900              0.0              0.8877         0.8714-0.9026                 0.8862                       0.8621                  0.8707          0.0003        none
+11     A2-VPN  comparison              SVM-RBF                 E12-compare-svm_rbf-A2-VPN              E17-svm_rbf-A2-VPN-15s        0.8707              0.8707  0.8507-0.8903              0.0              0.8827         0.8664-0.8991                 0.8825                       0.8702                  0.8668         -0.0039        none
+12     A2-VPN  comparison              XGBoost                 E12-compare-xgboost-A2-VPN                  E06-xgb-A2-VPN-15s        0.8758              0.8758  0.8562-0.8946              0.0              0.8913         0.8756-0.9069                 0.8903                       0.8703                  0.8799          0.0041        none
+13     A2-VPN  comparison        decision tree           E12-compare-decision_tree-A2-VPN                 E17-tree-A2-VPN-15s        0.8292              0.8292  0.8058-0.8514              0.0              0.8529         0.8351-0.8706                 0.8526                       0.8274                  0.8129         -0.0163        none
+14     A2-VPN  comparison  logistic regression     E12-compare-logistic_regression-A2-VPN               E17-logreg-A2-VPN-15s        0.7263              0.7263  0.6981-0.7531              0.0              0.7726         0.7527-0.7918                 0.7652                       0.7056                  0.7344          0.0080        none
+15     A2-VPN    old_rule                  KNN                        E12-old_rule-A2-VPN     E04-knn_log_standard-A2-VPN-15s        0.8544              0.8544  0.8331-0.8747              0.0              0.8714         0.8543-0.8877                 0.8701                       0.8582                  0.8336         -0.0207        none
+16  A2-NonVPN    headline             LightGBM                        E12-final-A2-NonVPN   E08-lgbm_oversample-A2-NonVPN-15s        0.9075              0.9075  0.8845-0.9293              0.0              0.9479         0.9363-0.9594                 0.9475                       0.9056                  0.9310          0.0235        none
+17  A2-NonVPN  comparison                  KNN                  E12-compare-knn-A2-NonVPN  E07-knn_log_standard-A2-NonVPN-15s        0.8929              0.8929  0.8697-0.9152              0.0              0.9333         0.9202-0.9463                 0.9328                       0.8911                  0.9060          0.0131        none
+18  A2-NonVPN  comparison        Random Forest        E12-compare-random_forest-A2-NonVPN                E05-rf-A2-NonVPN-15s        0.8941              0.8941  0.8703-0.9165              0.0              0.9333         0.9202-0.9456                 0.9323                       0.8858                  0.9048          0.0107        none
+19  A2-NonVPN  comparison              SVM-RBF              E12-compare-svm_rbf-A2-NonVPN           E17-svm_rbf-A2-NonVPN-15s        0.9058              0.9058  0.8828-0.9270              0.0              0.9433         0.9310-0.9548                 0.9425                       0.8972                  0.9256          0.0198        none
+20  A2-NonVPN  comparison              XGBoost              E12-compare-xgboost-A2-NonVPN               E07-xgb-A2-NonVPN-15s        0.9025              0.9025  0.8790-0.9247              0.0              0.9440         0.9317-0.9555                 0.9434                       0.8977                  0.9294          0.0269        none
+21  A2-NonVPN  comparison        decision tree        E12-compare-decision_tree-A2-NonVPN              E02-tree-A2-NonVPN-15s        0.8294              0.8294  0.8018-0.8557              0.0              0.8903         0.8742-0.9057                 0.8905                       0.8362                  0.8619          0.0326        none
+22  A2-NonVPN  comparison  logistic regression  E12-compare-logistic_regression-A2-NonVPN            E17-logreg-A2-NonVPN-15s        0.8002              0.8002  0.7706-0.8291              0.0              0.8742         0.8581-0.8903                 0.8710                       0.7984                  0.8138          0.0136        none
+23          B    headline              XGBoost                                E12-final-B                       E07-xgb-B-15s        0.8428              0.8428  0.8238-0.8600              0.0              0.8794         0.8672-0.8908                 0.8787                       0.8343                  0.8405         -0.0023        none
+24          B  comparison                  KNN                          E12-compare-knn-B          E07-knn_log_standard-B-15s        0.8006              0.8006  0.7805-0.8193              0.0              0.8462         0.8329-0.8587                 0.8456                       0.7996                  0.8044          0.0039        none
+25          B  comparison             LightGBM                     E12-compare-lightgbm-B                      E07-lgbm-B-15s        0.8352              0.8352  0.8161-0.8529              0.0              0.8783         0.8661-0.8897                 0.8772                       0.8271                  0.8447          0.0096        none
+26          B  comparison        Random Forest                E12-compare-random_forest-B                        E17-rf-B-15s        0.8167              0.8167  0.7970-0.8354              0.0              0.8624         0.8499-0.8746                 0.8613                       0.8091                  0.8270          0.0103        none
+27          B  comparison              SVM-RBF                      E12-compare-svm_rbf-B                   E17-svm_rbf-B-15s        0.8242              0.8242  0.8053-0.8420              0.0              0.8576         0.8451-0.8702                 0.8567                       0.8204                  0.8228         -0.0014        none
+28          B  comparison        decision tree                E12-compare-decision_tree-B                      E02-tree-B-15s        0.7585              0.7585  0.7373-0.7791              0.0              0.8104         0.7964-0.8244                 0.8098                       0.7586                  0.7575         -0.0011        none
+29          B  comparison  logistic regression          E12-compare-logistic_regression-B                    E17-logreg-B-15s        0.5862              0.5862  0.5623-0.6099              0.0              0.6533         0.6370-0.6702                 0.6442                       0.5735                  0.5909          0.0047        none
+         task             headline                                      other  other role           other type  d (headline - other)  d 95% interval         p    Holm p  different (Holm, 0.05)
+0          A1         E12-final-A1                         E12-compare-knn-A1  comparison                  KNN                0.0145   0.0059-0.0230  0.000400  0.005999                    True
+1          A1         E12-final-A1               E12-compare-random_forest-A1  comparison        Random Forest                0.0104   0.0034-0.0175  0.002800  0.036396                    True
+2          A1         E12-final-A1                     E12-compare-svm_rbf-A1  comparison              SVM-RBF                0.0048  -0.0045-0.0142  0.318968  1.000000                   False
+3          A1         E12-final-A1                     E12-compare-xgboost-A1  comparison              XGBoost                0.0037  -0.0041-0.0111  0.355764  1.000000                   False
+4          A1         E12-final-A1               E12-compare-decision_tree-A1  comparison        decision tree                0.0402   0.0294-0.0513  0.000200  0.005199                    True
+5          A1         E12-final-A1         E12-compare-logistic_regression-A1  comparison  logistic regression                0.2790   0.2598-0.2978  0.000200  0.005199                    True
+6          A1         E12-final-A1                            E12-old_rule-A1    old_rule                  KNN                0.0260   0.0160-0.0364  0.000200  0.005199                    True
+7      A2-VPN     E12-final-A2-VPN                     E12-compare-knn-A2-VPN  comparison                  KNN                0.0205   0.0042-0.0369  0.013199  0.158384                   False
+8      A2-VPN     E12-final-A2-VPN           E12-compare-random_forest-A2-VPN  comparison        Random Forest                0.0126  -0.0000-0.0254  0.050595  0.505949                   False
+9      A2-VPN     E12-final-A2-VPN                 E12-compare-svm_rbf-A2-VPN  comparison              SVM-RBF                0.0123  -0.0034-0.0281  0.125787  0.880512                   False
+10     A2-VPN     E12-final-A2-VPN                 E12-compare-xgboost-A2-VPN  comparison              XGBoost                0.0072  -0.0033-0.0178  0.173583  1.000000                   False
+11     A2-VPN     E12-final-A2-VPN           E12-compare-decision_tree-A2-VPN  comparison        decision tree                0.0538   0.0331-0.0757  0.000200  0.005199                    True
+12     A2-VPN     E12-final-A2-VPN     E12-compare-logistic_regression-A2-VPN  comparison  logistic regression                0.1566   0.1288-0.1857  0.000200  0.005199                    True
+13     A2-VPN     E12-final-A2-VPN                        E12-old_rule-A2-VPN    old_rule                  KNN                0.0286   0.0117-0.0453  0.000800  0.011199                    True
+14  A2-NonVPN  E12-final-A2-NonVPN                  E12-compare-knn-A2-NonVPN  comparison                  KNN                0.0146  -0.0026-0.0317  0.098990  0.791921                   False
+15  A2-NonVPN  E12-final-A2-NonVPN        E12-compare-random_forest-A2-NonVPN  comparison        Random Forest                0.0134  -0.0020-0.0287  0.082592  0.743326                   False
+16  A2-NonVPN  E12-final-A2-NonVPN              E12-compare-svm_rbf-A2-NonVPN  comparison              SVM-RBF                0.0017  -0.0160-0.0196  0.851315  1.000000                   False
+17  A2-NonVPN  E12-final-A2-NonVPN              E12-compare-xgboost-A2-NonVPN  comparison              XGBoost                0.0050  -0.0062-0.0161  0.376962  1.000000                   False
+18  A2-NonVPN  E12-final-A2-NonVPN        E12-compare-decision_tree-A2-NonVPN  comparison        decision tree                0.0781   0.0590-0.0984  0.000200  0.005199                    True
+19  A2-NonVPN  E12-final-A2-NonVPN  E12-compare-logistic_regression-A2-NonVPN  comparison  logistic regression                0.1073   0.0816-0.1333  0.000200  0.005199                    True
+20          B          E12-final-B                          E12-compare-knn-B  comparison                  KNN                0.0422   0.0270-0.0572  0.000200  0.005199                    True
+21          B          E12-final-B                     E12-compare-lightgbm-B  comparison             LightGBM                0.0076  -0.0032-0.0190  0.168583  1.000000                   False
+22          B          E12-final-B                E12-compare-random_forest-B  comparison        Random Forest                0.0261   0.0149-0.0376  0.000200  0.005199                    True
+23          B          E12-final-B                      E12-compare-svm_rbf-B  comparison              SVM-RBF                0.0186   0.0016-0.0358  0.034397  0.378362                   False
+24          B          E12-final-B                E12-compare-decision_tree-B  comparison        decision tree                0.0843   0.0666-0.1021  0.000200  0.005199                    True
+25          B          E12-final-B          E12-compare-logistic_regression-B  comparison  logistic regression                0.2566   0.2323-0.2804  0.000200  0.005199                    True
+{
+ "E12a": {
+  "headline_minus_val": {
+   "A1": 0.0,
+   "A2-VPN": 0.0,
+   "A2-NonVPN": 0.0,
+   "B": 0.0
+  },
+  "needed": "all |gap| <= 0.03",
+  "supported": true
+ },
+ "E12b": {
+  "headline_above_old_rule_pick": {
+   "A1": true,
+   "A2-VPN": true,
+   "A2-NonVPN": true,
+   "B": true
+  },
+  "tasks": 4,
+  "needed": 3,
+  "supported": true
+ },
+ "E12c": {
+  "spearman_val_vs_test_7_types": {
+   "A1": 1.0,
+   "A2-VPN": 1.0,
+   "A2-NonVPN": 1.0,
+   "B": 1.0
+  },
+  "tasks_at_least_0.8": 4,
+  "needed": 3,
+  "supported": true
+ }
+}
+FAILED: none

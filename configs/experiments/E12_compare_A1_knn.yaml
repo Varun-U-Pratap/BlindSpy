@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-compare-knn-A1
+task: A1
+timeout: 15
+model: knn_log_standard
+params:
+  metric: manhattan
+  n_neighbors: 4
+  weights: distance
+builds_on: E07-knn_log_standard-A1-15s
+source_run_id: f5c5c08f6ba54694aa27952e1b05ce2a
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.9163004204440941

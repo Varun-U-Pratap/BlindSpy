@@ -9,7 +9,9 @@ the whole file, rows from data v1 or as published; never used for model selectio
 "optuna" (E07: an Optuna search on the training rows, each trial a nested run tagged
 trial=True with settings and scores only; the best settings are then trained and scored
 exactly like "train", and that model is saved), "kaggle" (E16) and "calibration" (E15: the
-validation ECE of a headline config, uncalibrated and with an isotonic calibrator fitted on train).
+validation ECE of a headline config, uncalibrated and with an isotonic calibrator fitted on train)
+and "final" (E12: fit on train + validation, score the test set once; --rehearsal fits on train and
+scores validation instead, refused for the official runner).
 """
 
 import argparse
@@ -60,6 +62,20 @@ def run_calibration(cfg: dict, base: dict) -> None:
     with tempfile.TemporaryDirectory() as tmp:
         result = train.calibration_run(cfg, parts, base["seed"], Path(tmp),
                                        compress=base.get("model_compress", 0))  # fmt: skip
+        _log_data_rules(version)
+        tracking.log_result(result, Path(tmp))
+
+
+def run_final(cfg: dict, base: dict) -> None:
+    """E12: fit on train + validation, score the test rows once (train.final_run). With
+    --rehearsal (never the official runner): fit on train, score validation; test rows unused."""
+    version = base["data_version"]
+    parts = data.load_task(cfg["task"], cfg["timeout"], data_version=version)
+    fit, score, name = train.final_parts(parts, base.get("rehearsal", False))
+    mlflow.set_tags(tracking.data_tags(cfg["task"], cfg["timeout"], "v1", version))
+    with tempfile.TemporaryDirectory() as tmp:
+        result = train.final_run(cfg, fit, score, name, base["seed"], base["cv_folds"],
+                                 Path(tmp), compress=base.get("model_compress", 0))  # fmt: skip
         _log_data_rules(version)
         tracking.log_result(result, Path(tmp))
 
@@ -152,17 +168,29 @@ KINDS = {
     "optuna": run_optuna,
     "kaggle": run_kaggle,
     "calibration": run_calibration,
+    "final": run_final,
 }
 
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("config", type=Path, nargs="+")
+    parser.add_argument(
+        "--rehearsal",
+        action="store_true",
+        help="final configs only: fit on train, score validation (scratch store)",
+    )
     args = parser.parse_args(argv)
 
     base = tracking.load_yaml(tracking.ROOT / "configs" / "base.yaml")
     runner = tracking.load_runner()
     official = runner == base["official_runner"]
+    if args.rehearsal and official:
+        raise SystemExit(
+            "Refusing --rehearsal for the official runner: rehearse in a scratch "
+            "clone with its own runner name (configs/local.yaml)."
+        )
+    base["rehearsal"] = args.rehearsal
 
     git = tracking.git_state()
     warning = tracking.check_git_state(git["dirty"], git["pushed"], official, git["branch"])
