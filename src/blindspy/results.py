@@ -5,6 +5,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import yaml
 
 from blindspy.data import CORE_TASKS, ROOT, TIMEOUTS
 
@@ -1177,3 +1178,93 @@ def e16_verdicts(h: pd.DataFrame) -> dict:
                        "full_reproduces_a": bool(full == acc),
                        "supported": bool(round(mixed - rf.mean(), 10) < 0.01)}  # fmt: skip
     return out
+
+
+# ---- Phase 4 -------------------------------------------------------------------------------
+
+
+def _e15_runs(h: pd.DataFrame) -> pd.DataFrame:
+    return h[(h["tags.experiment_id"] == "E15") & (h["tags.protocol"] == "calibration")]
+
+
+def e15_table(h: pd.DataFrame) -> pd.DataFrame:
+    """E15 per task (newest run per name): validation ECE uncalibrated and isotonic, the
+    adoption decision (uncalibrated ECE > 0.05 and isotonic lower, as logged), and the checks
+    that calibration leaves the predicted class and the validation macro F1 unchanged."""
+    e = _e15_runs(h)
+    rows = []
+    for task in CORE_TASKS:
+        g = e[e["params.task"] == task]
+        if g.empty:
+            continue
+        r = g.iloc[0]
+        final = yaml.safe_load((ROOT / "configs" / "final" / f"{task}.yaml").read_text())
+        rows.append({
+            "task": task, "run": r["run_name"], "headline": r["params.builds_on"],
+            "val accuracy": round(r["metrics.val_accuracy"], 4),
+            "mean confidence, uncalibrated":
+                round(r["metrics.val_mean_confidence_uncalibrated"], 4),
+            "mean confidence, isotonic": round(r["metrics.val_mean_confidence_isotonic"], 4),
+            "ECE uncalibrated": round(r["metrics.val_ece_uncalibrated"], 4),
+            "ECE isotonic": round(r["metrics.val_ece_isotonic"], 4),
+            "adopted": str(r["tags.calibration_adopted"]) == "True",
+            "same predicted class (share of rows)": r["metrics.val_label_agreement_base_vs_plain"],
+            "calibrated argmax would differ (share, unused)":
+                round(r["metrics.val_calibrated_argmax_differs"], 4),
+            "val macro F1 = source run": r["metrics.val_f1_macro"] == final["source_val_f1_macro"],
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e15_verdicts(h: pd.DataFrame) -> dict:
+    """(a) uncalibrated validation ECE above 0.05 in at least 2 of 4 tasks; (b) isotonic ECE
+    lower in all 4; (c) same predicted class on every row and validation macro F1 equal to the
+    source run in all 4. Judged on the unrounded logged values; reported rounded to 4 places."""
+    t = e15_table(h).set_index("task")
+    e = _e15_runs(h).set_index("params.task")
+    raw_full = e["metrics.val_ece_uncalibrated"].to_dict()
+    iso_full = e["metrics.val_ece_isotonic"].to_dict()
+    raw, iso = t["ECE uncalibrated"].to_dict(), t["ECE isotonic"].to_dict()
+    above = sum(raw_full[k] > 0.05 for k in raw)
+    lower = {k: iso_full[k] < raw_full[k] for k in raw}
+    same = ((t["same predicted class (share of rows)"] == 1.0)
+            & t["val macro F1 = source run"]).to_dict()  # fmt: skip
+    return {
+        "E15a": {"ece_uncalibrated": raw, "tasks_above_0.05": above, "needed": 2,
+                 "supported": above >= 2},
+        "E15b": {"ece_isotonic": iso, "isotonic_lower": lower, "needed": 4,
+                 "supported": len(lower) == 4 and all(lower.values())},
+        "E15c": {"class_and_f1_unchanged": same, "needed": 4,
+                 "supported": len(same) == 4 and all(same.values())},
+        "E15_adopted": {"adopted": t["adopted"].to_dict()},
+    }  # fmt: skip
+
+
+def e15_reliability_figure(h: pd.DataFrame, runner: str, path: Path) -> None:
+    """Reliability diagrams of the 4 E15 runs (2 x 2), uncalibrated and isotonic, read from each
+    run's calibration/reliability_bins.csv artifact."""
+    import matplotlib.pyplot as plt
+
+    e = _e15_runs(h)
+    fig, axes = plt.subplots(2, 2, figsize=(7.5, 7))
+    for ax, task in zip(axes.flat, CORE_TASKS, strict=True):
+        r = e[e["params.task"] == task].iloc[0]
+        art = ROOT / "mlruns" / runner / "artifacts" / r["run_id"] / "artifacts" / "calibration"
+        b = pd.read_csv(art / "reliability_bins.csv")
+        ax.plot([0, 1], [0, 1], "k--", lw=0.8)
+        for name, g in b[b["rows"] > 0].groupby("probabilities", sort=False):
+            ece = r[f"metrics.val_ece_{name}"]
+            ax.plot(g["mean_confidence"], g["accuracy"], "o-", ms=3, lw=1.2,
+                    label=f"{name} (ECE {ece:.4f})")  # fmt: skip
+        adopted = str(r["tags.calibration_adopted"]) == "True"
+        ax.set_title(f"{task}{' - adopted' if adopted else ''}",
+                     fontsize=9)  # fmt: skip
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel("mean confidence in bin", fontsize=8)
+        ax.set_ylabel("accuracy in bin", fontsize=8)
+        ax.legend(fontsize=7, loc="upper left")
+    fig.suptitle("E15 reliability on validation (15 bins)", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(path, dpi=110)
+    plt.close(fig)

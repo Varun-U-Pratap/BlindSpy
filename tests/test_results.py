@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from blindspy import results as R
-from blindspy.data import CORE_TASKS, TIMEOUTS
+from blindspy.data import CORE_TASKS, ROOT, TIMEOUTS
 
 
 def fake_majority_runs(shift: float = 0.0) -> pd.DataFrame:
@@ -464,3 +464,36 @@ def test_e16_size_control_verdict_and_table():
 def test_md_writes_missing_values_as_empty_cells():
     out = R.md(pd.DataFrame([{"a": 1, "b": float("nan"), "c": 0.5}]))
     assert out.splitlines()[-1] == "| 1 |  | 0.5 |"
+
+
+def _e15_history(adopted: dict) -> pd.DataFrame:
+    import yaml
+
+    rows = []
+    for task, (raw, iso) in {"A1": (0.06, 0.01), "A2-VPN": (0.07, 0.02),
+                             "A2-NonVPN": (0.04, 0.01), "B": (0.03, 0.01)}.items():  # fmt: skip
+        src = yaml.safe_load((ROOT / "configs" / "final" / f"{task}.yaml").read_text())
+        rows.append({"tags.experiment_id": "E15", "tags.protocol": "calibration",
+                     "params.task": task, "run_name": f"E15-{task}-15s", "run_id": task,
+                     "params.builds_on": src["builds_on"], "metrics.val_accuracy": 0.9,
+                     "metrics.val_mean_confidence_uncalibrated": 0.95,
+                     "metrics.val_mean_confidence_isotonic": 0.9,
+                     "metrics.val_ece_uncalibrated": raw, "metrics.val_ece_isotonic": iso,
+                     "tags.calibration_adopted": adopted[task],
+                     "metrics.val_label_agreement_base_vs_plain": 1.0,
+                     "metrics.val_calibrated_argmax_differs": 0.0,
+                     "metrics.val_f1_macro": src["source_val_f1_macro"]})  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def test_e15_adopted_read_from_bool_or_string_tags():
+    # history.csv round trip turns "True"/"False" tags into booleans; both must read the same
+    for kind in (bool, str):
+        flags = {"A1": True, "A2-VPN": True, "A2-NonVPN": False, "B": False}
+        h = _e15_history({k: kind(v) for k, v in flags.items()})
+        t = R.e15_table(h).set_index("task")
+        assert t["adopted"].to_dict() == flags
+        v = R.e15_verdicts(h)
+        assert v["E15a"]["tasks_above_0.05"] == 2 and v["E15a"]["supported"]
+        assert v["E15b"]["supported"] and v["E15c"]["supported"]
+        assert v["E15_adopted"]["adopted"] == flags
