@@ -1,0 +1,18 @@
+experiment_id: E12
+run_name: E12-compare-xgboost-A2-NonVPN
+task: A2-NonVPN
+timeout: 15
+model: xgb
+params:
+  colsample_bytree: 0.5993241764407459
+  learning_rate: 0.09233159684107466
+  max_depth: 10
+  min_child_weight: 1
+  n_estimators: 543
+  subsample: 0.8412946712302319
+builds_on: E07-xgb-A2-NonVPN-15s
+source_run_id: 58b24fe3c93347c8ba1b127abf2258c7
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.9025494311968364

@@ -343,6 +343,25 @@ def phase3() -> None:
             print(k, "TRIGGERED (ask the user)" if x["triggered"] else "not triggered")
 
 
+def e12_sections(h, runner: str, name: str, protocol: str, root) -> tuple[list[str], dict]:
+    """E12 tables from the final runs' saved predictions (also used on the rehearsal store)."""
+    scores, draws = R.e12_scores(h, runner, name, protocol, root)
+    tests = R.e12_tests(scores, draws)
+    show = scores.drop(columns=[c for c in scores.columns if c.startswith("_")])
+    head = show[show["role"] == "headline"]
+    out = ["", f"## E12 headline models on the {name} rows (fit on train + validation; 95% "
+           f"percentile intervals from {R.N_BOOT:,} stratified paired resamples, seed "
+           f"{R.BOOT_SEED}; intervals are conditional on the test class counts)", "",
+           R.md(head),
+           "", f"## E12 all {len(show)} final models (headline, comparison set, old-rule picks), "
+           f"{name} rows", "", R.md(show),
+           "", f"## E12 the {len(tests)} paired tests on macro F1 (headline - other, two-sided "
+           f"paired bootstrap, Holm over all {len(tests)} at {R.HOLM_ALPHA})", "",
+           R.md(tests.assign(p=tests["p"].map(lambda x: f"{x:.4f}"),
+                             **{"Holm p": tests["Holm p"].map(lambda x: f"{x:.4f}")}))]  # fmt: skip
+    return out, R.e12_verdicts(scores, h)
+
+
 def phase4() -> None:
     h = R.load_history()
     out = ["# Phase 4 tables", "",
@@ -361,6 +380,11 @@ def phase4() -> None:
         runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
         R.e15_reliability_figure(h, runner, ROOT / "reports" / "figures" / "e15_reliability.png")
         v.update(R.e15_verdicts(h))
+    if ((h["tags.experiment_id"] == "E12") & (h["tags.protocol"] == "final_test")).any():
+        runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
+        out_e12, v12 = e12_sections(h, runner, "test", "final_test", ROOT)
+        out += out_e12
+        v.update(v12)
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip
     OUT4.write_text("\n".join(out))

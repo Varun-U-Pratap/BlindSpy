@@ -1,0 +1,16 @@
+experiment_id: E12
+run_name: E12-compare-random_forest-A2-VPN
+task: A2-VPN
+timeout: 15
+model: rf
+params:
+  max_depth: null
+  max_features: 0.5657433255359262
+  min_samples_leaf: 2
+  n_estimators: 910
+builds_on: E17-rf-A2-VPN-15s
+source_run_id: 34047d8b011947c981abda7d3860dd8f
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.8704005513493628

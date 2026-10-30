@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-compare-logistic_regression-A2-VPN
+task: A2-VPN
+timeout: 15
+model: logreg
+params:
+  C: 29.915437757819987
+  max_iter: 1000
+  signed_log: true
+builds_on: E17-logreg-A2-VPN-15s
+source_run_id: d4488ac9b97c4077b6bea78d47938cbc
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.7263480402079557

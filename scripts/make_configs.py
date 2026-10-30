@@ -166,6 +166,61 @@ def write_search(exp: str, model: str, task: str) -> int:
     return 1
 
 
+def write_e12() -> int:
+    """E12 (Phase 4): every config in configs/final/ once, as kind "final" (fit on train +
+    validation, score the test set once): the 4 headline models (E12-final-<task>; each is also
+    its type's comparison member, so that member is not run twice), the other 24 comparison
+    members and the 2 old-rule picks = 30 runs. A headline model gets calibrate: isotonic where
+    E15 adopted calibration (read from reports/history.csv, results.e15_table)."""
+    final = ROOT / "configs" / "final"
+    adopted = results.e15_table(results.load_history()).set_index("task")["adopted"]
+    drop = ("kind", "reason", "source_val_f1_macro")
+    n = 0
+    for task in CORE_TASKS:
+        head = yaml.safe_load((final / f"{task}.yaml").read_text())
+        head_cfg = {k: v for k, v in head.items() if k not in drop}
+        cal = "isotonic" if adopted[task] else "none"
+        write(
+            f"E12_final_{task}",
+            {
+                **head_cfg,
+                "kind": "final",
+                "role": "headline",
+                "calibrate": cal,
+                "source_val_f1_macro": head["source_val_f1_macro"],
+            },
+        )
+        n += 1
+        for path in sorted((final / "compare").glob(f"{task}_*.yaml")):
+            c = yaml.safe_load(path.read_text())
+            if c["source_run_id"] == head["source_run_id"]:
+                continue  # the headline run covers its own type
+            write(
+                f"E12_compare_{path.stem}",
+                {
+                    **{k: v for k, v in c.items() if k not in drop},
+                    "kind": "final",
+                    "role": "comparison",
+                    "source_val_f1_macro": c["source_val_f1_macro"],
+                },
+            )
+            n += 1
+        path = final / "old_rule" / f"{task}.yaml"
+        if path.exists():
+            c = yaml.safe_load(path.read_text())
+            write(
+                f"E12_old_rule_{task}",
+                {
+                    **{k: v for k, v in c.items() if k not in drop},
+                    "kind": "final",
+                    "role": "old_rule",
+                    "source_val_f1_macro": c["source_val_f1_macro"],
+                },
+            )
+            n += 1
+    return n
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     n = 0
@@ -301,6 +356,7 @@ def main() -> None:
             cfg = {**size_common, "run_name": run, "train_rows": rows, "subsample_seed": seed}
             write(f"E16_size_{rows}_s{seed}", cfg)
             n += 1
+    n += write_e12()
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")
 
 

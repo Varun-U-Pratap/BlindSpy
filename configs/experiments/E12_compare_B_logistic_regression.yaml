@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-compare-logistic_regression-B
+task: B
+timeout: 15
+model: logreg
+params:
+  C: 22.27205691442867
+  max_iter: 1000
+  signed_log: true
+builds_on: E17-logreg-B-15s
+source_run_id: 4fe372606f404d58b4a843d466274190
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.5862261477368422

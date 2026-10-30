@@ -1,0 +1,12 @@
+experiment_id: E12
+run_name: E12-compare-xgboost-A1
+task: A1
+timeout: 15
+model: xgb
+params: {}
+builds_on: E06-xgb-A1-15s
+source_run_id: 2ba737562ff74bdfbec9031ec0010332
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.927067093835436

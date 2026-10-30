@@ -1,0 +1,13 @@
+experiment_id: E12
+run_name: E12-compare-random_forest-A1
+task: A1
+timeout: 15
+model: rf
+params:
+  n_estimators: 300
+builds_on: E05-rf-A1-15s
+source_run_id: 6acd8ef1cc384dfdbeb29fff8706234a
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.9203427538522773
