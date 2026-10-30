@@ -113,3 +113,16 @@ def test_cli_writes_csv_and_exits_2_on_bad_input(folder, tmp_path, capsys):
     argv[3] = str(tmp_path / "bad.csv")
     assert cli.main(argv) == 2
     assert "Error:" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("task", data.CORE_TASKS)
+def test_committed_models_on_committed_samples(task):
+    # models/final + app/samples as committed (scripts/save_final_models.py, make_samples.py)
+    sample = pd.read_csv(ROOT / "app" / "samples" / f"{task}_test_sample.csv")
+    out = P.predict(task, sample)
+    model, meta = P.load_final(task)
+    X = sample.drop(columns="label")
+    assert (out["label"] == calibration.base_model(model).predict(X)).all()
+    assert meta["calibration"] == ("isotonic" if task in ("A1", "A2-VPN") else "none")
+    assert out["confidence"].between(0, 1).all() and len(out) == 20
+    assert meta["model_file_bytes"] < 50 * 10**6

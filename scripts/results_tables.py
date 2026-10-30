@@ -359,6 +359,13 @@ def e12_sections(h, runner: str, name: str, protocol: str, root) -> tuple[list[s
            f"paired bootstrap, Holm over all {len(tests)} at {R.HOLM_ALPHA})", "",
            R.md(tests.assign(p=tests["p"].map(lambda x: f"{x:.4f}"),
                              **{"Holm p": tests["Holm p"].map(lambda x: f"{x:.4f}")}))]  # fmt: skip
+    if name == "test":
+        out += ["", "## E12 headline models: calibration on the test rows (measured once), class "
+                "extremes, confusion pairs and cost (described, not tested)", "",
+                R.md(R.e12_headline_details(h))]  # fmt: skip
+        for task in R.CORE_TASKS:
+            out += ["", f"## E12 headline model per class, {task} (test rows)", "",
+                    R.md(R.e12_per_class(h, task))]  # fmt: skip
     return out, R.e12_verdicts(scores, h)
 
 

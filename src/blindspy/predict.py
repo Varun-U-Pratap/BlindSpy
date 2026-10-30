@@ -5,7 +5,8 @@ The input must hold exactly the model's 23 features, in the JSON's order, all nu
 finite (an optional `label` column at the end is ignored and echoed as true_label). For every
 row: the predicted label (the model's own class), its confidence (the calibrated probability of
 that class where E15 adopted calibration, else the model's probability) and the 3 features that
-pushed the model most towards that label (SHAP TreeExplainer on the tree model's input).
+pushed the model most towards that label (SHAP TreeExplainer on the tree model's input; values
+are in the model's raw output units, log-odds, so they add up to the margin, not to a probability).
 """
 
 import hashlib

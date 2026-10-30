@@ -53,7 +53,8 @@ def main() -> int:
             "model": r["params.model"],
             "class_balancing": r["params.class_balancing"],
             "pipeline_steps": r["params.pipeline_steps"],
-            "trained_on": f"train + validation rows of the seed-42 split ({r['params.n_fit']} "
+            "trained_on": f"train + validation rows of the seed-42 split "
+            f"({int(float(r['params.n_fit']))} "
             f"rows), data version {r['tags.data_version']}",
             "data_sha256": r["tags.data_sha256"],
             "calibration": r["params.calibrate"],

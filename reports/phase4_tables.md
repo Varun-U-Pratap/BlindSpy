@@ -16,6 +16,140 @@ Adopted = uncalibrated ECE above 0.05 and isotonic ECE lower (rule fixed 31 Oct)
 
 Reliability diagrams: MLflow artifact calibration/reliability.png of each run; reports/figures/e15_reliability.png.
 
+## E12 headline models on the test rows (fit on train + validation; 95% percentile intervals from 10,000 stratified paired resamples, seed 42; intervals are conditional on the test class counts)
+
+| task | role | method type | run | source run | val macro F1 | test macro F1 | 95% interval | test - val | test accuracy | accuracy 95% interval | test weighted F1 | test balanced accuracy | CV macro F1 (fit rows) | CV - test | calibration |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | headline | LightGBM | E12-final-A1 | E17-lgbm-A1-15s | 0.9308 | 0.9434 | 0.9348-0.9519 | 0.0126 | 0.9435 | 0.9350-0.9520 | 0.9435 | 0.9433 | 0.9322 | -0.0111 | isotonic |
+| A2-VPN | headline | LightGBM | E12-final-A2-VPN | E08-lgbm_class_weight-A2-VPN-15s | 0.883 | 0.8652 | 0.8431-0.8866 | -0.0178 | 0.8955 | 0.8799-0.9112 | 0.896 | 0.8682 | 0.8827 | 0.0175 | isotonic |
+| A2-NonVPN | headline | LightGBM | E12-final-A2-NonVPN | E08-lgbm_oversample-A2-NonVPN-15s | 0.9075 | 0.9403 | 0.9216-0.9573 | 0.0328 | 0.9609 | 0.9510-0.9709 | 0.9607 | 0.9343 | 0.9347 | -0.0055 | none |
+| B | headline | XGBoost | E12-final-B | E07-xgb-B-15s | 0.8428 | 0.848 | 0.8305-0.8651 | 0.0052 | 0.8798 | 0.8684-0.8916 | 0.8797 | 0.8439 | 0.8473 | -0.0007 | none |
+
+## E12 all 30 final models (headline, comparison set, old-rule picks), test rows
+
+| task | role | method type | run | source run | val macro F1 | test macro F1 | 95% interval | test - val | test accuracy | accuracy 95% interval | test weighted F1 | test balanced accuracy | CV macro F1 (fit rows) | CV - test | calibration |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | headline | LightGBM | E12-final-A1 | E17-lgbm-A1-15s | 0.9308 | 0.9434 | 0.9348-0.9519 | 0.0126 | 0.9435 | 0.9350-0.9520 | 0.9435 | 0.9433 | 0.9322 | -0.0111 | isotonic |
+| A1 | comparison | KNN | E12-compare-knn-A1 | E07-knn_log_standard-A1-15s | 0.9163 | 0.9208 | 0.9108-0.9308 | 0.0045 | 0.9209 | 0.9109-0.9309 | 0.9209 | 0.9209 | 0.9174 | -0.0034 | none |
+| A1 | comparison | Random Forest | E12-compare-random_forest-A1 | E05-rf-A1-15s | 0.9203 | 0.9289 | 0.9192-0.9382 | 0.0085 | 0.929 | 0.9194-0.9383 | 0.929 | 0.9286 | 0.9199 | -0.009 | none |
+| A1 | comparison | SVM-RBF | E12-compare-svm_rbf-A1 | E17-svm_rbf-A1-15s | 0.9259 | 0.9311 | 0.9215-0.9404 | 0.0052 | 0.9313 | 0.9217-0.9405 | 0.9312 | 0.9309 | 0.9222 | -0.0089 | none |
+| A1 | comparison | XGBoost | E12-compare-xgboost-A1 | E06-xgb-A1-15s | 0.9271 | 0.9304 | 0.9207-0.9397 | 0.0033 | 0.9305 | 0.9209-0.9398 | 0.9305 | 0.9301 | 0.929 | -0.0014 | none |
+| A1 | comparison | decision tree | E12-compare-decision_tree-A1 | E17-tree-A1-15s | 0.8905 | 0.8982 | 0.8866-0.9093 | 0.0077 | 0.8984 | 0.8869-0.9095 | 0.8983 | 0.8979 | 0.8983 | 0.0001 | none |
+| A1 | comparison | logistic regression | E12-compare-logistic_regression-A1 | E17-logreg-A1-15s | 0.6517 | 0.6804 | 0.6628-0.6976 | 0.0287 | 0.6811 | 0.6633-0.6984 | 0.6809 | 0.6803 | 0.673 | -0.0074 | none |
+| A1 | old_rule | KNN | E12-old_rule-A1 | E04-knn_log_standard-A1-15s | 0.9048 | 0.9112 | 0.9004-0.9216 | 0.0064 | 0.9113 | 0.9006-0.9217 | 0.9113 | 0.9111 | 0.9078 | -0.0034 | none |
+| A2-VPN | headline | LightGBM | E12-final-A2-VPN | E08-lgbm_class_weight-A2-VPN-15s | 0.883 | 0.8652 | 0.8431-0.8866 | -0.0178 | 0.8955 | 0.8799-0.9112 | 0.896 | 0.8682 | 0.8827 | 0.0175 | isotonic |
+| A2-VPN | comparison | KNN | E12-compare-knn-A2-VPN | E07-knn_log_standard-A2-VPN-15s | 0.8625 | 0.8431 | 0.8190-0.8655 | -0.0195 | 0.8735 | 0.8564-0.8898 | 0.8731 | 0.8441 | 0.8577 | 0.0146 | none |
+| A2-VPN | comparison | Random Forest | E12-compare-random_forest-A2-VPN | E17-rf-A2-VPN-15s | 0.8704 | 0.8594 | 0.8379-0.8804 | -0.011 | 0.8827 | 0.8664-0.8984 | 0.8823 | 0.8646 | 0.8688 | 0.0093 | none |
+| A2-VPN | comparison | SVM-RBF | E12-compare-svm_rbf-A2-VPN | E17-svm_rbf-A2-VPN-15s | 0.8707 | 0.867 | 0.8464-0.8875 | -0.0037 | 0.8863 | 0.8699-0.9019 | 0.8869 | 0.8732 | 0.8672 | 0.0002 | none |
+| A2-VPN | comparison | XGBoost | E12-compare-xgboost-A2-VPN | E06-xgb-A2-VPN-15s | 0.8758 | 0.8577 | 0.8349-0.8796 | -0.0181 | 0.8891 | 0.8728-0.9048 | 0.8896 | 0.8606 | 0.882 | 0.0243 | none |
+| A2-VPN | comparison | decision tree | E12-compare-decision_tree-A2-VPN | E17-tree-A2-VPN-15s | 0.8292 | 0.8308 | 0.8085-0.8534 | 0.0016 | 0.8557 | 0.8380-0.8735 | 0.8568 | 0.8383 | 0.8219 | -0.0089 | none |
+| A2-VPN | comparison | logistic regression | E12-compare-logistic_regression-A2-VPN | E17-logreg-A2-VPN-15s | 0.7263 | 0.7179 | 0.6893-0.7446 | -0.0084 | 0.7633 | 0.7434-0.7832 | 0.7584 | 0.7093 | 0.7275 | 0.0096 | none |
+| A2-VPN | old_rule | KNN | E12-old_rule-A2-VPN | E04-knn_log_standard-A2-VPN-15s | 0.8544 | 0.8442 | 0.8216-0.8667 | -0.0102 | 0.8685 | 0.8515-0.8856 | 0.8679 | 0.8538 | 0.8444 | 0.0003 | none |
+| A2-NonVPN | headline | LightGBM | E12-final-A2-NonVPN | E08-lgbm_oversample-A2-NonVPN-15s | 0.9075 | 0.9403 | 0.9216-0.9573 | 0.0328 | 0.9609 | 0.9510-0.9709 | 0.9607 | 0.9343 | 0.9347 | -0.0055 | none |
+| A2-NonVPN | comparison | KNN | E12-compare-knn-A2-NonVPN | E07-knn_log_standard-A2-NonVPN-15s | 0.8929 | 0.916 | 0.8960-0.9351 | 0.0231 | 0.9425 | 0.9303-0.9540 | 0.9423 | 0.9126 | 0.9091 | -0.007 | none |
+| A2-NonVPN | comparison | Random Forest | E12-compare-random_forest-A2-NonVPN | E05-rf-A2-NonVPN-15s | 0.8941 | 0.9067 | 0.8848-0.9276 | 0.0127 | 0.9379 | 0.9249-0.9502 | 0.9373 | 0.897 | 0.908 | 0.0012 | none |
+| A2-NonVPN | comparison | SVM-RBF | E12-compare-svm_rbf-A2-NonVPN | E17-svm_rbf-A2-NonVPN-15s | 0.9058 | 0.9244 | 0.9036-0.9438 | 0.0186 | 0.9525 | 0.9410-0.9632 | 0.9521 | 0.9202 | 0.923 | -0.0014 | none |
+| A2-NonVPN | comparison | XGBoost | E12-compare-xgboost-A2-NonVPN | E07-xgb-A2-NonVPN-15s | 0.9025 | 0.9346 | 0.9151-0.9523 | 0.032 | 0.9579 | 0.9471-0.9678 | 0.9576 | 0.9268 | 0.9293 | -0.0053 | none |
+| A2-NonVPN | comparison | decision tree | E12-compare-decision_tree-A2-NonVPN | E02-tree-A2-NonVPN-15s | 0.8294 | 0.8825 | 0.8596-0.9051 | 0.0532 | 0.9203 | 0.9057-0.9341 | 0.9204 | 0.8841 | 0.8686 | -0.0139 | none |
+| A2-NonVPN | comparison | logistic regression | E12-compare-logistic_regression-A2-NonVPN | E17-logreg-A2-NonVPN-15s | 0.8002 | 0.8053 | 0.7724-0.8360 | 0.005 | 0.8828 | 0.8674-0.8981 | 0.8789 | 0.7814 | 0.7992 | -0.0061 | none |
+| B | headline | XGBoost | E12-final-B | E07-xgb-B-15s | 0.8428 | 0.848 | 0.8305-0.8651 | 0.0052 | 0.8798 | 0.8684-0.8916 | 0.8797 | 0.8439 | 0.8473 | -0.0007 | none |
+| B | comparison | KNN | E12-compare-knn-B | E07-knn_log_standard-B-15s | 0.8006 | 0.8253 | 0.8068-0.8432 | 0.0248 | 0.861 | 0.8488-0.8732 | 0.8607 | 0.825 | 0.811 | -0.0144 | none |
+| B | comparison | LightGBM | E12-compare-lightgbm-B | E07-lgbm-B-15s | 0.8352 | 0.8567 | 0.8389-0.8735 | 0.0215 | 0.885 | 0.8732-0.8964 | 0.8846 | 0.8468 | 0.8501 | -0.0066 | none |
+| B | comparison | Random Forest | E12-compare-random_forest-B | E17-rf-B-15s | 0.8167 | 0.8403 | 0.8222-0.8576 | 0.0236 | 0.8721 | 0.8603-0.8838 | 0.8713 | 0.8339 | 0.8359 | -0.0044 | none |
+| B | comparison | SVM-RBF | E12-compare-svm_rbf-B | E17-svm_rbf-B-15s | 0.8242 | 0.8411 | 0.8224-0.8584 | 0.0169 | 0.8728 | 0.8610-0.8850 | 0.872 | 0.8342 | 0.8248 | -0.0163 | none |
+| B | comparison | decision tree | E12-compare-decision_tree-B | E02-tree-B-15s | 0.7585 | 0.7886 | 0.7687-0.8081 | 0.03 | 0.8278 | 0.8145-0.8414 | 0.8279 | 0.7892 | 0.7574 | -0.0312 | none |
+| B | comparison | logistic regression | E12-compare-logistic_regression-B | E17-logreg-B-15s | 0.5862 | 0.6089 | 0.5856-0.6313 | 0.0227 | 0.6574 | 0.6412-0.6737 | 0.6505 | 0.595 | 0.5885 | -0.0204 | none |
+
+## E12 the 26 paired tests on macro F1 (headline - other, two-sided paired bootstrap, Holm over all 26 at 0.05)
+
+| task | headline | other | other role | other type | d (headline - other) | d 95% interval | p | Holm p | different (Holm, 0.05) |
+|---|---|---|---|---|---|---|---|---|---|
+| A1 | E12-final-A1 | E12-compare-knn-A1 | comparison | KNN | 0.0226 | 0.0140-0.0314 | 0.0002 | 0.0052 | yes |
+| A1 | E12-final-A1 | E12-compare-random_forest-A1 | comparison | Random Forest | 0.0145 | 0.0071-0.0219 | 0.0004 | 0.0064 | yes |
+| A1 | E12-final-A1 | E12-compare-svm_rbf-A1 | comparison | SVM-RBF | 0.0122 | 0.0038-0.0207 | 0.0042 | 0.0504 | no |
+| A1 | E12-final-A1 | E12-compare-xgboost-A1 | comparison | XGBoost | 0.013 | 0.0056-0.0204 | 0.0004 | 0.0064 | yes |
+| A1 | E12-final-A1 | E12-compare-decision_tree-A1 | comparison | decision tree | 0.0452 | 0.0352-0.0559 | 0.0002 | 0.0052 | yes |
+| A1 | E12-final-A1 | E12-compare-logistic_regression-A1 | comparison | logistic regression | 0.263 | 0.2446-0.2817 | 0.0002 | 0.0052 | yes |
+| A1 | E12-final-A1 | E12-old_rule-A1 | old_rule | KNN | 0.0322 | 0.0226-0.0422 | 0.0002 | 0.0052 | yes |
+| A2-VPN | E12-final-A2-VPN | E12-compare-knn-A2-VPN | comparison | KNN | 0.0221 | 0.0052-0.0390 | 0.0132 | 0.1320 | no |
+| A2-VPN | E12-final-A2-VPN | E12-compare-random_forest-A2-VPN | comparison | Random Forest | 0.0058 | -0.0117-0.0234 | 0.5123 | 1.0000 | no |
+| A2-VPN | E12-final-A2-VPN | E12-compare-svm_rbf-A2-VPN | comparison | SVM-RBF | -0.0018 | -0.0224-0.0186 | 0.8525 | 1.0000 | no |
+| A2-VPN | E12-final-A2-VPN | E12-compare-xgboost-A2-VPN | comparison | XGBoost | 0.0075 | -0.0062-0.0214 | 0.2918 | 1.0000 | no |
+| A2-VPN | E12-final-A2-VPN | E12-compare-decision_tree-A2-VPN | comparison | decision tree | 0.0345 | 0.0115-0.0577 | 0.0042 | 0.0504 | no |
+| A2-VPN | E12-final-A2-VPN | E12-compare-logistic_regression-A2-VPN | comparison | logistic regression | 0.1473 | 0.1173-0.1777 | 0.0002 | 0.0052 | yes |
+| A2-VPN | E12-final-A2-VPN | E12-old_rule-A2-VPN | old_rule | KNN | 0.0211 | -0.0005-0.0426 | 0.0566 | 0.4752 | no |
+| A2-NonVPN | E12-final-A2-NonVPN | E12-compare-knn-A2-NonVPN | comparison | KNN | 0.0242 | 0.0106-0.0387 | 0.0004 | 0.0064 | yes |
+| A2-NonVPN | E12-final-A2-NonVPN | E12-compare-random_forest-A2-NonVPN | comparison | Random Forest | 0.0336 | 0.0181-0.0506 | 0.0002 | 0.0052 | yes |
+| A2-NonVPN | E12-final-A2-NonVPN | E12-compare-svm_rbf-A2-NonVPN | comparison | SVM-RBF | 0.0158 | -0.0001-0.0327 | 0.0528 | 0.4752 | no |
+| A2-NonVPN | E12-final-A2-NonVPN | E12-compare-xgboost-A2-NonVPN | comparison | XGBoost | 0.0057 | -0.0059-0.0181 | 0.3406 | 1.0000 | no |
+| A2-NonVPN | E12-final-A2-NonVPN | E12-compare-decision_tree-A2-NonVPN | comparison | decision tree | 0.0578 | 0.0402-0.0763 | 0.0002 | 0.0052 | yes |
+| A2-NonVPN | E12-final-A2-NonVPN | E12-compare-logistic_regression-A2-NonVPN | comparison | logistic regression | 0.135 | 0.1033-0.1687 | 0.0002 | 0.0052 | yes |
+| B | E12-final-B | E12-compare-knn-B | comparison | KNN | 0.0227 | 0.0090-0.0364 | 0.0020 | 0.0260 | yes |
+| B | E12-final-B | E12-compare-lightgbm-B | comparison | LightGBM | -0.0087 | -0.0197-0.0028 | 0.1368 | 0.9575 | no |
+| B | E12-final-B | E12-compare-random_forest-B | comparison | Random Forest | 0.0077 | -0.0040-0.0196 | 0.1952 | 1.0000 | no |
+| B | E12-final-B | E12-compare-svm_rbf-B | comparison | SVM-RBF | 0.0069 | -0.0093-0.0235 | 0.4078 | 1.0000 | no |
+| B | E12-final-B | E12-compare-decision_tree-B | comparison | decision tree | 0.0594 | 0.0435-0.0762 | 0.0002 | 0.0052 | yes |
+| B | E12-final-B | E12-compare-logistic_regression-B | comparison | logistic regression | 0.2391 | 0.2147-0.2648 | 0.0002 | 0.0052 | yes |
+
+## E12 headline models: calibration on the test rows (measured once), class extremes, confusion pairs and cost (described, not tested)
+
+| task | run | calibration | test ECE (probabilities used) | test ECE uncalibrated | mean confidence | test accuracy | weighted - macro F1 gap | best class F1 | worst class F1 | best class recall | worst class recall | top-5 confusion pairs (true -> predicted: flows) | model file MiB | train time s | predict ms per 1,000 flows |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | E12-final-A1 | isotonic | 0.009 | 0.0442 | 0.9376 | 0.9435 | 0.0001 | VPN 0.9456 | Non-VPN 0.9411 | VPN 0.9487 | Non-VPN 0.9378 | Non-VPN -> VPN: 81; VPN -> Non-VPN: 72 | 7.63 | 4.31 | 192.9 |
+| A2-VPN | E12-final-A2-VPN | isotonic | 0.0169 | 0.0709 | 0.889 | 0.8955 | 0.0308 | VPN-VOIP 0.9941 | VPN-MAIL 0.7132 | VPN-VOIP 0.9882 | VPN-MAIL 0.7077 | VPN-FT -> VPN-CHAT: 19; VPN-BROWSING -> VPN-CHAT: 16; VPN-CHAT -> VPN-FT: 15; VPN-CHAT -> VPN-BROWSING: 11; VPN-FT -> VPN-BROWSING: 10 | 28.14 | 14.79 | 1372.9 |
+| A2-NonVPN | E12-final-A2-NonVPN | none | 0.0339 | 0.0339 | 0.9942 | 0.9609 | 0.0204 | VOIP 0.9964 | STREAMING 0.8955 | VOIP 0.9929 | STREAMING 0.8824 | CHAT -> BROWSING: 14; STREAMING -> BROWSING: 7; BROWSING -> CHAT: 4; FT -> BROWSING: 4; FT -> STREAMING: 4 | 4.92 | 6.24 | 325.6 |
+| B | E12-final-B | none | 0.042 | 0.042 | 0.9213 | 0.8798 | 0.0317 | VOIP 0.9917 | VPN-MAIL 0.7259 | VOIP 0.9905 | VPN-P2P 0.7000 | BROWSING -> VPN-BROWSING: 28; VPN-BROWSING -> BROWSING: 17; VPN-CHAT -> VPN-FT: 16; VPN-BROWSING -> VPN-CHAT: 13; VPN-CHAT -> VPN-BROWSING: 13 | 4.6 | 10.56 | 58.8 |
+
+## E12 headline model per class, A1 (test rows)
+
+| class | test rows | precision | recall | F1 |
+|---|---|---|---|---|
+| Non-VPN | 1,303 | 0.9444 | 0.9378 | 0.9411 |
+| VPN | 1,403 | 0.9426 | 0.9487 | 0.9456 |
+
+## E12 headline model per class, A2-VPN (test rows)
+
+| class | test rows | precision | recall | F1 |
+|---|---|---|---|---|
+| VPN-BROWSING | 375 | 0.9305 | 0.928 | 0.9292 |
+| VPN-CHAT | 174 | 0.7663 | 0.8103 | 0.7877 |
+| VPN-FT | 282 | 0.8672 | 0.8333 | 0.8499 |
+| VPN-MAIL | 65 | 0.7188 | 0.7077 | 0.7132 |
+| VPN-P2P | 100 | 0.8148 | 0.88 | 0.8462 |
+| VPN-STREAMING | 71 | 0.9429 | 0.9296 | 0.9362 |
+| VPN-VOIP | 340 | 1.0 | 0.9882 | 0.9941 |
+
+## E12 headline model per class, A2-NonVPN (test rows)
+
+| class | test rows | precision | recall | F1 |
+|---|---|---|---|---|
+| BROWSING | 375 | 0.9365 | 0.984 | 0.9597 |
+| CHAT | 133 | 0.9219 | 0.8872 | 0.9042 |
+| FT | 129 | 0.9504 | 0.8915 | 0.92 |
+| MAIL | 36 | 0.9167 | 0.9167 | 0.9167 |
+| P2P | 141 | 0.9929 | 0.9858 | 0.9893 |
+| STREAMING | 68 | 0.9091 | 0.8824 | 0.8955 |
+| VOIP | 423 | 1.0 | 0.9929 | 0.9964 |
+
+## E12 headline model per class, B (test rows)
+
+| class | test rows | precision | recall | F1 |
+|---|---|---|---|---|
+| BROWSING | 375 | 0.8865 | 0.896 | 0.8912 |
+| CHAT | 133 | 0.7698 | 0.8045 | 0.7868 |
+| FT | 129 | 0.8992 | 0.8295 | 0.8629 |
+| MAIL | 36 | 0.8182 | 0.75 | 0.7826 |
+| P2P | 141 | 0.9214 | 0.9149 | 0.9181 |
+| STREAMING | 67 | 0.8833 | 0.791 | 0.8346 |
+| VOIP | 423 | 0.9929 | 0.9905 | 0.9917 |
+| VPN-BROWSING | 375 | 0.827 | 0.8667 | 0.8464 |
+| VPN-CHAT | 174 | 0.7607 | 0.7126 | 0.7359 |
+| VPN-FT | 283 | 0.8027 | 0.8481 | 0.8247 |
+| VPN-MAIL | 65 | 0.7 | 0.7538 | 0.7259 |
+| VPN-P2P | 100 | 0.814 | 0.7 | 0.7527 |
+| VPN-STREAMING | 71 | 0.8861 | 0.9859 | 0.9333 |
+| VPN-VOIP | 340 | 1.0 | 0.9706 | 0.9851 |
+
 ## Threshold checks (pre-stated in the E## files)
 
 ```json
@@ -64,6 +198,38 @@ Reliability diagrams: MLflow artifact calibration/reliability.png of each run; r
    "A2-NonVPN": false,
    "B": false
   }
+ },
+ "E12a": {
+  "headline_minus_val": {
+   "A1": 0.0126,
+   "A2-VPN": -0.0178,
+   "A2-NonVPN": 0.0328,
+   "B": 0.0052
+  },
+  "needed": "all |gap| <= 0.03",
+  "supported": false
+ },
+ "E12b": {
+  "headline_above_old_rule_pick": {
+   "A1": true,
+   "A2-VPN": true,
+   "A2-NonVPN": true,
+   "B": true
+  },
+  "tasks": 4,
+  "needed": 3,
+  "supported": true
+ },
+ "E12c": {
+  "spearman_val_vs_test_7_types": {
+   "A1": 0.9643,
+   "A2-VPN": 0.8214,
+   "A2-NonVPN": 0.9286,
+   "B": 0.9643
+  },
+  "tasks_at_least_0.8": 4,
+  "needed": 3,
+  "supported": true
  }
 }
 ```

@@ -1457,3 +1457,49 @@ def e12_verdicts(scores: pd.DataFrame, h: pd.DataFrame) -> dict:
                  "tasks_at_least_0.8": sum(v >= 0.8 for v in rho.values()), "needed": 3,
                  "supported": sum(v >= 0.8 for v in rho.values()) >= 3},
     }  # fmt: skip
+
+
+def e12_headline_details(h: pd.DataFrame) -> pd.DataFrame:
+    """The described (untested) extras of the 4 headline test runs: test ECE with the
+    probabilities used (calibrated where E15 adopted it) and uncalibrated, mean confidence, best
+    and worst class by F1 and recall, the top-5 confusion pairs, model file size and cost."""
+    e = e12_runs(h)
+    rows = []
+    for _, r in e[e["params.role"] == "headline"].iterrows():
+        classes = r["params.classes"].split(",")
+        f1 = {c: r[f"metrics.test_f1.{c}"] for c in classes}
+        rec = {c: r[f"metrics.test_recall.{c}"] for c in classes}
+        best_f, worst_f = max(f1, key=f1.get), min(f1, key=f1.get)
+        best_r, worst_r = max(rec, key=rec.get), min(rec, key=rec.get)
+        rows.append({
+            "task": r["params.task"], "run": r["run_name"], "calibration": r["params.calibrate"],
+            "test ECE (probabilities used)": round(r["metrics.test_ece_used"], 4),
+            "test ECE uncalibrated": round(r["metrics.test_ece_uncalibrated"], 4),
+            "mean confidence": round(r["metrics.test_mean_confidence_used"], 4),
+            "test accuracy": round(r["metrics.test_accuracy"], 4),
+            "weighted - macro F1 gap": round(r["metrics.test_f1_gap_weighted_minus_macro"], 4),
+            "best class F1": f"{best_f} {f1[best_f]:.4f}",
+            "worst class F1": f"{worst_f} {f1[worst_f]:.4f}",
+            "best class recall": f"{best_r} {rec[best_r]:.4f}",
+            "worst class recall": f"{worst_r} {rec[worst_r]:.4f}",
+            "top-5 confusion pairs (true -> predicted: flows)": r["tags.top_confusion_pairs"],
+            "model file MiB": round(r["metrics.model_file_bytes"] / 2**20, 2),
+            "train time s": round(r["metrics.train_time_s"], 2),
+            "predict ms per 1,000 flows": round(r["metrics.predict_ms_per_1000"], 1),
+        })  # fmt: skip
+    t = pd.DataFrame(rows)
+    return t.sort_values("task", key=lambda c: c.map(CORE_TASKS.index), ignore_index=True)
+
+
+def e12_per_class(h: pd.DataFrame, task: str) -> pd.DataFrame:
+    """Per-class test precision, recall and F1 of the task's headline model."""
+    e = e12_runs(h)
+    r = e[(e["params.task"] == task) & (e["params.role"] == "headline")].iloc[0]
+    counts = json.loads(r["params.class_counts.test"])
+    return pd.DataFrame([
+        {"class": c, "test rows": counts[c],
+         "precision": round(r[f"metrics.test_precision.{c}"], 4),
+         "recall": round(r[f"metrics.test_recall.{c}"], 4),
+         "F1": round(r[f"metrics.test_f1.{c}"], 4)}
+        for c in r["params.classes"].split(",")
+    ])  # fmt: skip

@@ -1,0 +1,124 @@
+{
+ "task": "A2-NonVPN",
+ "timeout": 15,
+ "mlflow_run_name": "E12-final-A2-NonVPN",
+ "mlflow_run_id": "b0e2fb9543c5449f8e2f01a9f5b8cf18",
+ "git_commit": "87181d20ac570ebb247a3588fca3ab3b73d58c6b",
+ "training_date": "2026-10-30T20:25:43+00:00",
+ "config_file": "configs/experiments/E12_final_A2-NonVPN.yaml",
+ "source_run": "E08-lgbm_oversample-A2-NonVPN-15s",
+ "model": "lgbm",
+ "class_balancing": "oversample",
+ "pipeline_steps": "RandomOverSampler -> LGBMClassifier",
+ "trained_on": "train + validation rows of the seed-42 split (7389 rows), data version v1",
+ "data_sha256": "0adb0bd4c973999bb51497458f7b58aabbad6490e482195b772f65e917317919",
+ "calibration": "none",
+ "confidence": "the model's probability of the predicted class",
+ "test_macro_f1": 0.9402652350057733,
+ "features": [
+  {
+   "name": "duration",
+   "unit": "microseconds"
+  },
+  {
+   "name": "total_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "total_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "flowPktsPerSecond",
+   "unit": "packets per second"
+  },
+  {
+   "name": "flowBytesPerSecond",
+   "unit": "bytes per second"
+  },
+  {
+   "name": "min_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_idle",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_idle",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_idle",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_idle",
+   "unit": "microseconds"
+  }
+ ],
+ "missing_value_code": "-1 = not measurable (fewer than 2 packets in that direction, or no active/idle period); never replace it with 0 (E00)",
+ "class_labels": [
+  "BROWSING",
+  "CHAT",
+  "FT",
+  "MAIL",
+  "P2P",
+  "STREAMING",
+  "VOIP"
+ ],
+ "model_file_bytes": 5157816,
+ "model_file_sha256": "df96945dfc5876cdf3231f0a97b29bf15cb9c9b9db2d2e6cc737310277e59f8f"
+}
