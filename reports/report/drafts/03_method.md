@@ -49,11 +49,18 @@ version, so every run on that version uses exactly the same rows.
 - Hyperparameters are chosen by 5-fold stratified cross-validation inside the training set only.
 - Candidate models are compared on the validation set.
 - The chosen configuration is retrained on training + validation data and scored **once** on the
-  test set, at the final milestone, with 95% confidence intervals from 1,000 bootstrap resamples.
-  A comparison set (the best validation variant of each method type per task, Section 3.8) is
-  fixed before the test set is opened and scored the same way, once; it never changes the chosen
-  configuration. A difference between two models of a task is tested with a paired bootstrap on
-  the same test rows, Holm-corrected for the number of comparisons.
+  test set, at the final milestone, with 95% percentile intervals from 10,000 stratified bootstrap
+  resamples (rows drawn with replacement within each true class, so every resample keeps the test
+  set's class counts; seed 42). A comparison set (the best validation variant of each method type
+  per task, Section 3.8) is fixed before the test set is opened and scored the same way, once; it
+  never changes the chosen configuration. 26 differences are tested, fixed before the test set is
+  opened (E12): per task the chosen model against each of the other six method types, and against
+  the old-rule pick in A1 and A2-VPN. Each test is a two-sided paired bootstrap on macro F1 (the
+  same resampled rows for both models), Holm-corrected over all 26 at alpha 0.05; other
+  differences and metrics are only described. 10,000 resamples are needed because with 1,000 the
+  smallest possible p-value (0.0020) is above Holm's first threshold (0.05 / 26 = 0.0019).
+- Calibration (E15) is decided on the validation set before the test set is opened; it changes
+  only the reported confidence, never the predicted class.
 - Scaling, transforms and resampling are steps inside the pipeline, so they are fitted on training
   folds only and never see validation or test rows.
 - Every random step (split, models, tuning sampler, oversampling, bootstrap) uses seed 42. Only the

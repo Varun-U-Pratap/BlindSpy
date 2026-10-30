@@ -787,7 +787,8 @@ visible. The only fallback is a saved model file above 50 MB; none of the four i
 The **comparison set** holds, per task, the best 15 s validation variant of each of the 7 method
 types, 28 models in all. It was fixed in `configs/final/compare/` before the test set is opened.
 In Phase 4 each is retrained on training + validation data and scored once on the test set, with
-paired bootstrap tests (Holm correction) for differences.
+26 paired bootstrap tests on macro F1 (Holm correction), fixed before the test set is opened
+(Section 3.3, E12).
 
 ![Comparison set at 15 s](../../figures/comparison_set_val_15s.png)
 
