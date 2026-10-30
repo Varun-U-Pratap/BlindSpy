@@ -60,7 +60,10 @@ version, so every run on that version uses exactly the same rows.
   differences and metrics are only described. 10,000 resamples are needed because with 1,000 the
   smallest possible p-value (0.0020) is above Holm's first threshold (0.05 / 26 = 0.0019).
 - Calibration (E15) is decided on the validation set before the test set is opened; it changes
-  only the reported confidence, never the predicted class.
+  only the reported confidence, never the predicted class. The isotonic calibrator learns from
+  5-fold out-of-fold predictions on the training rows, with the same shuffled folds (seed 42) as
+  every other cross-validation here: unshuffled folds over the file-ordered rows hold out whole
+  blocks of the files and give far too poor out-of-fold predictions (E15).
 - Scaling, transforms and resampling are steps inside the pipeline, so they are fitted on training
   folds only and never see validation or test rows.
 - Every random step (split, models, tuning sampler, oversampling, bootstrap) uses seed 42. Only the
