@@ -8,7 +8,8 @@ validation; the test set is never used), "paper_benchmark" (the paper's 10-fold 
 the whole file, rows from data v1 or as published; never used for model selection) and
 "optuna" (E07: an Optuna search on the training rows, each trial a nested run tagged
 trial=True with settings and scores only; the best settings are then trained and scored
-exactly like "train", and that model is saved).
+exactly like "train", and that model is saved), "kaggle" (E16) and "calibration" (E15: the
+validation ECE of a headline config, uncalibrated and with an isotonic calibrator fitted on train).
 """
 
 import argparse
@@ -46,6 +47,18 @@ def run_train(cfg: dict, base: dict) -> None:
     mlflow.set_tags(tracking.data_tags(cfg["task"], cfg["timeout"], "v1", version))
     with tempfile.TemporaryDirectory() as tmp:
         result = train.train_and_score(cfg, parts, base["seed"], base["cv_folds"], Path(tmp),
+                                       compress=base.get("model_compress", 0))  # fmt: skip
+        _log_data_rules(version)
+        tracking.log_result(result, Path(tmp))
+
+
+def run_calibration(cfg: dict, base: dict) -> None:
+    """E15: validation ECE of a headline config, uncalibrated and isotonic."""
+    version = base["data_version"]
+    parts = data.load_task(cfg["task"], cfg["timeout"], data_version=version)
+    mlflow.set_tags(tracking.data_tags(cfg["task"], cfg["timeout"], "v1", version))
+    with tempfile.TemporaryDirectory() as tmp:
+        result = train.calibration_run(cfg, parts, base["seed"], Path(tmp),
                                        compress=base.get("model_compress", 0))  # fmt: skip
         _log_data_rules(version)
         tracking.log_result(result, Path(tmp))
@@ -138,6 +151,7 @@ KINDS = {
     "paper_benchmark": run_paper_benchmark,
     "optuna": run_optuna,
     "kaggle": run_kaggle,
+    "calibration": run_calibration,
 }
 
 
