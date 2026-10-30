@@ -1,0 +1,70 @@
+{
+ "A1": {
+  "config": "configs/final/A1.yaml",
+  "train_rows": 12626,
+  "train_rows_in_file_order": true,
+  "unshuffled (cv=5)": {
+   "oof_accuracy": 0.6701251386028829,
+   "oof_f1_macro": 0.6680133619923463,
+   "oof_mean_confidence": 0.9636501790647397,
+   "oof_ece": 0.2935250404618566
+  },
+  "shuffled (seed 42)": {
+   "oof_accuracy": 0.9321241881831142,
+   "oof_f1_macro": 0.9320021006016032,
+   "oof_mean_confidence": 0.9824378273252365,
+   "oof_ece": 0.05088701018952299
+  }
+ },
+ "A2-VPN": {
+  "config": "configs/final/A2-VPN.yaml",
+  "train_rows": 6566,
+  "train_rows_in_file_order": true,
+  "unshuffled (cv=5)": {
+   "oof_accuracy": 0.7896740785866585,
+   "oof_f1_macro": 0.7733697975671003,
+   "oof_mean_confidence": 0.9416242949927666,
+   "oof_ece": 0.15223624849240244
+  },
+  "shuffled (seed 42)": {
+   "oof_accuracy": 0.9048126713371916,
+   "oof_f1_macro": 0.8893379817690742,
+   "oof_mean_confidence": 0.9655463933677862,
+   "oof_ece": 0.06155776446311911
+  }
+ },
+ "A2-NonVPN": {
+  "config": "configs/final/A2-NonVPN.yaml",
+  "train_rows": 6085,
+  "train_rows_in_file_order": true,
+  "unshuffled (cv=5)": {
+   "oof_accuracy": 0.8841413311421529,
+   "oof_f1_macro": 0.8243345738614591,
+   "oof_mean_confidence": 0.979465725869036,
+   "oof_ece": 0.09556617547394228
+  },
+  "shuffled (seed 42)": {
+   "oof_accuracy": 0.9566146261298274,
+   "oof_f1_macro": 0.9310679575289155,
+   "oof_mean_confidence": 0.9908936005730489,
+   "oof_ece": 0.03500637989071825
+  }
+ },
+ "B": {
+  "config": "configs/final/B.yaml",
+  "train_rows": 12651,
+  "train_rows_in_file_order": true,
+  "unshuffled (cv=5)": {
+   "oof_accuracy": 0.7485574262904118,
+   "oof_f1_macro": 0.7092492111187099,
+   "oof_mean_confidence": 0.8758119344711304,
+   "oof_ece": 0.12725449302160505
+  },
+  "shuffled (seed 42)": {
+   "oof_accuracy": 0.8737649197691882,
+   "oof_f1_macro": 0.840655584263691,
+   "oof_mean_confidence": 0.915523886680603,
+   "oof_ece": 0.0420034595541158
+  }
+ }
+}

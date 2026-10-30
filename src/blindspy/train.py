@@ -23,7 +23,7 @@ from sklearn.base import clone
 from sklearn.metrics import f1_score
 from sklearn.model_selection import StratifiedKFold, cross_validate
 
-from blindspy import evaluate, features, models
+from blindspy import calibration, evaluate, features, models
 
 CV_N_JOBS = -1  # CV folds run in parallel; each model itself uses one thread (n_jobs=1)
 
@@ -230,6 +230,80 @@ def train_and_score(
     tags["top_confusion_pairs"] = "; ".join(
         f"{q['true']} -> {q['predicted']}: {q['count']}" for q in info["top_confusion_pairs"]
     )
+    return {"params": params, "metrics": metrics, "tags": tags, "info": info}
+
+
+def calibration_run(
+    cfg: dict, parts: tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame], seed: int,
+    out_dir: Path, compress: int = 0,
+) -> dict:  # fmt: skip
+    """E15 on validation: the config's model fitted on train (as its source run), its validation
+    ECE, then the isotonic calibrator fitted on train and its validation ECE, both with the
+    uncalibrated model's predicted class. Adoption: uncalibrated ECE above 0.05 and calibrated
+    ECE lower. The test set is never used."""
+    out_dir = Path(out_dir)
+    train, val, test = parts
+    X_tr, y_tr = _xy(train)
+    X_val, y_val = _xy(val)
+    pipe = models.build_model(cfg["model"], cfg.get("params"), seed, cfg.get("balance"))
+    t0 = time.perf_counter()
+    pipe.fit(X_tr, y_tr)
+    fit_time = time.perf_counter() - t0
+    classes = [str(c) for c in pipe.classes_]
+    pred = pipe.predict(X_val)
+    m, info = evaluate.evaluate(y_val, pred, models.class_scores(pipe, X_val), classes,
+                                out_dir / "eval")  # fmt: skip
+    t0 = time.perf_counter()
+    cal = calibration.fit_calibrated(pipe, X_tr, y_tr, seed)
+    cal_time = time.perf_counter() - t0
+    cal_pred, cal_conf, cal_proba = calibration.predict_with_confidence(cal, X_val)
+    raw_conf = pipe.predict_proba(X_val).max(axis=1)
+    correct = pred == y_val.to_numpy()
+    bins = {"uncalibrated": calibration.reliability_bins(raw_conf, correct),
+            "isotonic": calibration.reliability_bins(cal_conf, correct)}  # fmt: skip
+    ece_raw = calibration.ece(raw_conf, correct)
+    ece_cal = calibration.ece(cal_conf, correct)
+    adopt = ece_raw > calibration.ADOPT_ABOVE and ece_cal < ece_raw
+
+    (out_dir / "calibration").mkdir(parents=True, exist_ok=True)
+    pd.concat(bins, names=["probabilities"]).to_csv(
+        out_dir / "calibration" / "reliability_bins.csv"
+    )
+    calibration.plot_reliability(
+        bins, f"{cfg['task']} validation: ECE {ece_raw:.4f} uncalibrated, {ece_cal:.4f} isotonic",
+        out_dir / "calibration" / "reliability.png")  # fmt: skip
+    pd.DataFrame({"raw_row": val.index, "true": y_val.to_numpy(), "predicted": pred,
+                  "confidence_uncalibrated": raw_conf, "confidence_isotonic": cal_conf,
+                  **{f"isotonic_proba.{c}": cal_proba[:, i] for i, c in enumerate(classes)}}
+                 ).to_csv(out_dir / "calibration" / "val_predictions.csv", index=False)  # fmt: skip
+    raw, file_bytes = _model_sizes(cal, out_dir, cfg.get("save_model", True), compress)
+
+    metrics = {f"val_{k}": v for k, v in m.items()}
+    metrics.update({
+        "val_ece_uncalibrated": ece_raw, "val_ece_isotonic": ece_cal,
+        "val_mean_confidence_uncalibrated": float(raw_conf.mean()),
+        "val_mean_confidence_isotonic": float(cal_conf.mean()),
+        # the calibrator's base model must predict exactly as the plain fit (1.0 = every row)
+        "val_label_agreement_base_vs_plain": float((cal_pred == pred).mean()),
+        # how often the calibrated argmax would differ from the predicted class (never used)
+        "val_calibrated_argmax_differs": float((cal_proba.argmax(axis=1)
+                                                != np.searchsorted(classes, pred)).mean()),
+        "train_time_s": fit_time, "calibration_fit_time_s": cal_time,
+        "model_size_bytes": raw, "model_file_bytes": file_bytes,
+    })  # fmt: skip
+    params = {
+        **_base_params(cfg, pipe, X_tr, seed, compress),
+        "protocol": "calibration: fit on train, ECE on validation (uncalibrated and isotonic)",
+        "calibration.method": "CalibratedClassifierCV(method='isotonic', cv=StratifiedKFold(5, "
+                              f"shuffle=True, random_state={seed}), ensemble=False)",
+        "calibration.ece_bins": calibration.BINS,
+        "calibration.adopt_rule": f"uncalibrated ECE > {calibration.ADOPT_ABOVE} and "
+                                  "isotonic ECE lower",
+        "calibration.confidence": "probability of the uncalibrated model's predicted class",
+        "n_train": len(train), "n_val": len(val), "n_test": len(test),
+        "classes": ",".join(classes),
+    }  # fmt: skip
+    tags = {"protocol": "calibration", "calibration_adopted": str(adopt)}
     return {"params": params, "metrics": metrics, "tags": tags, "info": info}
 
 

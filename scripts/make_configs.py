@@ -247,6 +247,12 @@ def main() -> None:
                 **keep, "split_seed": seed, "builds_on": final["builds_on"], "save_model": True,
             })  # fmt: skip
             n += 1
+        # E15 calibration on validation (Phase 4, before the test set): the headline config
+        write(f"E15_{task}_15s", {
+            "experiment_id": "E15", "run_name": f"E15-{task}-15s", "kind": "calibration",
+            **keep, "builds_on": final["builds_on"], "save_model": True,
+        })  # fmt: skip
+        n += 1
     final_b = yaml.safe_load((ROOT / "configs" / "final" / "B.yaml").read_text())
     common = {"experiment_id": "E16", "kind": "kaggle", "task": "kaggle",
               "data_version": "kaggle-k1", "save_model": True}  # fmt: skip
