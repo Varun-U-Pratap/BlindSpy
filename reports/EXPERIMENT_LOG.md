@@ -366,6 +366,107 @@ their forest at every timeout under (b) (part (c)).
 
 MLflow runs: E16-size-full, E16-size-<training rows>-s<seed>
 
+### E15 — Confidence calibration of the headline models, on validation (2026-10-31, utsav-s-r)
+
+Purpose (plan, Phase 4; rules fixed in the E12 addendum item 3, 31 Oct): `predict.py` and the
+demo show a confidence for every prediction, so check on the validation rows, before the test
+set is opened, whether that confidence can be trusted, and decide per task whether an isotonic
+calibrator is used for the reported confidence. E15 never changes the predicted class, so it
+cannot change any test score of E12 except the test ECE.
+
+What is measured (per task, the headline config `configs/final/<task>.yaml`, fitted on the
+training rows only, which reproduces its source run):
+- ECE: confidence = the probability the model gives its predicted class; 15 equal-width bins on
+  [0, 1]; ECE = sum over bins of (rows in bin / all rows) x |accuracy in bin - mean confidence in
+  bin| (`src/blindspy/calibration.py`); plus a reliability diagram (uncalibrated and isotonic).
+- Calibrator: `CalibratedClassifierCV(method="isotonic", cv=5, ensemble=False)` fitted on the
+  training rows only (base model fitted once on all training rows; isotonic mapping from 5-fold
+  out-of-fold predictions; no validation label is used to fit it). No other method is tried.
+- Calibrated confidence = the calibrated probability of the UNCALIBRATED model's predicted class
+  (`calibration.predict_with_confidence`); the calibrated argmax is never used as the
+  prediction. Logged as a check: how often the base model inside the calibrator predicts the
+  same class as the plain fit (must be every row), and how often the calibrated argmax would
+  differ (information only).
+- Adoption rule (fixed 31 Oct): calibration is adopted for a task if the uncalibrated validation
+  ECE is above 0.05 AND the isotonic validation ECE is lower. The decision per task is written
+  below and copied into the E12 configs before the test set is opened.
+
+Hypothesis: gradient-boosted trees with hundreds of trees fitted to the training rows are
+somewhat overconfident on new rows, and the two A2 headline models were trained with class
+weights (A2-VPN) or random oversampling (A2-NonVPN), which moves probability mass toward small
+classes, so they are expected to be the least calibrated. Isotonic calibration, learned from
+out-of-fold predictions, should lower the ECE wherever it is clearly above zero.
+
+Threshold (set before running, never moved afterwards):
+- (a) the uncalibrated validation ECE is above 0.05 in at least 2 of the 4 tasks;
+- (b) the isotonic validation ECE is lower than the uncalibrated one in all 4 tasks;
+- (c) calibration never changes the predicted class: in all 4 tasks the base model inside the
+  calibrator predicts the same class as the plain fit on 100% of validation rows, and the plain
+  fit's validation macro F1 equals the source run's (`source_val_f1_macro` in
+  `configs/final/<task>.yaml`) to all digits.
+Each part gets its own verdict. The adoption decision follows the fixed rule above, not (a)/(b).
+
+Winner rule (decided 28 Oct): not applicable; E15 changes no model, setting or prediction.
+
+Change vs the headline model: none to the model; one isotonic calibrator added on top for the
+reported confidence. Configs `configs/experiments/E15_<task>_15s.yaml` (kind "calibration",
+`scripts/make_configs.py`), data v1, 15 s. Every run saves the calibrated model (compression
+level 3), the reliability table and diagram, and the validation predictions with both
+confidences.
+
+Validation ECE is evidence for the decision only. The final model's calibration is measured once,
+on the test set, in E12 (with the probabilities actually used: calibrated where adopted, else the
+original; the uncalibrated test ECE beside it).
+
+### Correction before the runs (31 Oct 2026; user OK): shuffled calibration folds
+
+The calibrator bullet above says `cv=5`. In scikit-learn an integer `cv` means 5-fold
+`StratifiedKFold` WITHOUT shuffling, and the training rows are stored in file order
+(`train.index` is increasing in all 4 tasks), so each fold holds out whole blocks of the file.
+Found in the first run (pilot) `E15-A1-15s` (run a98da1299a5c44e19ba6fac8c4ed5813, commit 6281f60,
+kept in MLflow and superseded): A1 validation ECE 0.0552 uncalibrated but 0.1918 "isotonic",
+mean isotonic confidence 0.7391 against a validation accuracy of 0.9309. Those two A1 ECE values
+are the only E15 results seen before this correction.
+
+Root cause, measured on the TRAINING rows only (`scripts/fold_order_check.py` ->
+`reports/fold_order_check.json`; no validation or test row enters any model): the out-of-fold
+predictions the isotonic map learns from are much worse with unshuffled folds than with the
+project's shuffled folds, so the map learns that a high confidence is wrong far more often than
+it is on random-split rows:
+
+| Task | OOF accuracy, unshuffled (cv=5) | OOF accuracy, shuffled (seed 42) | OOF ECE, unshuffled | OOF ECE, shuffled |
+|---|---|---|---|---|
+| A1 | 0.6701 | 0.9321 | 0.2935 | 0.0509 |
+| A2-VPN | 0.7897 | 0.9048 | 0.1522 | 0.0616 |
+| A2-NonVPN | 0.8841 | 0.9566 | 0.0956 | 0.0350 |
+| B | 0.7486 | 0.8738 | 0.1273 | 0.0420 |
+
+(The shuffled OOF accuracies equal the headline source runs' CV mean accuracy exactly, as they
+use the same folds, and are within 0.009 of their validation accuracy.)
+
+Correction: the calibrator uses `cv=StratifiedKFold(5, shuffle=True, random_state=42)`, the same
+folds as every other cross-validation in the project (`train.py`), via
+`calibration.calibration_folds`; the logged param `calibration.method` names it. Everything else
+above is unchanged: isotonic only, `ensemble=False`, fitted on training rows only, the predicted
+class is the uncalibrated one, the adoption rule (uncalibrated validation ECE > 0.05 and isotonic
+ECE lower) and thresholds (a)-(c) are not moved. All 4 E15 runs, A1 included, run again from the
+corrected commit; only those runs count.
+
+Side finding (inference, not proof): holding out contiguous blocks of the file costs 0.07-0.26 of
+out-of-fold accuracy, so neighbouring rows in the files, probably flows of the same capture,
+resemble each other more than random rows do. A random split puts such neighbours on both sides,
+so random-split scores may be optimistic for traffic from new captures. This is the session-leakage
+risk E11 could not test (no session IDs, E00); it goes to the report's Limitations. The file order is
+not a session ID, so this is not a session-aware evaluation and no score is changed by it.
+
+Result: (after the runs)
+
+Verdict: (after the runs)
+
+Decision: (after the runs; per task: calibration adopted yes / no)
+
+MLflow runs: E15-<task>-15s
+
 ### E14 — Split-seed stability of the headline models (2026-10-28, utsav-s-r)
 
 Purpose (plan, analysis only): how much the headline model's validation score depends on which
@@ -715,6 +816,18 @@ everything else is described only, with intervals but no test.
 - Any rerun after a test score was seen: allowed only as a technical rerun with identical code,
   data and config, documented here in part 2 with the reason; never a changed model or setting.
 - Every attempt, failed or not, stays in MLflow and is listed in part 2.
+
+### Correction to the addendum (31 Oct 2026, before the test set is opened; user OK)
+
+Item 3 says `CalibratedClassifierCV(method="isotonic", cv=5, ensemble=False)`. In scikit-learn
+`cv=5` means unshuffled folds; the training rows are in file order, so the out-of-fold
+predictions the isotonic map is learned from were far worse than on random-split rows (A1
+out-of-fold accuracy 0.6701 unshuffled vs 0.9321 shuffled; all 4 tasks in
+`reports/fold_order_check.json`, training rows only). Found in the E15 pilot run on validation;
+details in E15.md ("Correction before the runs"). The calibrator now uses
+`cv=StratifiedKFold(5, shuffle=True, random_state=42)`, the project's folds. Nothing else in the
+addendum changes (isotonic only, ensemble=False, training rows only, adoption rule, predicted
+class always the uncalibrated one). Still no test-set score, prediction or metric exists.
 
 ### E11 — Session-aware split (does not run) (2026-10-28, utsav-s-r)
 

@@ -3,9 +3,13 @@
 ECE: confidence = the probability given to the predicted class; 15 equal-width bins on [0, 1];
 ECE = sum over bins of (rows in bin / all rows) x |accuracy in bin - mean confidence in bin|.
 
-The calibrator is CalibratedClassifierCV(method="isotonic", cv=5, ensemble=False): it fits the
-base model once on all the rows it is given (calibrated_classifiers_[0].estimator) and learns
-the isotonic mapping from 5-fold out-of-fold predictions. Calibration changes only the reported
+The calibrator is CalibratedClassifierCV(method="isotonic", cv=StratifiedKFold(5, shuffle=True,
+random_state=seed), ensemble=False): it fits the base model once on all the rows it is given
+(calibrated_classifiers_[0].estimator) and learns the isotonic mapping from 5-fold out-of-fold
+predictions. The folds are shuffled, as in every other CV of the project (train.py): cv=5 alone
+means unshuffled folds, and the training rows are in file order, so each fold would hold out
+whole blocks of the file and the out-of-fold predictions would be far worse than on random-split
+rows (E15 correction, 31 Oct; reports/fold_order_check.json). Calibration changes only the reported
 confidence: the predicted class is always the base model's own prediction, and the confidence
 is the calibrated probability of THAT class. CalibratedClassifierCV.predict returns the
 calibrated argmax, which can differ, so it is never used.
@@ -21,6 +25,7 @@ import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from sklearn.base import clone  # noqa: E402
 from sklearn.calibration import CalibratedClassifierCV  # noqa: E402
+from sklearn.model_selection import StratifiedKFold  # noqa: E402
 
 BINS = 15
 ADOPT_ABOVE = 0.05  # adopt only if the uncalibrated validation ECE is above this (E12 addendum)
@@ -49,9 +54,14 @@ def ece(confidence, correct, bins: int = BINS) -> float:
     return float((t["rows"] * gap).sum() / t["rows"].sum())
 
 
-def fit_calibrated(pipe, X, y) -> CalibratedClassifierCV:
+def calibration_folds(seed: int) -> StratifiedKFold:
+    return StratifiedKFold(5, shuffle=True, random_state=seed)
+
+
+def fit_calibrated(pipe, X, y, seed: int) -> CalibratedClassifierCV:
     """Isotonic calibrator around an unfitted clone of pipe, fitted on (X, y) only."""
-    cal = CalibratedClassifierCV(clone(pipe), method="isotonic", cv=5, ensemble=False)
+    cv = calibration_folds(seed)
+    cal = CalibratedClassifierCV(clone(pipe), method="isotonic", cv=cv, ensemble=False)
     return cal.fit(X, y)
 
 

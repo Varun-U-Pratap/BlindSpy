@@ -254,7 +254,7 @@ def calibration_run(
     m, info = evaluate.evaluate(y_val, pred, models.class_scores(pipe, X_val), classes,
                                 out_dir / "eval")  # fmt: skip
     t0 = time.perf_counter()
-    cal = calibration.fit_calibrated(pipe, X_tr, y_tr)
+    cal = calibration.fit_calibrated(pipe, X_tr, y_tr, seed)
     cal_time = time.perf_counter() - t0
     cal_pred, cal_conf, cal_proba = calibration.predict_with_confidence(cal, X_val)
     raw_conf = pipe.predict_proba(X_val).max(axis=1)
@@ -294,7 +294,8 @@ def calibration_run(
     params = {
         **_base_params(cfg, pipe, X_tr, seed, compress),
         "protocol": "calibration: fit on train, ECE on validation (uncalibrated and isotonic)",
-        "calibration.method": "CalibratedClassifierCV(method='isotonic', cv=5, ensemble=False)",
+        "calibration.method": "CalibratedClassifierCV(method='isotonic', cv=StratifiedKFold(5, "
+                              f"shuffle=True, random_state={seed}), ensemble=False)",
         "calibration.ece_bins": calibration.BINS,
         "calibration.adopt_rule": f"uncalibrated ECE > {calibration.ADOPT_ABOVE} and "
                                   "isotonic ECE lower",

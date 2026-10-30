@@ -31,7 +31,7 @@ def _toy(n=300, seed=0):
 def test_predicted_label_is_the_uncalibrated_one():
     X, y = _toy()
     pipe = models.build_model("lgbm", {"n_estimators": 20}, 42).fit(X, y)
-    cal = calibration.fit_calibrated(pipe, X, y)
+    cal = calibration.fit_calibrated(pipe, X, y, 42)
     label, conf, proba = calibration.predict_with_confidence(cal, X)
     assert (label == pipe.predict(X)).all()  # base model fitted on all rows = the plain fit
     cols = np.searchsorted(cal.classes_, label)
@@ -56,3 +56,15 @@ def test_calibration_run_never_uses_test_rows(tmp_path):
         m["val_ece_uncalibrated"] > 0.05 and m["val_ece_isotonic"] < m["val_ece_uncalibrated"]
     )
     assert (tmp_path / "model" / "model.joblib").exists()
+
+
+def test_calibration_folds_are_shuffled():
+    # cv=5 alone would be unshuffled folds: on file-ordered rows each fold is a block of the file
+    X, y = _toy()
+    pipe = models.build_model("lgbm", {"n_estimators": 20}, 42)
+    cal = calibration.fit_calibrated(pipe, X, y, 42)
+    assert cal.cv.shuffle and cal.cv.random_state == 42 and cal.cv.n_splits == 5
+    assert cal.ensemble is False and cal.method == "isotonic"
+    # same seed -> identical calibrated probabilities
+    again = calibration.fit_calibrated(pipe, X, y, 42)
+    assert np.array_equal(cal.predict_proba(X), again.predict_proba(X))
