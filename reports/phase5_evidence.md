@@ -37,8 +37,8 @@ teammate runs them); scores on another operating system or CPU (not measured).
 | Demo `app/demo.py` with 5 sample files | `app/demo.py`, `app/samples/` (5th file `malformed_renamed_column.csv` from `scripts/make_samples.py`, which rewrote the other 4 byte-identical), `tests/test_demo.py` (c056507) | Headless page tests (every task's sample gives 20 predictions; the malformed file gives one error and no table; the chart of a clicked row equals predict.py's top 3); checked live in the browser (row click, malformed file, no server or console errors) and from the fresh clone | Done |
 | Streamlit added without changing locked versions | `pyproject.toml`, `uv.lock` (c0bb692) | `uv export` before and after: only altair 6.3.0, pydeck 0.9.3, python-multipart 0.0.32, streamlit 1.66.1, watchdog 6.0.0 (not on macOS) and websockets 17.4 added; no version changed | Done |
 | Screenshot for the report | `reports/demo/*.png`, `scripts/demo_screenshots.py`, Section 5.11 | Two demo screenshots and two MLflow screenshots, light theme, looked at before committing | Done |
-| README for markers, every command tested from a fresh clone | `README.md`, `scripts/check_final_scores.py` (84b9d63) | See the fresh-clone table above; Windows and Linux steps marked "not yet tested" | Done (macOS) |
-| Final report files, every page checked | `reports/report/BlindSpy_report.pdf` (177 pages) and `.docx` (28eca08) | Every PDF page looked at as contact sheets (pdftoppm, 12 pages per sheet); DOCX passes the docx validator and was opened in Microsoft Word (153 pages in Word's pagination; cover, tables, figures and the last page looked at; file unchanged afterwards) | Done |
+| README for markers, every command tested from a fresh clone | `README.md`, `scripts/check_final_scores.py` (84b9d63; corrected in the recheck, a27e6aa) | See the fresh-clone table above and the recheck below; Windows and Linux steps marked "not yet tested" | Done (macOS) |
+| Final report files, every page checked | `reports/report/BlindSpy_report.pdf` (177 pages) and `.docx` (first build 28eca08; rebuilt after the recheck from a27e6aa) | Every PDF page looked at as contact sheets (pdftoppm, 12 pages per sheet); DOCX passes the docx validator and was opened in Microsoft Word (153 pages in Word's pagination; cover, tables, figures and the last page looked at; file unchanged afterwards) | Done |
 | Demo video, shrunk, under `reports/demo/` | `reports/demo/video_script.md` | Script written (one minute, click by click); the recording is made on this Mac by a team member with Cmd+Shift+5, then checked, shrunk with HandBrakeCLI and committed | Pending (recording) |
 | Hand-in tag; origin/main equals it | tag `v1.0.1-final` | Placed on the final dev head once the video is committed; then Varun merges dev into main and origin/main is compared with the tag | Pending |
 
@@ -58,3 +58,44 @@ teammate runs them); scores on another operating system or CPU (not measured).
 | Every data version has a kept snapshot and a changelog entry, and every reported run names its data version | `reports/DATA_CHANGELOG.md`: v1 and kaggle-k1; both rebuild byte-identical (v1 again from the fresh clone today), and both are in the v1.0-final backup zip; every run in `history.csv` names its data version (v1 1,918, published 64 = the paper benchmark on the rows as published, kaggle-k1 30) except the setup smoke run, which uses no data | Done |
 | E13, E14 and E15 are reported for every task, and every experiment shows its pre-stated threshold and verdict | Sections 5.4-5.5, 4.15-4.16, 4.20; Section 5.9 (verdict table generated from the threshold checks of all three tables files) | Done |
 | The demo runs on the presenting laptop from a fresh start, and the backup video is saved offline | Fresh clone: `uv run streamlit run app/demo.py` served the page, a row click drew its chart; the backup video is pending (script in `reports/demo/video_script.md`) | Pending (recording) |
+
+## Recheck (31 Oct 2026, after the items above)
+
+Everything above was rechecked against the plan's Phase 5 items, its Done-when, the Final
+checklist and the order of work; commands were rerun, not taken from earlier output.
+
+| Check | Result |
+|---|---|
+| Scope of Phase 5 changes (`git diff fe51245 dev`) | 34 files, all Phase 5 work; every branch equals its GitHub copy; no attribution line in any commit; no AI tool named in changed files or the PDF |
+| Every generator rerun in the main folder (`export_history.py`, `results_tables.py` phases 2-5, `make_configs.py`, `write_final_configs.py`, `make_samples.py`, `export_artifacts.py`, `make_notebooks.py`) | working tree unchanged: every committed output reproduced byte for byte |
+| The remaining README commands from the fresh clone (updated to 8fb7653): `nbstripout --install`, `shasum -c data/kaggle_sha256.txt`, `prepare_data.py --export-csv v1`, the `load_task` snippet, the smoke run and `mlflow ui`, `results_tables.py`, `make_notebooks.py`, `export_history.py`, `explain_final.py`, `build_report.py --tag final` (docx 9.15.0), `pytest`, `ruff` | Kaggle hash OK; CSV copies identical; `load_task` gives 12,626 / 2,706 / 2,706 rows; the UI serves the smoke run with its parameter, metric and `smoke.png`; `results_tables.py --phase 5`, the notebooks, `explain_final.py` and `export_history.py` reproduce the committed files (`export_history.py` leaves `history.csv` alone without the store); the report builds with identical text (only the build commit line differs); 247 passed, 1 skipped; ruff clean |
+| `git checkout v1.0-final` then `uv sync` (README lock note) | the `uv.lock` hash equals the one logged by every E12 run; no Streamlit at that tag, as stated |
+| Backup zip of v1.0-final | holds `data/processed/v1/` (34 files) and `data/processed/kaggle/k1/` (6 files); its line is in `backups/SHA256SUMS.txt` |
+
+Found and fixed (merge a27e6aa):
+
+- **The demo did not start on a laptop that never ran Streamlit.** Run as written in the README
+  with an empty home folder, `uv run streamlit run app/demo.py` stopped at Streamlit's first-run
+  email prompt and never served the page (all earlier tests had passed `--server.headless true`).
+  New `.streamlit/config.toml` (headless, no usage statistics, `localhost` only, so the demo is
+  not reachable from the network) with a test; README and video script now say to open
+  http://localhost:8501. Rerun the same way from the clone: health check `ok`, no prompt, listening
+  on localhost only.
+- **README: scripts that need the official MLflow store.** `results_tables.py` Phases 2-4,
+  `save_final_models.py` and `export_artifacts.py` stop with "No such file" in a fresh clone (they
+  read `mlruns/utsav-s-r/`, which is not in git); the README now says so and lists what works in a
+  clone. Nothing was written by the failed runs.
+- **README: the report command.** `build_report.py --tag v0.2-tuned` at a later commit would have
+  overwritten the historical v0.2-tuned report with the later drafts; the README now builds the
+  hand-in report with `--tag final` and says a milestone report is rebuilt only from its tag. The
+  `docx` package is pinned to 9.15.0.
+- **Report wording that claimed more than was measured:** Section 6.1 called the validation
+  scores of the source runs scores of "the final models" (which were retrained on training +
+  validation and never scored on validation); Section 6.3 gave an untested reason for the A1
+  ablation and an overstated share of conflicting duplicates; Section 8 said the method order
+  "held" (Spearman 0.82-0.96) and that SHAP and E09 show where "most of the information" is;
+  Section 1.5 said "a calibrated confidence" (only A1 and A2-VPN); Section 5.11 stretched Section
+  4.3; Section 7.1 gave the wrong reason why no features were rebuilt from packets; Appendix A.1
+  said the hand-in tag goes on the report commit (it goes on the last hand-in commit).
+- Report rebuilt from a27e6aa: 177 pages; the text changed only on pages 1, 3, 72-77, 79 and 82,
+  and pages 1-3 and 71-83 were looked at again; DOCX validator passed; it opens in Word.
