@@ -1454,6 +1454,56 @@ def e12_mc_error(tests: pd.DataFrame, draws: dict, alpha: float = HOLM_ALPHA) ->
     return pd.DataFrame(rows)
 
 
+def e12_confusion_pairs(h: pd.DataFrame, runner: str, k: int = 5, root: Path = ROOT):
+    """Top-k confusion pairs (true -> predicted, by flow count) of each headline model on the
+    test rows, from its saved predictions, with the share of that true class."""
+    e = e12_runs(h)
+    rows = []
+    for task in CORE_TASKS:
+        r = e[(e["params.task"] == task) & (e["params.role"] == "headline")].iloc[0]
+        p = final_predictions(r["run_id"], runner, root=root)
+        t, q = p["true"].astype(str), p["predicted"].astype(str)
+        wrong = pd.DataFrame({"true": t[t != q], "predicted": q[t != q]})
+        c = wrong.value_counts().reset_index(name="flows")
+        c = c.sort_values(["flows", "true", "predicted"], ascending=[False, True, True]).head(k)
+        size = t.value_counts()
+        for i, x in enumerate(c.itertuples(index=False)):
+            rows.append({"task": task, "run": r["run_name"], "rank": i + 1, "true": x.true,
+                         "predicted": x.predicted, "flows": int(x.flows),
+                         "share of true class": round(x.flows / size[x.true], 4)})  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e12_comparison_figure(scores: pd.DataFrame, path: Path) -> None:
+    """Test macro F1 with its 95% interval per final model and task (headline in red), with the
+    validation score as a hollow marker."""
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, len(CORE_TASKS), figsize=(18, 4.8))
+    for ax, task in zip(axes, CORE_TASKS, strict=True):
+        g = scores[scores["task"] == task].sort_values("_point")
+        lo, hi = zip(*[map(float, v.split("-")) for v in g["95% interval"]], strict=True)
+        y = np.arange(len(g))
+        col = ["#d62728" if r == "headline" else "#1f77b4" for r in g["role"]]
+        for yi, a, b, c in zip(y, lo, hi, col, strict=True):
+            ax.plot([a, b], [yi, yi], color=c, lw=1.5)
+            ax.plot([a, a, np.nan, b, b], [yi - 0.15, yi + 0.15, np.nan, yi - 0.15, yi + 0.15],
+                    color=c, lw=1)  # fmt: skip
+        ax.scatter(g["_point"], y, color=col, zorder=3, label="test (95% interval)")
+        ax.scatter(g["_val"], y, facecolors="none", edgecolors="black", zorder=3,
+                   label="validation")  # fmt: skip
+        names = [f"{t} (old rule)" if r == "old_rule" else t
+                 for t, r in zip(g["method type"], g["role"], strict=True)]  # fmt: skip
+        ax.set_yticks(y, names, fontsize=8)
+        ax.set_title(f"{task}: test macro F1 (headline in red)", fontsize=10)
+    axes[0].legend(fontsize=7, loc="lower right")
+    fig.suptitle("E12: every final model scored once on the test rows (10,000 stratified paired "
+                 "resamples, seed 42)", fontsize=10)  # fmt: skip
+    fig.tight_layout()
+    fig.savefig(path, dpi=120)
+    plt.close(fig)
+
+
 def e12_verdicts(scores: pd.DataFrame, h: pd.DataFrame) -> dict:
     """(a) |test - val| <= 0.03 for every headline model; (b) the headline above the old rule's
     pick in at least 3 of 4 tasks (point estimates); (c) Spearman >= 0.8 between the validation

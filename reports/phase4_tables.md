@@ -124,6 +124,28 @@ Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not 
 | A2-VPN | E12-compare-random_forest-A2-VPN | 2,561 | 0.5123 | 1.0000 | 0.9898-1.0000 | no | yes |
 | A2-VPN | E12-compare-svm_rbf-A2-VPN | 4,262 | 0.8525 | 1.0000 | 0.8327-0.8723 | no | yes |
 
+## E12 top-5 confusion pairs of the headline models (test rows; true -> predicted)
+
+| task | run | rank | true | predicted | flows | share of true class |
+|---|---|---|---|---|---|---|
+| A1 | E12-final-A1 | 1 | Non-VPN | VPN | 81 | 0.0622 |
+| A1 | E12-final-A1 | 2 | VPN | Non-VPN | 72 | 0.0513 |
+| A2-VPN | E12-final-A2-VPN | 1 | VPN-FT | VPN-CHAT | 19 | 0.0674 |
+| A2-VPN | E12-final-A2-VPN | 2 | VPN-BROWSING | VPN-CHAT | 16 | 0.0427 |
+| A2-VPN | E12-final-A2-VPN | 3 | VPN-CHAT | VPN-FT | 15 | 0.0862 |
+| A2-VPN | E12-final-A2-VPN | 4 | VPN-CHAT | VPN-BROWSING | 11 | 0.0632 |
+| A2-VPN | E12-final-A2-VPN | 5 | VPN-FT | VPN-BROWSING | 10 | 0.0355 |
+| A2-NonVPN | E12-final-A2-NonVPN | 1 | CHAT | BROWSING | 14 | 0.1053 |
+| A2-NonVPN | E12-final-A2-NonVPN | 2 | STREAMING | BROWSING | 7 | 0.1029 |
+| A2-NonVPN | E12-final-A2-NonVPN | 3 | BROWSING | CHAT | 4 | 0.0107 |
+| A2-NonVPN | E12-final-A2-NonVPN | 4 | FT | BROWSING | 4 | 0.031 |
+| A2-NonVPN | E12-final-A2-NonVPN | 5 | FT | STREAMING | 4 | 0.031 |
+| B | E12-final-B | 1 | BROWSING | VPN-BROWSING | 28 | 0.0747 |
+| B | E12-final-B | 2 | VPN-BROWSING | BROWSING | 17 | 0.0453 |
+| B | E12-final-B | 3 | VPN-CHAT | VPN-FT | 16 | 0.092 |
+| B | E12-final-B | 4 | VPN-BROWSING | VPN-CHAT | 13 | 0.0347 |
+| B | E12-final-B | 5 | VPN-CHAT | VPN-BROWSING | 13 | 0.0747 |
+
 ## E12 headline models: calibration on the test rows (measured once), class extremes, confusion pairs and cost (described, not tested)
 
 | task | run | calibration | test ECE (probabilities used) | test ECE uncalibrated | mean confidence | test accuracy | weighted - macro F1 gap | best class F1 | worst class F1 | best class recall | worst class recall | top-5 confusion pairs (true -> predicted: flows) | model file MiB | train time s | predict ms per 1,000 flows |

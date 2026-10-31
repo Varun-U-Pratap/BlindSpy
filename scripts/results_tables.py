@@ -367,6 +367,9 @@ def e12_sections(h, runner: str, name: str, protocol: str, root) -> tuple[list[s
             f"settled: {int((~mc['settled by B resamples']).sum())} of {len(mc)}.", "",
             R.md(mc)]  # fmt: skip
     if name == "test":
+        R.e12_comparison_figure(scores, ROOT / "reports" / "figures" / "e12_comparison_test.png")
+        out += ["", "## E12 top-5 confusion pairs of the headline models (test rows; true -> "
+                "predicted)", "", R.md(R.e12_confusion_pairs(h, runner))]  # fmt: skip
         out += ["", "## E12 headline models: calibration on the test rows (measured once), class "
                 "extremes, confusion pairs and cost (described, not tested)", "",
                 R.md(R.e12_headline_details(h))]  # fmt: skip
