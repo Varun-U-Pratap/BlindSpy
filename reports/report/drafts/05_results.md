@@ -512,3 +512,26 @@ predictions.csv`:
 | 6 | VOIP | VOIP | 1.0 | duration (+3.528) | std_biat (+1.169) | std_fiat (+0.747) |
 | 7 | VPN-FT | VPN-CHAT | 0.7308 | flowPktsPerSecond (+0.375) | mean_fiat (+0.346) | flowBytesPerSecond (+0.306) |
 | 8 | VPN-FT | VPN-FT | 0.7385 | max_flowiat (+0.977) | min_flowiat (+0.556) | min_fiat (+0.353) |
+
+## 5.11 The demo
+
+`app/demo.py` is a one-page Streamlit [23] app built only on `models/final/` and the code above
+(`blindspy.predict` for the labels and confidences, `blindspy.explain` for the SHAP values); it
+trains nothing. The user chooses a task, picks one of five sample files in `app/samples/` (20
+test rows per task, written by `scripts/make_samples.py`, and one malformed file with a renamed
+column) or uploads a CSV, and gets a table of predictions with their confidence. Clicking a row
+shows the 10 features that pushed the model most towards its label, with each feature's value and
+unit; `-1` is shown as "not measurable" (Section 2.5). A malformed file is rejected with the same
+message as `scripts/predict.py`. The page is tested headless (`tests/test_demo.py`); the
+screenshots come from `scripts/demo_screenshots.py`.
+
+![The demo: predictions for the A1 sample file](../../demo/demo_table.png)
+
+![The demo: SHAP chart of row 10, a VPN flow predicted as Non-VPN with confidence 0.6288](../../demo/demo_explain.png)
+
+Row 10 is one of the three wrong predictions in the A1 sample (17 of 20 correct). It is a
+two-packet flow (10.46 packets per second over 191,235 microseconds): its whole duration is one
+gap, and its forward and backward gaps are not measurable (`-1`: fewer than two packets in each
+direction). Its confidence, 0.6288, is the second lowest in the file; the lowest, 0.6267 (row 15),
+is also a wrong prediction. Near-empty flows like this are the ones Section 4.3 found hard for
+every model.
