@@ -523,7 +523,11 @@ column) or uploads a CSV, and gets a table of predictions with their confidence.
 shows the 10 features that pushed the model most towards its label, with each feature's value and
 unit; `-1` is shown as "not measurable" (Section 2.5). A malformed file is rejected with the same
 message as `scripts/predict.py`. The page is tested headless (`tests/test_demo.py`); the
-screenshots come from `scripts/demo_screenshots.py`.
+screenshots come from `scripts/demo_screenshots.py`. A 1-minute video of the demo,
+`reports/demo/demo_video.mp4`, goes through the steps of `reports/demo/video_script.md` on the
+running app (task A1 and row 10 below, task B and a wrong prediction, the malformed file, task
+A2-VPN); it was made by `scripts/record_demo.py`, which drives the app in a headless browser and
+adds a cursor and captions.
 
 ![The demo: predictions for the A1 sample file](../../demo/demo_table.png)
 
