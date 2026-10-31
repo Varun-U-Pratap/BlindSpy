@@ -1,4 +1,5 @@
-"""Write notebooks/03_models.ipynb (E04-E06), 04_tuning.ipynb (E07-E17) and 05_explain.ipynb (SHAP).
+"""Write notebooks/03_models.ipynb (E04-E06), 04_tuning.ipynb (E07-E17), 05_explain.ipynb (SHAP)
+and 06_final_results.ipynb (E12, E15).
 
 The notebooks only READ results: reports/history.csv (every MLflow run, exported by
 scripts/export_history.py), the generated CSVs in reports/ and, for E10, the confusion matrices
@@ -519,6 +520,105 @@ predict("A2-VPN", sample).head(8)""",
 ]
 
 
+NB06 = [
+    (
+        "markdown",
+        """# 06 Final results (E12, E15) on the test set
+
+The 4 headline models and the 26 other final models (comparison set and old-rule picks) were
+each fitted on train + validation and scored ONCE on the seed-42 test rows (E12; 30 runs from
+one commit, rehearsal on validation first). Calibration was settled on validation before that
+(E15). This notebook reads the results (reports/history.csv, the runs' saved test predictions,
+models/final/) and shows every final table and graph; it trains nothing and scores nothing new.
+Intervals: 10,000 stratified paired resamples per task, seed 42, 95% percentile intervals,
+conditional on the test class counts.""",
+    ),
+    (
+        "code",
+        """import pandas as pd
+from IPython.display import Image, display
+
+from blindspy import results as R
+from blindspy.data import CORE_TASKS, ROOT
+from blindspy.predict import load_final, predict
+from blindspy.tracking import load_yaml
+
+pd.set_option("display.width", 200, "display.max_columns", 30, "display.max_colwidth", 90)
+FIG = ROOT / "reports" / "figures"
+RUNNER = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
+h = R.load_history()
+e = R.e12_runs(h)
+print(len(e), "E12 runs; commits:", sorted(set(e["tags.git_commit"].str[:7])),
+      "; data versions:", sorted(set(e["tags.data_version"])))
+for task in CORE_TASKS:
+    model, meta = load_final(task)  # checks the file's SHA-256 against its JSON
+    print(task, meta["mlflow_run_name"], meta["model"], "| calibration", meta["calibration"],
+          "| file", round(meta["model_file_bytes"] / 2**20, 2), "MiB |", meta["trained_on"])""",
+    ),
+    ("markdown", "## 1. Progress over the experiments, ending with the test score"),
+    ("code", 'display(Image(FIG / "progress_chart.png"))'),
+    ("markdown", "F06_PROGRESS"),
+    ("markdown", "## 2. Headline models on the test rows"),
+    (
+        "code",
+        """scores, draws = R.e12_scores(h, RUNNER)
+show = scores.drop(columns=[c for c in scores.columns if c.startswith("_")])
+display(show[show["role"] == "headline"])
+v = R.e12_verdicts(scores, h)
+display(pd.DataFrame([{"check": k, "supported": x["supported"]} for k, x in v.items()]))""",
+    ),
+    ("markdown", "F06_HEADLINE"),
+    ("markdown", "## 3. All 30 final models and the 26 paired tests"),
+    (
+        "code",
+        """display(show)
+display(Image(FIG / "e12_comparison_test.png"))
+tests = R.e12_tests(scores, draws)
+display(tests)
+print("Monte Carlo error of the p-values (described, not a new test)")
+display(R.e12_mc_error(tests, draws))""",
+    ),
+    ("markdown", "F06_TESTS"),
+    ("markdown", "## 4. Per class, confusion matrices and confusion pairs"),
+    (
+        "code",
+        """for task in CORE_TASKS:
+    print(task)
+    display(R.e12_per_class(h, task))
+display(Image(FIG / "final_confusion_matrices.png"))
+display(R.e12_confusion_pairs(h, RUNNER))""",
+    ),
+    ("markdown", "F06_CLASSES"),
+    ("markdown", "## 5. Calibration (E15; measured once on test), class extremes, cost"),
+    (
+        "code",
+        """display(R.e15_table(h))
+display(Image(FIG / "e15_reliability.png"))
+display(R.e12_headline_details(h))""",
+    ),
+    ("markdown", "F06_CALIBRATION"),
+    ("markdown", "## 6. Accuracy against cost, and the timeout effect"),
+    (
+        "code",
+        """display(Image(FIG / "accuracy_vs_cost.png"))
+display(Image(FIG / "timeout_effect.png"))""",
+    ),
+    ("markdown", "F06_COST"),
+    ("markdown", "## 7. predict.py on a sample file (B)"),
+    (
+        "code",
+        """sample = pd.read_csv(ROOT / "app" / "samples" / "B_test_sample.csv")
+predict("B", sample).head(10)""",
+    ),
+    (
+        "markdown",
+        """The same as `uv run python scripts/predict.py --task B --input
+app/samples/B_test_sample.csv --output predictions.csv`. All report graphs and the code that
+draws each one are listed in `reports/figures/INDEX.md`.""",
+    ),
+]
+
+
 FINDINGS: dict[str, str] = {
     "F03_SCREEN": """**Findings (screen at 15 s, validation, data v1).**
 
@@ -714,6 +814,45 @@ F1).**
   (1.000). High confidence alone does not show that a prediction is right.
 - The weakest classes are recognised through duration and the minimum gaps (VPN-MAIL in A2-VPN and
   B), the byte rate (STREAMING in A2-NonVPN) and min_flowiat (Non-VPN in A1).""",
+    "F06_PROGRESS": """**Findings.** Every task improved on the E02 decision-tree baseline
+in steps: E04 (signed-log KNN), E05 (Random Forest) and E06 (boosting) raised all four; E07
+(tuning) raised A2-VPN, A2-NonVPN and B; E08 (balancing) raised the two A2 tasks; E17 (equal
+tuning budget) raised A1. All experiments used data version v1. The red star is the headline
+model's single test score: above its validation score in A1, A2-NonVPN and B, below it in
+A2-VPN.""",
+    "F06_HEADLINE": """**Findings.**
+
+- Test macro F1 (95% interval): A1 0.9434 (0.9348-0.9519), A2-VPN 0.8652 (0.8431-0.8866),
+  A2-NonVPN 0.9403 (0.9216-0.9573), B 0.8480 (0.8305-0.8651).
+- E12 (a) is NOT supported: A2-NonVPN is 0.0328 above its validation score, just over the 0.03
+  line (the others: +0.0126, -0.0178, +0.0052). E14 had already shown that A2-NonVPN's official
+  validation rows were unusually hard (0.9075 against 0.9257-0.9468 on 10 resplits).
+- (b) supported: the headline model beats the old tie rule's pick in 4 of 4 tasks. (c) supported:
+  the validation and test order of the 7 method types agree (Spearman 0.82-0.96).""",
+    "F06_TESTS": """**Findings.**
+
+- 14 of the 26 pre-named differences are clear after Holm (A1 6 of 7, A2-VPN 1 of 7, A2-NonVPN
+  4 of 6, B 3 of 6). The headline model is clearly better than logistic regression in every task
+  and than the decision tree in A1, A2-NonVPN and B.
+- Two more, A1 against the SVM and A2-VPN against the decision tree (Holm p 0.0504), sit on the
+  Holm line: their Monte Carlo band is about 0.03-0.07, so 10,000 resamples do not settle them.
+  Under the fixed rule they count as not clear; they are borderline.
+- The A2-VPN SVM (0.8670) and the B LightGBM (0.8567) scored slightly above the headline model,
+  neither clearly. Nothing was swapped: the headline models were fixed before the test set.""",
+    "F06_CLASSES": """**Findings.** The weakest classes are VPN-MAIL (F1 0.7132 in A2-VPN,
+0.7259 in B) and STREAMING in A2-NonVPN (0.8955); VPN-P2P has B's lowest recall (0.7000). The
+largest confusions: A1 Non-VPN -> VPN 81 flows and VPN -> Non-VPN 72; in B, BROWSING <->
+VPN-BROWSING (28 + 17 flows), the largest confusion between a VPN and a non-VPN class.""",
+    "F06_CALIBRATION": """**Findings.** All four models were overconfident on validation. Isotonic
+calibration, adopted for A1 and A2-VPN by the rule fixed in advance, lowers their test ECE from
+0.0442 to 0.0090 and from 0.0709 to 0.0169; the uncalibrated A2-NonVPN and B models have test ECE
+0.0339 and 0.0420. Calibration never changes the predicted class.""",
+    "F06_COST": """**Findings.** The top scores come from the boosted models (training 0.19-35.2
+s), Random Forest (1.5-34.0 s) and the tuned SVM (SVM runs 0.15-2.9 s); KNN trains in 0.005-0.033
+s at somewhat lower macro F1, and logistic regression and the untuned SVM stay far below. The
+timeout comparison uses the Phase 2 baselines (the only models run at all four timeouts); the
+60 s files differ in their VOIP and FT flows and the class mix changes with the timeout, so it
+is not read as a timeout effect.""",
     "F04_VERDICTS": """**Summary of the pre-stated thresholds:** E07 (a) supported, (b) not
 supported, (c) supported; E08 (a) not supported, (b) and (c) supported; E10 (a) and (b) not
 supported, (c) supported; E17 (a), (b) and (c) supported. E09, E13, E14 and E16 are
@@ -737,7 +876,12 @@ def build(cells: list[tuple[str, str]]) -> nbformat.NotebookNode:
 
 def main() -> None:
     paths = []
-    for name, cells in (("03_models", NB03), ("04_tuning", NB04), ("05_explain", NB05)):
+    for name, cells in (
+        ("03_models", NB03),
+        ("04_tuning", NB04),
+        ("05_explain", NB05),
+        ("06_final_results", NB06),
+    ):
         paths.append(ROOT / "notebooks" / f"{name}.ipynb")
         nbformat.write(build(cells), paths[-1])
         print("wrote", paths[-1].relative_to(ROOT))
