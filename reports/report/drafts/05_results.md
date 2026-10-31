@@ -31,7 +31,7 @@ conditional on the test set's class counts.
   +0.0328 (A2-NonVPN), +0.0052 (B). E14 had already shown that the official A2-NonVPN validation
   rows are unusually hard: its validation macro F1 (0.9075) lies below all 10 resplits of training
   + validation (0.9257-0.9468), and the test score lies inside that range (Section 5.5).
-- Macro F1 and accuracy differ most where the classes are unequal in size: weighted minus macro
+- Weighted and macro F1 differ most where the classes are unequal in size: weighted minus macro
   F1 is 0.0001 (A1), 0.0308 (A2-VPN), 0.0204 (A2-NonVPN) and 0.0317 (B).
 - Cross-validation on the fitting rows agrees with the test score to within 0.0175 (CV - test:
   -0.0111, 0.0175, -0.0055, -0.0007).
@@ -377,8 +377,10 @@ SHAP values of the four final models on the test rows (`scripts/explain_final.py
 - The byte rate (flowBytesPerSecond) is the most used feature in A2-VPN, A2-NonVPN and B, and the
   smallest gaps between packets (min_flowiat, min_fiat, min_biat) are in the top 5 of every task.
 - SHAP and the ablation (E09) agree that the active and idle groups matter least (3.1-5.7% of mean
-  |SHAP|; dropping either changes validation macro F1 by -0.0036 to +0.0051) and that rates +
-  duration matter most.
+  |SHAP|; dropping either changes validation macro F1 by -0.0036 to +0.0051). Rates + duration hold
+  21.4-26.9% of mean |SHAP| (the largest group share in B), and dropping them costs the most in
+  A2-VPN, A2-NonVPN and B (0.0395, 0.0301, 0.0549); in A1 dropping the backward gaps costs more
+  (0.0155 against 0.0122).
 - They differ on the flow gaps (flowiat): the largest SHAP share in A1, A2-VPN and A2-NonVPN
   (25.5-29.6%), yet dropping the group costs at most 0.0166, because the correlated forward and
   backward gaps carry much the same timing. SHAP shows what a model uses; the ablation shows what
@@ -461,7 +463,8 @@ the paper's figures value for value.
 ![Timeout effect of the Phase 2 baselines with the class mix of each file](../../figures/timeout_effect.png)
 
 The best scores come from the boosted trees, Random Forest and the tuned SVM, which take longer to
-train than KNN and the decision tree (figure above); prediction with the headline models costs 58.8-1,372.9 ms per 1,000 flows (B and A2-VPN).
+train than KNN and the decision tree (figure above); prediction with the headline models costs
+58.8-1,372.9 ms per 1,000 flows (B and A2-VPN).
 The timeout comparison uses the Phase 2 baselines, the only models run at all four timeouts. The
 class mix changes with the timeout and the 60 s files hold different VOIP and FT flows (Section
 2), so the comparison is confounded and is not read as a timeout effect.
