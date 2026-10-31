@@ -1102,7 +1102,7 @@ every check first, and the official runs went in one batch from commit 87181d2, 
 no rerun. **Why.** A score on rows that no choice has seen is the honest estimate of performance
 on new flows from the same captures. **Hypotheses, fixed in Phase 3.** (a) every headline model
 within 0.03 of its validation score; (b) the headline model above the old rule's pick in at least
-3 of 4 tasks; (c) Spearman >= 0.8 between the validation and test order of the 7 method types in
+3 of 4 tasks; (c) Spearman's rank correlation [22] >= 0.8 between the validation and test order of the 7 method types in
 at least 3 of 4 tasks.
 
 | task | role | method type | run | source run | val macro F1 | test macro F1 | 95% interval | test - val | test accuracy | accuracy 95% interval | test weighted F1 | test balanced accuracy | CV macro F1 (fit rows) | CV - test | calibration |

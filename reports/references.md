@@ -41,3 +41,20 @@
     `weka.classifiers.trees.J48`, `weka.classifiers.lazy.IBk`, `weka.core.EuclideanDistance`
     and `weka.core.NormalizableDistance`. [Online]. Available:
     https://weka.sourceforge.io/doc.stable/ (accessed 28 Oct 2026).
+17. S. Holm, "A Simple Sequentially Rejective Multiple Test Procedure," *Scandinavian Journal
+    of Statistics*, vol. 6, no. 2, pp. 65–70, 1979.
+18. B. Efron and R. J. Tibshirani, *An Introduction to the Bootstrap*. New York: Chapman &
+    Hall, 1993.
+19. B. Zadrozny and C. Elkan, "Transforming Classifier Scores into Accurate Multiclass
+    Probability Estimates," in *Proc. 8th ACM SIGKDD Int. Conf. on Knowledge Discovery and
+    Data Mining (KDD)*, 2002.
+20. M. P. Naeini, G. F. Cooper, and M. Hauskrecht, "Obtaining Well Calibrated Probabilities
+    Using Bayesian Binning," in *Proc. 29th AAAI Conf. on Artificial Intelligence*, 2015,
+    pp. 2901–2907.
+21. C. Guo, G. Pleiss, Y. Sun, and K. Q. Weinberger, "On Calibration of Modern Neural
+    Networks," in *Proc. 34th Int. Conf. on Machine Learning (ICML)*, PMLR 70, 2017,
+    pp. 1321–1330.
+22. C. Spearman, "The Proof and Measurement of Association between Two Things," *American
+    Journal of Psychology*, vol. 15, no. 1, pp. 72–101, 1904.
+23. Snowflake Inc., "Streamlit: a faster way to build and share data apps" (open-source Python
+    library, Apache 2.0 licence). [Online]. Available: https://streamlit.io
