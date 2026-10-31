@@ -893,7 +893,8 @@ work would stop and the user would be asked (it did not happen).
 | B | timing_only | 22 | 0.7987 | -0.0441 | 0.7949 +- 0.0062 |
 
 **Result.** No single group comes close to all 23 features (the best single group is
-0.0604-0.1385 below). Rates + duration matter most: removing them costs 0.0122-0.0549. Active or
+0.0604-0.1385 below). Removing rates + duration costs the most in A2-VPN, A2-NonVPN and B
+(0.0395, 0.0301, 0.0549); in A1 removing the backward gaps costs more (0.0155 against 0.0122). Active or
 idle features can be removed with almost no effect (at most +-0.0051). The timing-only set loses
 0.0148-0.0441, so packet sizes carry information here. **Verdict.** (a) supported, (b) not supported, (c) not supported. Nothing changes in the final
 configurations. [E09]
