@@ -91,6 +91,39 @@ Reliability diagrams: MLflow artifact calibration/reliability.png of each run; r
 | B | E12-final-B | E12-compare-decision_tree-B | comparison | decision tree | 0.0594 | 0.0435-0.0762 | 0.0002 | 0.0052 | yes |
 | B | E12-final-B | E12-compare-logistic_regression-B | comparison | logistic regression | 0.2391 | 0.2147-0.2648 | 0.0002 | 0.0052 | yes |
 
+## E12 Monte Carlo error of the 26 p-values (from the same 10,000 draws; described, not a new test; the verdict stays the fixed Holm result)
+
+Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not settled: 2 of 26.
+
+| task | other | smaller tail count | p | Holm p | Holm p band (+-2 SE) | different (Holm, 0.05) | settled by B resamples |
+|---|---|---|---|---|---|---|---|
+| A1 | E12-compare-knn-A1 | 0 | 0.0002 | 0.0052 | 0.0000-0.0156 | yes | yes |
+| A1 | E12-compare-decision_tree-A1 | 0 | 0.0002 | 0.0052 | 0.0000-0.0150 | yes | yes |
+| A1 | E12-compare-logistic_regression-A1 | 0 | 0.0002 | 0.0052 | 0.0000-0.0144 | yes | yes |
+| A1 | E12-old_rule-A1 | 0 | 0.0002 | 0.0052 | 0.0000-0.0138 | yes | yes |
+| A2-VPN | E12-compare-logistic_regression-A2-VPN | 0 | 0.0002 | 0.0052 | 0.0000-0.0132 | yes | yes |
+| A2-NonVPN | E12-compare-random_forest-A2-NonVPN | 0 | 0.0002 | 0.0052 | 0.0000-0.0126 | yes | yes |
+| A2-NonVPN | E12-compare-decision_tree-A2-NonVPN | 0 | 0.0002 | 0.0052 | 0.0000-0.0120 | yes | yes |
+| A2-NonVPN | E12-compare-logistic_regression-A2-NonVPN | 0 | 0.0002 | 0.0052 | 0.0000-0.0114 | yes | yes |
+| B | E12-compare-decision_tree-B | 0 | 0.0002 | 0.0052 | 0.0000-0.0108 | yes | yes |
+| B | E12-compare-logistic_regression-B | 0 | 0.0002 | 0.0052 | 0.0000-0.0102 | yes | yes |
+| A1 | E12-compare-random_forest-A1 | 1 | 0.0004 | 0.0064 | 0.0000-0.0154 | yes | yes |
+| A1 | E12-compare-xgboost-A1 | 1 | 0.0004 | 0.0064 | 0.0000-0.0145 | yes | yes |
+| A2-NonVPN | E12-compare-knn-A2-NonVPN | 1 | 0.0004 | 0.0064 | 0.0000-0.0135 | yes | yes |
+| B | E12-compare-knn-B | 9 | 0.0020 | 0.0260 | 0.0096-0.0424 | yes | yes |
+| A1 | E12-compare-svm_rbf-A1 | 20 | 0.0042 | 0.0504 | 0.0284-0.0724 | no | no |
+| A2-VPN | E12-compare-decision_tree-A2-VPN | 20 | 0.0042 | 0.0504 | 0.0261-0.0663 | no | no |
+| A2-VPN | E12-compare-knn-A2-VPN | 65 | 0.0132 | 0.1320 | 0.0996-0.1644 | no | yes |
+| A2-NonVPN | E12-compare-svm_rbf-A2-NonVPN | 263 | 0.0528 | 0.4752 | 0.4174-0.5329 | no | yes |
+| A2-VPN | E12-old_rule-A2-VPN | 282 | 0.0566 | 0.4752 | 0.3997-0.5058 | no | yes |
+| B | E12-compare-lightgbm-B | 683 | 0.1368 | 0.9575 | 0.8868-1.0000 | no | yes |
+| B | E12-compare-random_forest-B | 975 | 0.1952 | 1.0000 | 1.0000-1.0000 | no | yes |
+| A2-VPN | E12-compare-xgboost-A2-VPN | 1,458 | 0.2918 | 1.0000 | 1.0000-1.0000 | no | yes |
+| A2-NonVPN | E12-compare-xgboost-A2-NonVPN | 1,702 | 0.3406 | 1.0000 | 1.0000-1.0000 | no | yes |
+| B | E12-compare-svm_rbf-B | 2,038 | 0.4078 | 1.0000 | 1.0000-1.0000 | no | yes |
+| A2-VPN | E12-compare-random_forest-A2-VPN | 2,561 | 0.5123 | 1.0000 | 0.9898-1.0000 | no | yes |
+| A2-VPN | E12-compare-svm_rbf-A2-VPN | 4,262 | 0.8525 | 1.0000 | 0.8327-0.8723 | no | yes |
+
 ## E12 headline models: calibration on the test rows (measured once), class extremes, confusion pairs and cost (described, not tested)
 
 | task | run | calibration | test ECE (probabilities used) | test ECE uncalibrated | mean confidence | test accuracy | weighted - macro F1 gap | best class F1 | worst class F1 | best class recall | worst class recall | top-5 confusion pairs (true -> predicted: flows) | model file MiB | train time s | predict ms per 1,000 flows |

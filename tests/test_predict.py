@@ -81,6 +81,8 @@ def test_malformed_input_is_rejected(folder):
     _bad(folder, X.assign(port=1), "unexpected \\['port'\\]")
     _bad(folder, X[X.columns[::-1]], "wrong order")
     _bad(folder, X.assign(duration=["x"] * 5), "non-numeric")
+    _bad(folder, X.assign(duration=[1.0, 2.0, "x", 3.0, 4.0]),
+         r"first bad data rows: \{'duration': \[3\]\}")  # fmt: skip
     _bad(folder, X.assign(duration=[np.nan] + [1.0] * 4), "missing or infinite value in column "
          "duration, data row 1")  # fmt: skip
     _bad(folder, X.head(0), "no rows")

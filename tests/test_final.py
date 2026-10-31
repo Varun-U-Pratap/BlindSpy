@@ -114,6 +114,35 @@ def test_holm_hand_example():
     assert adj["b"][0] == pytest.approx(0.06) and not adj["b"][1]
 
 
+def test_e12_mc_error_flags_tests_on_the_holm_line():
+    b = 10_000
+    rng = np.random.default_rng(0)
+    base = rng.normal(0.9, 0.01, b)
+    draws = {"h": base, "far": base - 0.5, "zero": base.copy()}
+    edge = base - 0.05
+    edge[:20] = base[:20] + 0.01  # 20 draws at or below 0: p = 2 * 21 / 10001 = 0.0042
+    draws["edge"] = edge
+    names = ["far", "edge", "zero"]
+    tests = pd.DataFrame(
+        {
+            "task": "A1",
+            "headline": "h",
+            "other": names,
+            "p": [R.paired_p(draws["h"] - draws[k]) for k in names],
+        }
+    )
+    adj = R.holm(dict(zip(tests["other"], tests["p"], strict=True)))
+    tests["Holm p"] = tests["other"].map(lambda k: adj[k][0])
+    tests["different (Holm, 0.05)"] = tests["other"].map(lambda k: adj[k][1])
+    mc = R.e12_mc_error(tests, draws).set_index("other")
+    assert mc.loc["far", "smaller tail count"] == 0 and mc.loc["far", "settled by B resamples"]
+    assert mc.loc["zero", "settled by B resamples"]  # p = 1
+    # rank 2 of 3: Holm multiplier 2 -> 0.0084, band about 0.0048-0.0120: settled at 0.05
+    assert mc.loc["edge", "smaller tail count"] == 20 and mc.loc["edge", "settled by B resamples"]
+    mc12 = R.e12_mc_error(tests, draws, alpha=0.01).set_index("other")
+    assert not mc12.loc["edge", "settled by B resamples"]  # the band straddles 0.01
+
+
 def test_e12_tests_pairs_headline_with_every_other_run():
     scores = pd.DataFrame({
         "task": ["A1"] * 3, "role": ["headline", "comparison", "old_rule"],
