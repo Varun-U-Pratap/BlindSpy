@@ -3,7 +3,9 @@
 Each experiment lives in reports/experiments/<runner>/E##.md (written by people); this
 script combines the official runner's files, newest first. It also writes every MLflow run
 of the official store (mlruns/<runner>/mlflow.db) to reports/history.csv, one row per run,
-so report tables are generated, never typed. The report graphs are added in Phase 4.
+so report tables are generated, never typed. Then it draws the report graphs that come from
+history.csv (blindspy.figures) and writes reports/figures/INDEX.md, which lists every report graph
+and the code that draws it.
 
 Usage: uv run python scripts/export_history.py
 """
@@ -81,6 +83,13 @@ def main() -> None:
     csv = ROOT / "reports" / "history.csv"
     hist.to_csv(csv, index=False)
     print(f"Wrote {csv.relative_to(ROOT)}: {len(hist)} runs, {hist.shape[1]} columns")
+
+    from blindspy import figures
+    from blindspy import results as R
+
+    missing = figures.draw_all(R.load_history(csv), runner)
+    print("Wrote report graphs and reports/figures/INDEX.md"
+          + (f"; MISSING graph files: {missing}" if missing else ""))  # fmt: skip
 
 
 if __name__ == "__main__":
