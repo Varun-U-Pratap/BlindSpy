@@ -424,9 +424,28 @@ def phase4() -> None:
         v.update(v12)
     if (ROOT / "reports" / "shap_groups.csv").exists():
         out += shap_sections()
+    if (ROOT / "models" / "final" / "B.json").exists():
+        from blindspy.predict import predict
+
+        sample = ROOT / "app" / "samples" / "B_test_sample.csv"
+        pred = predict("B", pd.read_csv(sample)).head(8)
+        out += [
+            "",
+            "## predict.py on a sample file (first 8 rows of the output)",
+            "",
+            f"Command: `uv run python scripts/predict.py --task B --input "
+            f"{sample.relative_to(ROOT)} --output predictions.csv`",
+            "",
+            R.md(pred.assign(confidence=pred["confidence"].astype(float).round(4))),
+        ]
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip
     OUT4.write_text("\n".join(out))
+    # every experiment's verdicts in one table, read back from the three generated files
+    summary = R.verdict_summary([OUT, OUT3, OUT4])
+    OUT4.write_text("\n".join([*out[:-1], "## Every pre-stated threshold, by experiment "
+                               "(from the threshold checks of all three tables files)", "",
+                               R.md(summary), "", out[-1]]))  # fmt: skip
     print(f"Wrote {OUT4.relative_to(ROOT)}")
     for k, x in v.items():
         if "supported" in x:

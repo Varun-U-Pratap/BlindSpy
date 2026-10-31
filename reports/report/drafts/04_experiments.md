@@ -3,7 +3,8 @@
 *Working draft. These markdown drafts are the master copy of the report; the full report (DOCX and
 PDF) is assembled from them at each milestone. Every table here is copied unchanged from a
 generated file: Sections 4.1-4.4 from `reports/baseline_tables.md` (`scripts/results_tables.py`),
-Sections 4.5-4.19 from `reports/phase3_tables.md` (`scripts/results_tables.py --phase 3`), both
+Sections 4.5-4.19 from `reports/phase3_tables.md` (`scripts/results_tables.py --phase 3`) and
+Sections 4.20-4.21 from `reports/phase4_tables.md` (`--phase 4`), all
 built from `reports/history.csv` (all MLflow runs, exported by `scripts/export_history.py`); a
 test (`tests/test_report_drafts.py`) checks that each table still matches its source. Every
 number cites its experiment (entries in `reports/EXPERIMENT_LOG.md`). Data version: v1 (E16:
@@ -767,8 +768,8 @@ model. The cross-validation standard deviations of the headline models (0.0028-0
 below 0.03,
 and under the old rule KNN or the SVM would have been chosen at 0.0146-0.0286 below the best.
 This is a deviation from the pre-set rule and is reported as one (Section 3.8). The models the old
-rule would pick are also scored on the test set in Phase 4 (E12), so the cost of either rule is
-visible. The only fallback is a saved model file above 50 MB; none of the four is.
+rule would pick were also scored on the test set (E12), so the cost of either rule is visible
+(Section 5.3). The only fallback is a saved model file above 50 MB; none of the four is.
 
 | task | run | method type | timeout | val macro F1 | next best | next best F1 | model file MiB | skipped for file size |
 |---|---|---|---|---|---|---|---|---|
@@ -785,10 +786,10 @@ visible. The only fallback is a saved model file above 50 MB; none of the four i
 | B | E17-svm_rbf-B-15s | SVM-RBF | 0.8242 | 0.0186 | 9 | yes |
 
 The **comparison set** holds, per task, the best 15 s validation variant of each of the 7 method
-types, 28 models in all. It was fixed in `configs/final/compare/` before the test set is opened.
-In Phase 4 each is retrained on training + validation data and scored once on the test set, with
-26 paired bootstrap tests on macro F1 (Holm correction), fixed before the test set is opened
-(Section 3.3, E12).
+types, 28 models in all. It was fixed in `configs/final/compare/` before the test set was opened.
+In Phase 4 each was retrained on training + validation data and scored once on the test set, with
+26 paired bootstrap tests on macro F1 (Holm correction), fixed before the test set was opened
+(Section 3.3, E12; results in Section 5.3).
 
 ![Comparison set at 15 s](../../figures/comparison_set_val_15s.png)
 
@@ -1059,3 +1060,59 @@ Every official run saves its model (compressed, level 3). Per experiment and mod
 
 Whole store at this point: artifacts 2645.3 MiB, mlflow.db 35.8 MiB. This is far below the plan's 20 GB limit. The four headline
 model files are 4.31-25.12 MiB, all below GitHub's 50 MB warning size.
+
+## 4.20 E15: calibration of the headline models (on validation, before the test set)
+
+**What.** The Expected Calibration Error (15 equal-width bins; confidence = the probability of the
+predicted class) and a reliability diagram for each headline model, fitted on the training rows and
+measured on the validation rows; then isotonic calibration (`CalibratedClassifierCV`, one base
+model, mapping learned from 5-fold out-of-fold predictions on the training rows with shuffled folds,
+seed 42). **Why.** `predict.py` and the demo report a confidence for every prediction, so it must
+be trustworthy. **Rule and thresholds, fixed before running.** Calibration is adopted for a task if
+the uncalibrated validation ECE is above 0.05 and isotonic calibration lowers it; it changes only
+the reported confidence, never the predicted class. (a) uncalibrated ECE above 0.05 in at least 2
+of 4 tasks; (b) isotonic ECE lower in all 4; (c) the predicted class unchanged on every row and
+validation macro F1 equal to the source run. **Correction before the counted runs.** The first
+pilot used `cv=5`, which means unshuffled folds; the training rows are stored in file order, so
+each fold held out a block of the file and the out-of-fold predictions were far too poor (A1
+out-of-fold accuracy 0.6701 unshuffled against 0.9321 shuffled). The folds were changed to the
+project's shuffled folds before any counted E15 run; the pilot run is kept and superseded.
+
+| task | run | headline | val accuracy | mean confidence, uncalibrated | mean confidence, isotonic | ECE uncalibrated | ECE isotonic | adopted | same predicted class (share of rows) | calibrated argmax would differ (share, unused) | val macro F1 = source run |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | E15-A1-15s | E17-lgbm-A1-15s | 0.9309 | 0.9861 | 0.9356 | 0.0552 | 0.014 | yes | 1.0 | 0.0007 | yes |
+| A2-VPN | E15-A2-VPN-15s | E08-lgbm_class_weight-A2-VPN-15s | 0.8984 | 0.9692 | 0.9004 | 0.0714 | 0.0168 | yes | 1.0 | 0.0078 | yes |
+| A2-NonVPN | E15-A2-NonVPN-15s | E08-lgbm_oversample-A2-NonVPN-15s | 0.9479 | 0.991 | 0.9469 | 0.0444 | 0.0152 | no | 1.0 | 0.0084 | yes |
+| B | E15-B-15s | E07-xgb-B-15s | 0.8794 | 0.9144 | 0.8787 | 0.035 | 0.0099 | no | 1.0 | 0.0077 | yes |
+
+**Result.** All four models are overconfident on validation. (a), (b) and (c) are supported:
+calibration was adopted for A1 (ECE 0.0552 to 0.0140) and A2-VPN (0.0714 to 0.0168), and not for
+A2-NonVPN (0.0444) or B (0.0350), whose uncalibrated ECE is not above 0.05. The test-set ECE,
+measured once, is in Section 5.4.
+
+## 4.21 E12: final results on the test set
+
+**What.** Each of the 30 final models (the 28 comparison-set members, which include the 4 headline
+models, and the 2 old-rule picks that are not members) was retrained on training + validation data
+and scored once on the test rows. The models, the 26 paired tests, the 10,000-resample stratified
+bootstrap and the calibration rule were all fixed before the test set was opened; a rehearsal of
+the same runs on the validation rows (fitted on the training rows, in a separate run store) passed
+every check first, and the official runs went in one batch from commit 87181d2, with no crash and
+no rerun. **Why.** A score on rows that no choice has seen is the honest estimate of performance
+on new flows from the same captures. **Hypotheses, fixed in Phase 3.** (a) every headline model
+within 0.03 of its validation score; (b) the headline model above the old rule's pick in at least
+3 of 4 tasks; (c) Spearman >= 0.8 between the validation and test order of the 7 method types in
+at least 3 of 4 tasks.
+
+| task | role | method type | run | source run | val macro F1 | test macro F1 | 95% interval | test - val | test accuracy | accuracy 95% interval | test weighted F1 | test balanced accuracy | CV macro F1 (fit rows) | CV - test | calibration |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | headline | LightGBM | E12-final-A1 | E17-lgbm-A1-15s | 0.9308 | 0.9434 | 0.9348-0.9519 | 0.0126 | 0.9435 | 0.9350-0.9520 | 0.9435 | 0.9433 | 0.9322 | -0.0111 | isotonic |
+| A2-VPN | headline | LightGBM | E12-final-A2-VPN | E08-lgbm_class_weight-A2-VPN-15s | 0.883 | 0.8652 | 0.8431-0.8866 | -0.0178 | 0.8955 | 0.8799-0.9112 | 0.896 | 0.8682 | 0.8827 | 0.0175 | isotonic |
+| A2-NonVPN | headline | LightGBM | E12-final-A2-NonVPN | E08-lgbm_oversample-A2-NonVPN-15s | 0.9075 | 0.9403 | 0.9216-0.9573 | 0.0328 | 0.9609 | 0.9510-0.9709 | 0.9607 | 0.9343 | 0.9347 | -0.0055 | none |
+| B | headline | XGBoost | E12-final-B | E07-xgb-B-15s | 0.8428 | 0.848 | 0.8305-0.8651 | 0.0052 | 0.8798 | 0.8684-0.8916 | 0.8797 | 0.8439 | 0.8473 | -0.0007 | none |
+
+**Result.** (a) is not supported (A2-NonVPN is 0.0328 above its validation score; E14 had already
+shown its validation rows to be unusually hard), (b) and (c) are supported. 14 of the 26 paired
+differences are clear after Holm; two more sit on the Holm line and are borderline. All results
+are in Section 5.
+

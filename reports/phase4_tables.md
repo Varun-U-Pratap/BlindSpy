@@ -331,6 +331,21 @@ Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not 
 | B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 2 | min_fiat | 27.0 | 1.2891 |
 | B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 3 | min_flowiat | 27.0 | 0.6031 |
 
+## predict.py on a sample file (first 8 rows of the output)
+
+Command: `uv run python scripts/predict.py --task B --input app/samples/B_test_sample.csv --output predictions.csv`
+
+| row | label | true_label | confidence | top_feature_1 | top_feature_2 | top_feature_3 |
+|---|---|---|---|---|---|---|
+| 1 | MAIL | MAIL | 0.9879 | flowBytesPerSecond (+3.048) | max_biat (+1.391) | min_flowiat (+1.088) |
+| 2 | VOIP | VOIP | 0.9998 | duration (+3.221) | min_biat (+0.953) | flowBytesPerSecond (+0.756) |
+| 3 | VOIP | VOIP | 0.9998 | duration (+3.220) | min_biat (+0.989) | flowBytesPerSecond (+0.760) |
+| 4 | VOIP | VOIP | 1.0 | duration (+3.751) | std_biat (+1.102) | max_flowiat (+0.877) |
+| 5 | VOIP | VOIP | 0.9995 | duration (+3.618) | mean_flowiat (+0.849) | max_flowiat (+0.743) |
+| 6 | VOIP | VOIP | 1.0 | duration (+3.528) | std_biat (+1.169) | std_fiat (+0.747) |
+| 7 | VPN-FT | VPN-CHAT | 0.7308 | flowPktsPerSecond (+0.375) | mean_fiat (+0.346) | flowBytesPerSecond (+0.306) |
+| 8 | VPN-FT | VPN-FT | 0.7385 | max_flowiat (+0.977) | min_flowiat (+0.556) | min_fiat (+0.353) |
+
 ## Threshold checks (pre-stated in the E## files)
 
 ```json
@@ -414,3 +429,24 @@ Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not 
  }
 }
 ```
+## Every pre-stated threshold, by experiment (from the threshold checks of all three tables files)
+
+| experiment | supported | not supported |
+|---|---|---|
+| E01 | single check | none |
+| E02 | a, b, c | d |
+| E03 | a_knn, a_logreg, a_svm_rbf, b, c_logreg, c_svm_rbf, d | e |
+| E04 | a, b | none |
+| E05 | a, b | none |
+| E06 | a, b | none |
+| E07 | a, c | b |
+| E08 | b, c | a |
+| E09 | a | b, c |
+| E10 | c | a, b |
+| E12 | b, c | a |
+| E13 | a, b, c | none |
+| E14 | a, b | c |
+| E15 | a, b, c | none |
+| E16 | a, b, c, d | none |
+| E17 | a, b, c | none |
+

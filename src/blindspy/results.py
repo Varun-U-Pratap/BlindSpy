@@ -1,6 +1,7 @@
 """Tables and threshold checks built from reports/history.csv (no number typed by hand)."""
 
 import json
+import re
 from pathlib import Path
 
 import numpy as np
@@ -1454,6 +1455,26 @@ def e12_mc_error(tests: pd.DataFrame, draws: dict, alpha: float = HOLM_ALPHA) ->
     return pd.DataFrame(rows)
 
 
+def verdict_summary(paths) -> pd.DataFrame:
+    """Every pre-stated threshold check in the generated tables files (their JSON blocks), one row
+    per experiment: which parts were supported and which were not."""
+    rows = {}
+    for path in paths:
+        text = Path(path).read_text()
+        for block in re.findall(r"```json\n(.*?)\n```", text, re.S):
+            for key, v in json.loads(block).items():
+                if "supported" not in v:
+                    continue  # notes such as E09's stop rule or E15's adoption table
+                exp = re.match(r"E\d+", key).group(0)
+                part = key[len(exp) :].lstrip("_") or "single check"
+                r = rows.setdefault(exp, {"experiment": exp, "supported": [], "not supported": []})
+                r["supported" if v["supported"] else "not supported"].append(part)
+    out = pd.DataFrame(sorted(rows.values(), key=lambda r: int(r["experiment"][1:])))
+    for c in ("supported", "not supported"):
+        out[c] = out[c].map(lambda x: ", ".join(x) if x else "none")
+    return out
+
+
 def e12_confusion_pairs(h: pd.DataFrame, runner: str, k: int = 5, root: Path = ROOT):
     """Top-k confusion pairs (true -> predicted, by flow count) of each headline model on the
     test rows, from its saved predictions, with the share of that true class."""
@@ -1479,8 +1500,8 @@ def e12_comparison_figure(scores: pd.DataFrame, path: Path) -> None:
     validation score as a hollow marker."""
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, len(CORE_TASKS), figsize=(18, 4.8))
-    for ax, task in zip(axes, CORE_TASKS, strict=True):
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+    for ax, task in zip(axes.flat, CORE_TASKS, strict=True):
         g = scores[scores["task"] == task].sort_values("_point")
         lo, hi = zip(*[map(float, v.split("-")) for v in g["95% interval"]], strict=True)
         y = np.arange(len(g))
@@ -1496,7 +1517,7 @@ def e12_comparison_figure(scores: pd.DataFrame, path: Path) -> None:
                  for t, r in zip(g["method type"], g["role"], strict=True)]  # fmt: skip
         ax.set_yticks(y, names, fontsize=8)
         ax.set_title(f"{task}: test macro F1 (headline in red)", fontsize=10)
-    axes[0].legend(fontsize=7, loc="lower right")
+    axes.flat[0].legend(fontsize=7, loc="lower right")
     fig.suptitle("E12: every final model scored once on the test rows (10,000 stratified paired "
                  "resamples, seed 42)", fontsize=10)  # fmt: skip
     fig.tight_layout()

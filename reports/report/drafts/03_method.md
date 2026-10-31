@@ -195,8 +195,8 @@ entry repeats the ones it uses before it runs.
   below 0.03, and the goal is the best score on unseen traffic. The final configuration per task
   is therefore the highest validation macro F1 among all model-selection runs (any experiment, any
   timeout). The only fallback is a saved model file above 50 MB (GitHub's warning size), which none
-  of the chosen models reaches. The old rule's picks are scored on the test set too (E12), so the
-  cost of either rule is visible.
+  of the chosen models reaches. The old rule's picks were scored on the test set too (E12), so the
+  cost of either rule is visible (Section 5.3).
 - **Comparison set.** Fixed in `configs/final/compare/` before the test set is opened: per task,
   the best 15 s validation variant of each of 7 method types (decision tree, KNN, logistic
   regression, SVM-RBF, Random Forest, XGBoost, LightGBM), 28 models. A type's variants are its
