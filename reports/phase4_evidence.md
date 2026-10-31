@@ -46,3 +46,27 @@ compared.
 
 Not verified: the DOCX was checked by the validator but not opened in a word processor (none is
 installed on the build machine); the PDF built from the same drafts was checked page by page.
+
+## Recheck (31 Oct 2026, after the tag; nothing changed)
+
+- Repository: dev equal to origin/dev; tag `v1.0-final` points to 3c31bad on the remote; no
+  tracked data, run store or backup files; largest tracked file 28.14 MiB (`models/final/A2-VPN.joblib`).
+- `pytest`: 230 passed; `ruff check .` and `ruff format --check .` clean on the whole repository.
+- Run store: 2,013 runs, all finished; exactly 30 runs carry a test metric, all from 87181d2,
+  none started after them; the 35 Phase 4 runs share one lock-file hash, are from clean pushed
+  commits, and the 30 E12 runs use data v1. For each E12 run the saved prediction file holds
+  exactly the task's test rows with their true labels, and its data and split hashes are in
+  `data/manifest.json`.
+- Every generator rerun (`export_history.py`, `results_tables.py` for Phases 2-4,
+  `explain_final.py`, `make_notebooks.py`, `check_e12_independent.py`, `write_final_configs.py`)
+  rewrote its files byte-identical (empty `git status`); the independent E12 check reports
+  "FAILED: none".
+- `models/final/`: each file under 50 MB, its SHA-256 equal to the one in its JSON, the JSON
+  pointing to its `E12-final-<task>` run and commit 87181d2.
+- `predict.py` on the four sample files (80 rows): every label equal to the official test
+  prediction of that row; confidence identical for A1, A2-VPN and A2-NonVPN and within 2.8e-8 for
+  B (the test in `tests/test_predict.py` compares confidences with `np.allclose`, so "equal" in the
+  table above means equal within that tolerance for B). An A2 file given to the A1 model stops with
+  exit code 2 (A1 and B share column names, so a B file is correctly accepted by the A1 model).
+- No draft, figure or report script changed since the drafts the v1.0-final report was built from
+  (249afad); every commit hash cited in the Phase 4 documents and the plan's Phase 4 section exists.
