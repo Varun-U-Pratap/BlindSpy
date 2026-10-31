@@ -15,6 +15,8 @@ Draper-Gil et al. (ICISSP 2016):
   its experiment ID.
 - **Final results** (test set scored once, 95% bootstrap intervals): test macro F1 A1 0.9434,
   A2-VPN 0.8652, A2-NonVPN 0.9403, B 0.8480 (`reports/phase4_tables.md`, experiment E12).
+- **Demo:** `app/demo.py` (how to run it below) and a 1-minute video of it,
+  `reports/demo/demo_video.mp4` (made by `scripts/record_demo.py`; `reports/demo/video_script.md`).
 - **Final models:** `models/final/<task>.joblib` with `<task>.json` (feature names, order and
   units, class labels, the MLflow run and git commit they came from).
 - **History:** `reports/EXPERIMENT_LOG.md` (one entry per experiment, failures included),
