@@ -376,6 +376,26 @@ def e12_sections(h, runner: str, name: str, protocol: str, root) -> tuple[list[s
     return out, R.e12_verdicts(scores, h)
 
 
+def shap_sections() -> list[str]:
+    """SHAP tables written by scripts/explain_final.py (final models, test rows; described only)."""
+    rep = ROOT / "reports"
+    imp = pd.read_csv(rep / "shap_importance.csv")
+    top = imp[imp["rank"] <= 5].assign(
+        feature=lambda d: d["feature"] + " (" + d["mean |SHAP|"].map("{:.3f}".format) + ")"
+    )
+    top = top.pivot(index="rank", columns="task", values="feature")[R.CORE_TASKS].reset_index()
+    ex = pd.read_csv(rep / "shap_examples.csv")
+    ex = ex[ex["rank"] <= 3].drop(columns="weakest class")
+    return ["", "## SHAP: top 5 features per final model by mean |SHAP| (test rows; log-odds "
+            "units, averaged over classes; scripts/explain_final.py)", "", R.md(top),
+            "", "## SHAP share per feature group next to E09 (E09: validation macro F1 change of "
+            "the train-only headline model)", "", R.md(pd.read_csv(rep / "shap_groups.csv")),
+            "", "## SHAP: top 3 features per class (mean |SHAP| towards that class; A1 shows VPN "
+            "only, Non-VPN is its mirror image)", "", R.md(pd.read_csv(rep / "shap_class_top.csv")),
+            "", "## SHAP worked examples (4 flows per task picked by a fixed rule; top 3 "
+            "features towards the predicted class)", "", R.md(ex)]  # fmt: skip
+
+
 def phase4() -> None:
     h = R.load_history()
     out = ["# Phase 4 tables", "",
@@ -399,6 +419,8 @@ def phase4() -> None:
         out_e12, v12 = e12_sections(h, runner, "test", "final_test", ROOT)
         out += out_e12
         v.update(v12)
+    if (ROOT / "reports" / "shap_groups.csv").exists():
+        out += shap_sections()
     out += ["", "## Threshold checks (pre-stated in the E## files)", "", "```json",
             json.dumps(v, indent=1, default=lambda x: x.item()), "```", ""]  # fmt: skip
     OUT4.write_text("\n".join(out))

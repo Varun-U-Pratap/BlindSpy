@@ -183,6 +183,132 @@ Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not 
 | VPN-STREAMING | 71 | 0.8861 | 0.9859 | 0.9333 |
 | VPN-VOIP | 340 | 1.0 | 0.9706 | 0.9851 |
 
+## SHAP: top 5 features per final model by mean |SHAP| (test rows; log-odds units, averaged over classes; scripts/explain_final.py)
+
+| rank | A1 | A2-VPN | A2-NonVPN | B |
+|---|---|---|---|---|
+| 1 | min_flowiat (2.224) | flowBytesPerSecond (1.062) | flowBytesPerSecond (1.409) | flowBytesPerSecond (0.989) |
+| 2 | min_biat (2.192) | min_flowiat (0.776) | min_flowiat (1.326) | min_flowiat (0.828) |
+| 3 | flowBytesPerSecond (1.905) | min_fiat (0.688) | min_fiat (0.756) | duration (0.687) |
+| 4 | min_fiat (1.535) | min_biat (0.537) | flowPktsPerSecond (0.685) | min_fiat (0.589) |
+| 5 | max_flowiat (1.320) | duration (0.448) | mean_flowiat (0.663) | min_biat (0.495) |
+
+## SHAP share per feature group next to E09 (E09: validation macro F1 change of the train-only headline model)
+
+| task | group | features | mean |SHAP| (sum) | SHAP share | E09 drop this group (val change) | E09 this group alone (val change) |
+|---|---|---|---|---|---|---|
+| A1 | fiat | 4 | 2.9511 | 0.1654 | -0.0052 | -0.1229 |
+| A1 | biat | 4 | 4.0202 | 0.2253 | -0.0155 | -0.1064 |
+| A1 | flowiat | 4 | 5.2763 | 0.2957 | 0.0014 | -0.08 |
+| A1 | active | 4 | 0.9953 | 0.0558 | -0.0011 | -0.3819 |
+| A1 | idle | 4 | 0.7757 | 0.0435 | -0.0004 | -0.3803 |
+| A1 | rates_duration | 3 | 3.8264 | 0.2144 | -0.0122 | -0.0915 |
+| A2-VPN | fiat | 4 | 1.6589 | 0.2212 | -0.0179 | -0.1237 |
+| A2-VPN | biat | 4 | 1.4386 | 0.1918 | -0.0105 | -0.1631 |
+| A2-VPN | flowiat | 4 | 1.9133 | 0.2551 | -0.0078 | -0.0969 |
+| A2-VPN | active | 4 | 0.2794 | 0.0373 | 0.003 | -0.5578 |
+| A2-VPN | idle | 4 | 0.4264 | 0.0569 | -0.0004 | -0.5763 |
+| A2-VPN | rates_duration | 3 | 1.7828 | 0.2377 | -0.0395 | -0.104 |
+| A2-NonVPN | fiat | 4 | 2.3124 | 0.2197 | -0.0051 | -0.154 |
+| A2-NonVPN | biat | 4 | 1.694 | 0.1609 | -0.0082 | -0.1804 |
+| A2-NonVPN | flowiat | 4 | 2.8594 | 0.2716 | -0.0045 | -0.091 |
+| A2-NonVPN | active | 4 | 0.593 | 0.0563 | 0.0018 | -0.572 |
+| A2-NonVPN | idle | 4 | 0.3305 | 0.0314 | -0.0036 | -0.6037 |
+| A2-NonVPN | rates_duration | 3 | 2.7372 | 0.26 | -0.0301 | -0.0604 |
+| B | fiat | 4 | 1.5248 | 0.2032 | -0.0184 | -0.2028 |
+| B | biat | 4 | 1.3158 | 0.1754 | -0.0265 | -0.233 |
+| B | flowiat | 4 | 1.9626 | 0.2616 | -0.0166 | -0.1712 |
+| B | active | 4 | 0.4103 | 0.0547 | 0.0051 | -0.629 |
+| B | idle | 4 | 0.2732 | 0.0364 | 0.0 | -0.6345 |
+| B | rates_duration | 3 | 2.0161 | 0.2687 | -0.0549 | -0.1385 |
+
+## SHAP: top 3 features per class (mean |SHAP| towards that class; A1 shows VPN only, Non-VPN is its mirror image)
+
+| task | class | test F1 | feature 1 | feature 2 | feature 3 |
+|---|---|---|---|---|---|
+| A1 | VPN | 0.9456 | min_flowiat (2.224) | min_biat (2.192) | flowBytesPerSecond (1.905) |
+| A2-VPN | VPN-BROWSING | 0.9292 | flowBytesPerSecond (2.308) | min_fiat (0.833) | std_flowiat (0.777) |
+| A2-VPN | VPN-CHAT | 0.7877 | min_flowiat (1.039) | flowBytesPerSecond (0.948) | min_fiat (0.644) |
+| A2-VPN | VPN-FT | 0.8499 | min_flowiat (0.874) | min_fiat (0.708) | flowBytesPerSecond (0.545) |
+| A2-VPN | VPN-MAIL | 0.7132 | min_fiat (1.161) | min_flowiat (0.710) | mean_flowiat (0.708) |
+| A2-VPN | VPN-P2P | 0.8462 | flowBytesPerSecond (0.982) | min_flowiat (0.746) | duration (0.582) |
+| A2-VPN | VPN-STREAMING | 0.9362 | mean_biat (0.974) | flowBytesPerSecond (0.905) | duration (0.429) |
+| A2-VPN | VPN-VOIP | 0.9941 | min_flowiat (1.141) | total_fiat (1.121) | min_biat (1.086) |
+| A2-NonVPN | BROWSING | 0.9597 | min_flowiat (1.886) | flowBytesPerSecond (1.709) | mean_fiat (1.545) |
+| A2-NonVPN | CHAT | 0.9042 | min_flowiat (1.772) | mean_flowiat (0.886) | mean_biat (0.827) |
+| A2-NonVPN | FT | 0.92 | flowPktsPerSecond (1.762) | flowBytesPerSecond (1.610) | mean_flowiat (1.075) |
+| A2-NonVPN | MAIL | 0.9167 | min_fiat (2.038) | flowBytesPerSecond (1.466) | min_flowiat (1.305) |
+| A2-NonVPN | P2P | 0.9893 | min_flowiat (1.892) | duration (1.024) | flowBytesPerSecond (0.951) |
+| A2-NonVPN | STREAMING | 0.8955 | flowBytesPerSecond (1.475) | min_flowiat (1.420) | max_biat (0.487) |
+| A2-NonVPN | VOIP | 0.9964 | flowBytesPerSecond (1.834) | total_fiat (1.587) | total_biat (1.541) |
+| B | BROWSING | 0.8912 | flowBytesPerSecond (1.106) | std_fiat (0.872) | min_biat (0.791) |
+| B | CHAT | 0.7868 | min_flowiat (1.192) | duration (0.753) | mean_biat (0.642) |
+| B | FT | 0.8629 | flowPktsPerSecond (1.501) | flowBytesPerSecond (1.124) | mean_flowiat (0.716) |
+| B | MAIL | 0.7826 | min_fiat (1.727) | mean_flowiat (1.259) | min_flowiat (1.248) |
+| B | P2P | 0.9181 | min_flowiat (2.703) | flowBytesPerSecond (1.133) | duration (1.045) |
+| B | STREAMING | 0.8346 | flowBytesPerSecond (1.796) | min_flowiat (0.592) | mean_biat (0.532) |
+| B | VOIP | 0.9917 | duration (1.887) | flowBytesPerSecond (1.034) | max_flowiat (0.902) |
+| B | VPN-BROWSING | 0.8464 | flowBytesPerSecond (1.160) | duration (0.812) | std_flowiat (0.808) |
+| B | VPN-CHAT | 0.7359 | flowBytesPerSecond (1.126) | min_biat (0.651) | min_flowiat (0.449) |
+| B | VPN-FT | 0.8247 | flowBytesPerSecond (0.638) | min_flowiat (0.492) | max_flowiat (0.467) |
+| B | VPN-MAIL | 0.7259 | min_fiat (1.019) | min_biat (0.827) | mean_flowiat (0.674) |
+| B | VPN-P2P | 0.7527 | min_flowiat (1.172) | mean_biat (0.838) | max_flowiat (0.759) |
+| B | VPN-STREAMING | 0.9333 | mean_biat (1.959) | flowBytesPerSecond (1.326) | min_biat (0.590) |
+| B | VPN-VOIP | 0.9851 | std_fiat (1.086) | duration (1.050) | min_flowiat (0.987) |
+
+## SHAP worked examples (4 flows per task picked by a fixed rule; top 3 features towards the predicted class)
+
+| task | example | raw_row | true | predicted | confidence | rank | feature | value | SHAP |
+|---|---|---|---|---|---|---|---|---|---|
+| A1 | most confident correct | 797 | Non-VPN | Non-VPN | 1.0 | 1 | max_flowiat | 55123.0 | 4.2942 |
+| A1 | most confident correct | 797 | Non-VPN | Non-VPN | 1.0 | 2 | min_flowiat | 55123.0 | 3.4935 |
+| A1 | most confident correct | 797 | Non-VPN | Non-VPN | 1.0 | 3 | flowPktsPerSecond | 36.2825 | 3.1267 |
+| A1 | least confident correct | 5,497 | VPN | VPN | 0.4519 | 1 | flowBytesPerSecond | 240.3304 | 2.6886 |
+| A1 | least confident correct | 5,497 | VPN | VPN | 0.4519 | 2 | flowPktsPerSecond | 1.6321 | 1.3703 |
+| A1 | least confident correct | 5,497 | VPN | VPN | 0.4519 | 3 | mean_active | 4695071.0 | 0.7458 |
+| A1 | most confident error | 2,218 | Non-VPN | VPN | 0.9956 | 1 | flowBytesPerSecond | 130.9021 | 4.5879 |
+| A1 | most confident error | 2,218 | Non-VPN | VPN | 0.9956 | 2 | min_fiat | 794487.0 | 2.3452 |
+| A1 | most confident error | 2,218 | Non-VPN | VPN | 0.9956 | 3 | max_flowiat | 794487.0 | 1.9669 |
+| A1 | weakest class, median confidence | 2,896 | Non-VPN | Non-VPN | 0.9946 | 1 | min_flowiat | 559.0 | 6.0851 |
+| A1 | weakest class, median confidence | 2,896 | Non-VPN | Non-VPN | 0.9946 | 2 | max_flowiat | 969065.0 | 1.6854 |
+| A1 | weakest class, median confidence | 2,896 | Non-VPN | Non-VPN | 0.9946 | 3 | min_biat | 959994.0 | 1.3987 |
+| A2-VPN | most confident correct | 9,144 | VPN-VOIP | VPN-VOIP | 0.9994 | 1 | min_biat | 10038206.0 | 3.9411 |
+| A2-VPN | most confident correct | 9,144 | VPN-VOIP | VPN-VOIP | 0.9994 | 2 | flowBytesPerSecond | 21.4332 | 3.4869 |
+| A2-VPN | most confident correct | 9,144 | VPN-VOIP | VPN-VOIP | 0.9994 | 3 | min_flowiat | 38775.0 | 3.2343 |
+| A2-VPN | least confident correct | 4,435 | VPN-FT | VPN-FT | 0.2259 | 1 | min_flowiat | 52.0 | 1.8895 |
+| A2-VPN | least confident correct | 4,435 | VPN-FT | VPN-FT | 0.2259 | 2 | min_fiat | 52.0 | 1.016 |
+| A2-VPN | least confident correct | 4,435 | VPN-FT | VPN-FT | 0.2259 | 3 | min_biat | 60.0 | 0.5417 |
+| A2-VPN | most confident error | 1 | VPN-BROWSING | VPN-STREAMING | 0.9788 | 1 | flowBytesPerSecond | 1322206.4391 | 4.4567 |
+| A2-VPN | most confident error | 1 | VPN-BROWSING | VPN-STREAMING | 0.9788 | 2 | mean_biat | 998.9129 | 3.3432 |
+| A2-VPN | most confident error | 1 | VPN-BROWSING | VPN-STREAMING | 0.9788 | 3 | max_flowiat | 217299.0 | 2.3032 |
+| A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 1 | duration | 192.0 | 3.2163 |
+| A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 2 | min_flowiat | 192.0 | 3.0667 |
+| A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 3 | max_fiat | 192.0 | 1.4462 |
+| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 1 | min_flowiat | 2.0 | 2.7472 |
+| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 2 | std_flowiat | 2354206.5587 | 2.6679 |
+| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 3 | mean_flowiat | 567400.6667 | 1.7755 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 1 | min_flowiat | 961.0 | 2.639 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 2 | std_flowiat | 139858.6502 | 1.0974 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 3 | max_flowiat | 198751.0 | 0.6833 |
+| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 1 | duration | 79.0 | 4.2734 |
+| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 2 | min_fiat | 79.0 | 4.1959 |
+| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 3 | mean_fiat | 79.0 | 2.9155 |
+| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 1 | flowBytesPerSecond | 180014.1793 | 4.7998 |
+| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 2 | min_flowiat | 0.0 | 1.7719 |
+| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 3 | min_fiat | 5.0 | 1.6621 |
+| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 1 | duration | 14991066.0 | 3.8544 |
+| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 2 | std_biat | 3595.304 | 1.1211 |
+| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 3 | max_flowiat | 30384.0 | 0.8372 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 1 | min_fiat | 96.0 | 1.3413 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 2 | duration | 96.0 | 1.3326 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 3 | mean_flowiat | 96.0 | 0.825 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 1 | flowBytesPerSecond | 365.1224 | 2.4335 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 2 | max_flowiat | 284836.0 | 0.5198 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 3 | min_fiat | -1.0 | 0.4553 |
+| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 1 | duration | 11544.0 | 1.7503 |
+| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 2 | min_fiat | 27.0 | 1.2891 |
+| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 3 | min_flowiat | 27.0 | 0.6031 |
+
 ## Threshold checks (pre-stated in the E## files)
 
 ```json
