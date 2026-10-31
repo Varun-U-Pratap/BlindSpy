@@ -1,0 +1,119 @@
+{
+ "task": "A1",
+ "timeout": 15,
+ "mlflow_run_name": "E12-final-A1",
+ "mlflow_run_id": "4f3c55f5106943619c9b51fd913dae17",
+ "git_commit": "87181d20ac570ebb247a3588fca3ab3b73d58c6b",
+ "training_date": "2026-10-30T20:24:48+00:00",
+ "config_file": "configs/experiments/E12_final_A1.yaml",
+ "source_run": "E17-lgbm-A1-15s",
+ "model": "lgbm",
+ "class_balancing": "none",
+ "pipeline_steps": "LGBMClassifier",
+ "trained_on": "train + validation rows of the seed-42 split (15332 rows), data version v1",
+ "data_sha256": "a3e4a74b18f95eea6d159d3731dd265652be652fba286428c5314b14d764e35b",
+ "calibration": "isotonic",
+ "confidence": "calibrated (isotonic, E15) probability of the predicted class",
+ "test_macro_f1": 0.9433670904603002,
+ "features": [
+  {
+   "name": "duration",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_fiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_biat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "flowPktsPerSecond",
+   "unit": "packets per second"
+  },
+  {
+   "name": "flowBytesPerSecond",
+   "unit": "bytes per second"
+  },
+  {
+   "name": "min_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_flowiat",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_active",
+   "unit": "microseconds"
+  },
+  {
+   "name": "min_idle",
+   "unit": "microseconds"
+  },
+  {
+   "name": "mean_idle",
+   "unit": "microseconds"
+  },
+  {
+   "name": "max_idle",
+   "unit": "microseconds"
+  },
+  {
+   "name": "std_idle",
+   "unit": "microseconds"
+  }
+ ],
+ "missing_value_code": "-1 = not measurable (fewer than 2 packets in that direction, or no active/idle period); never replace it with 0 (E00)",
+ "class_labels": [
+  "Non-VPN",
+  "VPN"
+ ],
+ "model_file_bytes": 8005112,
+ "model_file_sha256": "2ae31eceafffd207cb195e730f7b4186e0f3bf9834f9b29dd9e72c724e901cca"
+}

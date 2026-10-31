@@ -1,0 +1,17 @@
+experiment_id: E14
+run_name: E14-seed45-A1-15s
+kind: train
+task: A1
+timeout: 15
+model: lgbm
+params:
+  colsample_bytree: 0.8827722262730495
+  learning_rate: 0.05765489005731499
+  min_child_samples: 21
+  n_estimators: 998
+  num_leaves: 167
+  subsample: 0.9354309388691164
+  subsample_freq: 1
+split_seed: 45
+builds_on: E17-lgbm-A1-15s
+save_model: true

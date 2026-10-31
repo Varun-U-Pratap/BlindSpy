@@ -1,0 +1,13 @@
+experiment_id: E12
+run_name: E12-old_rule-A1
+task: A1
+timeout: 15
+model: knn_log_standard
+params:
+  n_neighbors: 5
+builds_on: E04-knn_log_standard-A1-15s
+source_run_id: c6c790eac3c94fab99804f7eadf2cda1
+save_model: true
+kind: final
+role: old_rule
+source_val_f1_macro: 0.9047673040463236

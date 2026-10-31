@@ -1,0 +1,5 @@
+# Setup check: logs one parameter, one metric and one small PNG. Uses no data.
+experiment_id: E_smoke
+kind: smoke
+params:
+  smoke_param: 1

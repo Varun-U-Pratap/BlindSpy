@@ -1,0 +1,7126 @@
+{
+ "data_version": "v1",
+ "built_by": "scripts/prepare_data.py",
+ "source": "https://www.unb.ca/cic/datasets/vpn.html",
+ "seed": 42,
+ "split": {
+  "train": 0.7,
+  "val": 0.15,
+  "test": 0.15
+ },
+ "features_per_family": {
+  "A1": [
+   "duration",
+   "min_fiat",
+   "min_biat",
+   "max_fiat",
+   "max_biat",
+   "mean_fiat",
+   "mean_biat",
+   "std_fiat",
+   "std_biat",
+   "flowPktsPerSecond",
+   "flowBytesPerSecond",
+   "min_flowiat",
+   "max_flowiat",
+   "mean_flowiat",
+   "std_flowiat",
+   "min_active",
+   "mean_active",
+   "max_active",
+   "std_active",
+   "min_idle",
+   "mean_idle",
+   "max_idle",
+   "std_idle"
+  ],
+  "B": [
+   "duration",
+   "min_fiat",
+   "min_biat",
+   "max_fiat",
+   "max_biat",
+   "mean_fiat",
+   "mean_biat",
+   "std_fiat",
+   "std_biat",
+   "flowPktsPerSecond",
+   "flowBytesPerSecond",
+   "min_flowiat",
+   "max_flowiat",
+   "mean_flowiat",
+   "std_flowiat",
+   "min_active",
+   "mean_active",
+   "max_active",
+   "std_active",
+   "min_idle",
+   "mean_idle",
+   "max_idle",
+   "std_idle"
+  ],
+  "A2": [
+   "duration",
+   "total_fiat",
+   "total_biat",
+   "min_fiat",
+   "min_biat",
+   "max_fiat",
+   "max_biat",
+   "mean_fiat",
+   "mean_biat",
+   "flowPktsPerSecond",
+   "flowBytesPerSecond",
+   "min_flowiat",
+   "max_flowiat",
+   "mean_flowiat",
+   "std_flowiat",
+   "min_active",
+   "mean_active",
+   "max_active",
+   "std_active",
+   "min_idle",
+   "mean_idle",
+   "max_idle",
+   "std_idle"
+  ]
+ },
+ "column_map": {
+  "A1/T": {
+   "total_fiat": "min_fiat",
+   "total_biat": "min_biat",
+   "min_fiat": "max_fiat",
+   "min_biat": "max_biat",
+   "max_fiat": "mean_fiat",
+   "max_biat": "mean_biat",
+   "mean_fiat": "std_fiat",
+   "mean_biat": "std_biat"
+  },
+  "A1/S": {},
+  "B/T": {
+   "total_fiat": "min_fiat",
+   "total_biat": "min_biat",
+   "min_fiat": "max_fiat",
+   "min_biat": "max_biat",
+   "max_fiat": "mean_fiat",
+   "max_biat": "mean_biat",
+   "mean_fiat": "std_fiat",
+   "mean_biat": "std_biat"
+  },
+  "B/S": {},
+  "A2/T": {}
+ },
+ "header_names": {
+  "T": [
+   "duration",
+   "total_fiat",
+   "total_biat",
+   "min_fiat",
+   "min_biat",
+   "max_fiat",
+   "max_biat",
+   "mean_fiat",
+   "mean_biat",
+   "flowPktsPerSecond",
+   "flowBytesPerSecond",
+   "min_flowiat",
+   "max_flowiat",
+   "mean_flowiat",
+   "std_flowiat",
+   "min_active",
+   "mean_active",
+   "max_active",
+   "std_active",
+   "min_idle",
+   "mean_idle",
+   "max_idle",
+   "std_idle"
+  ],
+  "S": [
+   "duration",
+   "min_fiat",
+   "min_biat",
+   "max_fiat",
+   "max_biat",
+   "mean_fiat",
+   "mean_biat",
+   "std_fiat",
+   "std_biat",
+   "flowPktsPerSecond",
+   "flowBytesPerSecond",
+   "min_flowiat",
+   "max_flowiat",
+   "mean_flowiat",
+   "std_flowiat",
+   "min_active",
+   "mean_active",
+   "max_active",
+   "std_active",
+   "min_idle",
+   "mean_idle",
+   "max_idle",
+   "std_idle"
+  ]
+ },
+ "label_revealing_columns": "none: each file holds only 23 numeric timing features + label",
+ "session_information": false,
+ "session_information_reason": "no IDs, IPs, ports, timestamps or capture-file names",
+ "cleaning_rules": {
+  "parse": {
+   "rule": "Strip the trailing commas from every header line; skip data lines made only of commas.",
+   "reason": "The files were exported with stray commas that liac-arff can't read; the 60 s files of A1 and B have one comma-only line after @DATA, which is not a flow."
+  },
+  "column_map": {
+   "rule": "Rename the columns with COLUMN_MAP (src/blindspy/data.py).",
+   "reason": "A1 and B files hold the paper's Table 2 features (fiat/biat as min, max, mean, std) but 9 of their 12 headers shift those names by one pair; A2 files hold total_fiat/total_biat as named. Verified on every row (E00)."
+  },
+  "restore_flow_pkts": {
+   "rule": "A1 120 s only - replace flowPktsPerSecond with the value from B 120 s, row for row.",
+   "reason": "In A1 120 s that column disagrees with A2 on 99.97% of paired rows; B 120 s is identical to A1 120 s in the other 22 columns of every row and matches A2 on 100%."
+  },
+  "missing": {
+   "rule": "Count missing values; none expected, so nothing is imputed.",
+   "reason": "Imputation would invent values; the check proves none are needed."
+  },
+  "infinite": {
+   "rule": "Count infinite values; none expected.",
+   "reason": "The flow tool writes rate 0 for zero-duration flows instead of dividing by zero."
+  },
+  "fiat_not_measurable": {
+   "rule": "Keep min_fiat = max_fiat = -1 (with mean_fiat = 0) as-is.",
+   "reason": "-1 means no forward gap exists (fewer than 2 forward packets); mean_fiat = 0 marks the same rows, so a flag column would repeat it. Never set to zero."
+  },
+  "biat_not_measurable": {
+   "rule": "Keep min_biat = max_biat = -1 (with mean_biat = 0) as-is.",
+   "reason": "-1 means no backward gap exists (fewer than 2 backward packets)."
+  },
+  "flowiat_not_measurable": {
+   "rule": "Keep max_flowiat = -1 as-is.",
+   "reason": "Single-packet flows have no gap between packets."
+  },
+  "active_idle_not_measurable": {
+   "rule": "Keep min/max_active and min/max_idle = -1 (with mean = 0) as-is.",
+   "reason": "The flow never had an idle period longer than the tool's activity threshold, so no active/idle period exists."
+  },
+  "single_packet": {
+   "rule": "Keep duration = 0 flows (rates 0) as-is.",
+   "reason": "Real single-packet flows; dropping them would bias the data toward long flows."
+  },
+  "negative_flowiat": {
+   "rule": "Keep negative min_flowiat values (other than the -1 code) as-is.",
+   "reason": "Out-of-order capture timestamps (at most a few ms); a property of the capture, not a coding error to undo."
+  },
+  "rounding": {
+   "rule": "Keep means, stds and rates of 1e7 or more as stored (3 significant figures).",
+   "reason": "The source files already rounded them; the exact values can't be recovered."
+  },
+  "packet_size": {
+   "rule": "Keep flows whose bytes per packet fall outside 40-1500 as-is.",
+   "reason": "Header-only packets (down to 30 B) and segments merged at capture (up to about 7 kB) are real traffic."
+  },
+  "exact_duplicates": {
+   "rule": "Drop exact duplicates (all 23 features + label) within each file, keeping the first copy, before splitting.",
+   "reason": "A copy in both train and test would score the model on rows it trained on."
+  },
+  "conflicting_duplicates": {
+   "rule": "Keep rows with identical features but different labels (one per label after exact de-duplication); count them per class.",
+   "reason": "They are real ambiguity in the data; removing them would make the test set easier than reality."
+  },
+  "no_normalization": {
+   "rule": "No scaling or normalization at data level.",
+   "reason": "Scaling is fitted inside each model pipeline on training folds only."
+  },
+  "no_feature_selection": {
+   "rule": "All 23 features kept.",
+   "reason": "The paper's feature set; feature groups are studied later in E09."
+  },
+  "no_outlier_removal": {
+   "rule": "No outlier removal or clipping.",
+   "reason": "Long and bursty flows are real traffic patterns."
+  },
+  "no_resampling": {
+   "rule": "No class balancing at data level.",
+   "reason": "Resampling runs inside the pipeline on training folds only (E08)."
+  }
+ },
+ "files": [
+  {
+   "file": "datasets/CSVs/Scenario A1-ARFF/TimeBasedFeatures-Dataset-15s-VPN.arff",
+   "task": "A1",
+   "family": "A1",
+   "timeout": 15,
+   "core_task": true,
+   "header": "T",
+   "rows": 18758,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "Non-VPN": 8965,
+    "VPN": 9793
+   },
+   "sha256": "09e6c6fcbcdbfa2208f0cb23de2bbfbf1bc70fe46d4698025a7f47293de33df5"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A1-ARFF/TimeBasedFeatures-Dataset-30s-VPN.arff",
+   "task": "A1",
+   "family": "A1",
+   "timeout": 30,
+   "core_task": true,
+   "header": "T",
+   "rows": 14651,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "Non-VPN": 6917,
+    "VPN": 7734
+   },
+   "sha256": "a41d8f41258a2d88b302d76024113bae3dbfb8745c1009329aec43da468f5747"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A1-ARFF/TimeBasedFeatures-Dataset-60s-VPN.arff",
+   "task": "A1",
+   "family": "A1",
+   "timeout": 60,
+   "core_task": true,
+   "header": "S",
+   "rows": 15515,
+   "comma_only_lines_skipped": 1,
+   "label_counts": {
+    "Non-VPN": 8580,
+    "VPN": 6935
+   },
+   "sha256": "34ae58b1b97506cbe964b303f08ee49f31b69120e3c5649d6ee98b4c02a70992"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A1-ARFF/TimeBasedFeatures-Dataset-120s-VPN.arff",
+   "task": "A1",
+   "family": "A1",
+   "timeout": 120,
+   "core_task": true,
+   "header": "T",
+   "rows": 10782,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "Non-VPN": 5151,
+    "VPN": 5631
+   },
+   "sha256": "71eafc57027c9a1da02f5a44d4be46fe0ec1016196f575ae197c00bd84f506f0"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-15s-VPN.arff",
+   "task": "A2-VPN",
+   "family": "A2",
+   "timeout": 15,
+   "core_task": true,
+   "header": "T",
+   "rows": 9793,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 1196,
+    "VPN-FT": 1932,
+    "VPN-MAIL": 491,
+    "VPN-P2P": 928,
+    "VPN-STREAMING": 475,
+    "VPN-VOIP": 2271
+   },
+   "sha256": "df648e05be7d051cd89dcd7a14576e645b384efe08ba4670d5f45f5ae00027a5"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-30s-VPN.arff",
+   "task": "A2-VPN",
+   "family": "A2",
+   "timeout": 30,
+   "core_task": true,
+   "header": "T",
+   "rows": 7734,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 780,
+    "VPN-FT": 1158,
+    "VPN-MAIL": 848,
+    "VPN-P2P": 851,
+    "VPN-STREAMING": 298,
+    "VPN-VOIP": 1299
+   },
+   "sha256": "ebc2c068a3e8a2396ccf6ff1ed32fac6a10043764caeb515336fe54f9e8bbb4f"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-60s-VPN.arff",
+   "task": "A2-VPN",
+   "family": "A2",
+   "timeout": 60,
+   "core_task": true,
+   "header": "T",
+   "rows": 6935,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 514,
+    "VPN-FT": 898,
+    "VPN-MAIL": 383,
+    "VPN-P2P": 823,
+    "VPN-STREAMING": 197,
+    "VPN-VOIP": 1620
+   },
+   "sha256": "d8fbbb72e761a3779ceda73ba1885227f82b9430ab56fb0b9955ec9624d132b6"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-120s-VPN.arff",
+   "task": "A2-VPN",
+   "family": "A2",
+   "timeout": 120,
+   "core_task": true,
+   "header": "T",
+   "rows": 5631,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 349,
+    "VPN-FT": 716,
+    "VPN-MAIL": 722,
+    "VPN-P2P": 813,
+    "VPN-STREAMING": 145,
+    "VPN-VOIP": 386
+   },
+   "sha256": "a2c2df7251c1279ad5c1ce2f11cd6fbcbffb0bc6c6afceeda7c383cd6af86df4"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-15s-NO-VPN.arff",
+   "task": "A2-NonVPN",
+   "family": "A2",
+   "timeout": 15,
+   "core_task": true,
+   "header": "T",
+   "rows": 8965,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 890,
+    "FT": 1018,
+    "MAIL": 249,
+    "P2P": 1000,
+    "STREAMING": 482,
+    "VOIP": 2826
+   },
+   "sha256": "18858e777bd0d74b53b6399fdbe4cff6e5f5090ef320637d42fe37e56b51c8c7"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-30s-NO-VPN.arff",
+   "task": "A2-NonVPN",
+   "family": "A2",
+   "timeout": 30,
+   "core_task": true,
+   "header": "T",
+   "rows": 6917,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 595,
+    "FT": 961,
+    "MAIL": 81,
+    "P2P": 1000,
+    "STREAMING": 342,
+    "VOIP": 1438
+   },
+   "sha256": "9cdb90c7a660221dd233c967d71dde5bb727c6d29f99aa34157070a6cec51616"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-60s-NO-VPN.arff",
+   "task": "A2-NonVPN",
+   "family": "A2",
+   "timeout": 60,
+   "core_task": true,
+   "header": "T",
+   "rows": 8580,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 778,
+    "FT": 1372,
+    "MAIL": 849,
+    "P2P": 1000,
+    "STREAMING": 252,
+    "VOIP": 1829
+   },
+   "sha256": "810e6cd12edae9c0504c6f08dbcf87c8c097ccdbffe03efdbb64a7f5581e0951"
+  },
+  {
+   "file": "datasets/CSVs/Scenario A2-ARFF/TimeBasedFeatures-Dataset-120s-NO-VPN.arff",
+   "task": "A2-NonVPN",
+   "family": "A2",
+   "timeout": 120,
+   "core_task": true,
+   "header": "T",
+   "rows": 5151,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 242,
+    "FT": 624,
+    "MAIL": 185,
+    "P2P": 1000,
+    "STREAMING": 208,
+    "VOIP": 392
+   },
+   "sha256": "f7370a878380451cb81f2e9fbf0f0908ceadb4bb73d78efd7ee9d80611baf89f"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-15s.arff",
+   "task": "B",
+   "family": "B",
+   "timeout": 15,
+   "core_task": true,
+   "header": "T",
+   "rows": 18758,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 890,
+    "FT": 1018,
+    "MAIL": 249,
+    "P2P": 1000,
+    "STREAMING": 482,
+    "VOIP": 2826,
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 1196,
+    "VPN-FT": 1932,
+    "VPN-MAIL": 491,
+    "VPN-P2P": 928,
+    "VPN-STREAMING": 475,
+    "VPN-VOIP": 2271
+   },
+   "sha256": "8b12e8c0cd49f56af28cdaa7c2aa7795ee24de0b1bedf638280e00404f7c1563"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-30s.arff",
+   "task": "B",
+   "family": "B",
+   "timeout": 30,
+   "core_task": true,
+   "header": "T",
+   "rows": 14651,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 595,
+    "FT": 961,
+    "MAIL": 81,
+    "P2P": 1000,
+    "STREAMING": 342,
+    "VOIP": 1438,
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 780,
+    "VPN-FT": 1158,
+    "VPN-MAIL": 848,
+    "VPN-P2P": 851,
+    "VPN-STREAMING": 298,
+    "VPN-VOIP": 1299
+   },
+   "sha256": "f1da113aace3c5ddd66d19663cd8cc6739d1ed9898b81706caa4e3151ac2df74"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-60s.arff",
+   "task": "B",
+   "family": "B",
+   "timeout": 60,
+   "core_task": true,
+   "header": "S",
+   "rows": 15515,
+   "comma_only_lines_skipped": 1,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 778,
+    "FT": 1372,
+    "MAIL": 849,
+    "P2P": 1000,
+    "STREAMING": 252,
+    "VOIP": 1829,
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 514,
+    "VPN-FT": 898,
+    "VPN-MAIL": 383,
+    "VPN-P2P": 823,
+    "VPN-STREAMING": 197,
+    "VPN-VOIP": 1620
+   },
+   "sha256": "babd8b91d697a916cac83a066a639b39eac3d11862209cda2f25fa7c3b8775c1"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-120s.arff",
+   "task": "B",
+   "family": "B",
+   "timeout": 120,
+   "core_task": true,
+   "header": "T",
+   "rows": 10782,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 2500,
+    "CHAT": 242,
+    "FT": 624,
+    "MAIL": 185,
+    "P2P": 1000,
+    "STREAMING": 208,
+    "VOIP": 392,
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 349,
+    "VPN-FT": 716,
+    "VPN-MAIL": 722,
+    "VPN-P2P": 813,
+    "VPN-STREAMING": 145,
+    "VPN-VOIP": 386
+   },
+   "sha256": "f46deab0fda6d25ecd9f7c46ec30e8e30c24d56ceea63362455f8fe0de97e60d"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-15s-AllinOne.arff",
+   "task": "B-AllinOne",
+   "family": "B",
+   "timeout": 15,
+   "core_task": false,
+   "header": "T",
+   "rows": 18758,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 5000,
+    "CHAT": 2086,
+    "FT": 2950,
+    "MAIL": 740,
+    "P2P": 1928,
+    "STREAMING": 957,
+    "VOIP": 5097
+   },
+   "sha256": "8cec892957dba3bb1c15e8adc784422aff657b71484fda7a05b82a5f19f476e7"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-30s-AllinOne.arff",
+   "task": "B-AllinOne",
+   "family": "B",
+   "timeout": 30,
+   "core_task": false,
+   "header": "T",
+   "rows": 14651,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 5000,
+    "CHAT": 1375,
+    "FT": 2119,
+    "MAIL": 929,
+    "P2P": 1851,
+    "STREAMING": 640,
+    "VOIP": 2737
+   },
+   "sha256": "a68de17604466e63947d5a38cb84aaa57f2c3fb1e23b1c70fc2a8a32047aa2ea"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-60s-AllinOne.arff",
+   "task": "B-AllinOne",
+   "family": "B",
+   "timeout": 60,
+   "core_task": false,
+   "header": "S",
+   "rows": 15515,
+   "comma_only_lines_skipped": 1,
+   "label_counts": {
+    "BROWSING": 5000,
+    "CHAT": 1292,
+    "FT": 2270,
+    "MAIL": 1232,
+    "P2P": 1823,
+    "STREAMING": 449,
+    "VOIP": 3449
+   },
+   "sha256": "60e60600d814d1e82b657560b5b92c84b9faa229e6cb678a12885700f972f505"
+  },
+  {
+   "file": "datasets/CSVs/Scenario B-ARFF/TimeBasedFeatures-Dataset-120s-AllinOne.arff",
+   "task": "B-AllinOne",
+   "family": "B",
+   "timeout": 120,
+   "core_task": false,
+   "header": "T",
+   "rows": 10782,
+   "comma_only_lines_skipped": 0,
+   "label_counts": {
+    "BROWSING": 5000,
+    "CHAT": 591,
+    "FT": 1340,
+    "MAIL": 907,
+    "P2P": 1813,
+    "STREAMING": 353,
+    "VOIP": 778
+   },
+   "sha256": "597a072c97b94e2a4a70f79cf7fc021ffde51a419d5f020e437e656456913b7b"
+  }
+ ],
+ "tasks": {
+  "A1_15s": {
+   "task": "A1",
+   "timeout": 15,
+   "parquet": "A1_15s.parquet",
+   "parquet_sha256": "a3e4a74b18f95eea6d159d3731dd265652be652fba286428c5314b14d764e35b",
+   "split_sha256": "ce34f16aed3f1f24952f354bcc0eaf9d635416d48a4fe0ef95d6a914420cc656",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 18758,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 720,
+    "conflicting_rows_kept": 46,
+    "conflicting_groups": 23,
+    "final_rows": 18038,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 2,
+    "largest_to_smallest_class": "1.08:1",
+    "train": 12626,
+    "val": 2706,
+    "test": 2706
+   },
+   "class_counts": {
+    "train": {
+     "Non-VPN": 6081,
+     "VPN": 6545
+    },
+    "val": {
+     "Non-VPN": 1303,
+     "VPN": 1403
+    },
+    "test": {
+     "Non-VPN": 1303,
+     "VPN": 1403
+    }
+   },
+   "final_class_counts": {
+    "Non-VPN": 8687,
+    "VPN": 9351
+   },
+   "exact_duplicates_removed_per_class": {
+    "Non-VPN": 278,
+    "VPN": 442
+   },
+   "conflicting_rows_per_class": {
+    "Non-VPN": 23,
+    "VPN": 23
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 4,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "min_fiat": {
+     "negative": 2022,
+     "exactly_-1": 2022,
+     "zero": 203,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 37680787.0
+    },
+    "min_biat": {
+     "negative": 2917,
+     "exactly_-1": 2917,
+     "zero": 520,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 43002377.0
+    },
+    "max_fiat": {
+     "negative": 2022,
+     "exactly_-1": 2022,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "max_biat": {
+     "negative": 2917,
+     "exactly_-1": 2917,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2022,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2917,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 43000000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3921,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 215000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4314,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 178,
+     "exactly_-1": 51,
+     "zero": 913,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 18919905.0
+    },
+    "max_flowiat": {
+     "negative": 2,
+     "exactly_-1": 2,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2207,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 136000000.0
+    },
+    "min_active": {
+     "negative": 10635,
+     "exactly_-1": 10635,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10635,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 10635,
+     "exactly_-1": 10635,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 14215,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 10635,
+     "exactly_-1": 10635,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10635,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 10635,
+     "exactly_-1": 10635,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 14215,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.79,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A1_30s": {
+   "task": "A1",
+   "timeout": 30,
+   "parquet": "A1_30s.parquet",
+   "parquet_sha256": "2e6618ad56ee4c27a7a636ebf6ab060b424df7882a974258e4784f0e3102bb2a",
+   "split_sha256": "ec9a911fabae528dc99d512d269f12c06acf2756f753e0f176643b087bc61c56",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 14651,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 1041,
+    "conflicting_rows_kept": 44,
+    "conflicting_groups": 22,
+    "final_rows": 13610,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 2,
+    "largest_to_smallest_class": "1.03:1",
+    "train": 9526,
+    "val": 2042,
+    "test": 2042
+   },
+   "class_counts": {
+    "train": {
+     "Non-VPN": 4681,
+     "VPN": 4845
+    },
+    "val": {
+     "Non-VPN": 1004,
+     "VPN": 1038
+    },
+    "test": {
+     "Non-VPN": 1003,
+     "VPN": 1039
+    }
+   },
+   "final_class_counts": {
+    "Non-VPN": 6688,
+    "VPN": 6922
+   },
+   "exact_duplicates_removed_per_class": {
+    "Non-VPN": 229,
+    "VPN": 812
+   },
+   "conflicting_rows_per_class": {
+    "Non-VPN": 22,
+    "VPN": 22
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 8,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "min_fiat": {
+     "negative": 1392,
+     "exactly_-1": 1392,
+     "zero": 189,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 37680787.0
+    },
+    "min_biat": {
+     "negative": 2072,
+     "exactly_-1": 2072,
+     "zero": 425,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 43002377.0
+    },
+    "max_fiat": {
+     "negative": 1392,
+     "exactly_-1": 1392,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "max_biat": {
+     "negative": 2072,
+     "exactly_-1": 2072,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1392,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2072,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 43000000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2839,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 215000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3022,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 152,
+     "exactly_-1": 50,
+     "zero": 786,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 29950803.0
+    },
+    "max_flowiat": {
+     "negative": 2,
+     "exactly_-1": 2,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1430,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 136000000.0
+    },
+    "min_active": {
+     "negative": 6965,
+     "exactly_-1": 6965,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6965,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 6965,
+     "exactly_-1": 6965,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 9697,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 6965,
+     "exactly_-1": 6965,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6965,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 6965,
+     "exactly_-1": 6965,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 9697,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 98.05,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A1_60s": {
+   "task": "A1",
+   "timeout": 60,
+   "parquet": "A1_60s.parquet",
+   "parquet_sha256": "b2a645f64b7a6297e43b8eec429bf8ca0bcf0ab36ed611ec1cb8f8ebe2cf8f06",
+   "split_sha256": "2f98c6c9ae2ff31e4888b681bb1110a6849e11571f417a992c4a71a564613f05",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 15516,
+    "comma_only_lines_skipped": 1,
+    "exact_duplicates_removed": 838,
+    "conflicting_rows_kept": 94,
+    "conflicting_groups": 47,
+    "final_rows": 14677,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 2,
+    "largest_to_smallest_class": "1.26:1",
+    "train": 10273,
+    "val": 2202,
+    "test": 2202
+   },
+   "class_counts": {
+    "train": {
+     "Non-VPN": 5731,
+     "VPN": 4542
+    },
+    "val": {
+     "Non-VPN": 1228,
+     "VPN": 974
+    },
+    "test": {
+     "Non-VPN": 1228,
+     "VPN": 974
+    }
+   },
+   "final_class_counts": {
+    "Non-VPN": 8187,
+    "VPN": 6490
+   },
+   "exact_duplicates_removed_per_class": {
+    "Non-VPN": 393,
+    "VPN": 445
+   },
+   "conflicting_rows_per_class": {
+    "Non-VPN": 47,
+    "VPN": 47
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 9,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 646565983.0
+    },
+    "min_fiat": {
+     "negative": 1736,
+     "exactly_-1": 1736,
+     "zero": 175,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 59999851.0
+    },
+    "min_biat": {
+     "negative": 3304,
+     "exactly_-1": 3304,
+     "zero": 372,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 59922423.0
+    },
+    "max_fiat": {
+     "negative": 1736,
+     "exactly_-1": 1736,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "max_biat": {
+     "negative": 3304,
+     "exactly_-1": 3304,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1736,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3305,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 59900000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3670,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 264000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4589,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 2000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 139,
+     "exactly_-1": 47,
+     "zero": 697,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 59947704.0
+    },
+    "max_flowiat": {
+     "negative": 2,
+     "exactly_-1": 2,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 64700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2230,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 204000000.0
+    },
+    "min_active": {
+     "negative": 6793,
+     "exactly_-1": 6793,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646565983.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6793,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 647000000.0
+    },
+    "max_active": {
+     "negative": 6793,
+     "exactly_-1": 6793,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646565983.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10075,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 184000000.0
+    },
+    "min_idle": {
+     "negative": 6793,
+     "exactly_-1": 6793,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6793,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 646000000.0
+    },
+    "max_idle": {
+     "negative": 6793,
+     "exactly_-1": 6793,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10075,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 185000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.81,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A1_120s": {
+   "task": "A1",
+   "timeout": 120,
+   "parquet": "A1_120s.parquet",
+   "parquet_sha256": "8079add453c3615cc35ab9ac8d6d1f657f4967ed1eccc34097400335b123dfda",
+   "split_sha256": "1dae71b90f85a236f0900345ea1971b1c20f587aba467fd3822f3076e5b00714",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 10782,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 1258,
+    "conflicting_rows_kept": 62,
+    "conflicting_groups": 31,
+    "final_rows": 9524,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 2,
+    "largest_to_smallest_class": "1.08:1",
+    "train": 6666,
+    "val": 1429,
+    "test": 1429
+   },
+   "class_counts": {
+    "train": {
+     "Non-VPN": 3454,
+     "VPN": 3212
+    },
+    "val": {
+     "Non-VPN": 741,
+     "VPN": 688
+    },
+    "test": {
+     "Non-VPN": 740,
+     "VPN": 689
+    }
+   },
+   "final_class_counts": {
+    "Non-VPN": 4935,
+    "VPN": 4589
+   },
+   "exact_duplicates_removed_per_class": {
+    "Non-VPN": 216,
+    "VPN": 1042
+   },
+   "conflicting_rows_per_class": {
+    "Non-VPN": 31,
+    "VPN": 31
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 7,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "min_fiat": {
+     "negative": 1072,
+     "exactly_-1": 1072,
+     "zero": 172,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 119999708.0
+    },
+    "min_biat": {
+     "negative": 2048,
+     "exactly_-1": 2048,
+     "zero": 344,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 119999620.0
+    },
+    "max_fiat": {
+     "negative": 1072,
+     "exactly_-1": 1072,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 441730336.0
+    },
+    "max_biat": {
+     "negative": 2048,
+     "exactly_-1": 2048,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1072,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2048,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 120000000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2354,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 215000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2743,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 2000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 123,
+     "exactly_-1": 39,
+     "zero": 624,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 21239660.0
+    },
+    "max_flowiat": {
+     "negative": 2,
+     "exactly_-1": 2,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1470,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 143000000.0
+    },
+    "min_active": {
+     "negative": 4089,
+     "exactly_-1": 4089,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4089,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 4089,
+     "exactly_-1": 4089,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6085,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 4089,
+     "exactly_-1": 4089,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4089,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 4089,
+     "exactly_-1": 4089,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6085,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.56,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A2-VPN_15s": {
+   "task": "A2-VPN",
+   "timeout": 15,
+   "parquet": "A2-VPN_15s.parquet",
+   "parquet_sha256": "34e47d4af20ce706c44bec5d5140a97c9718f1bda6476f48204e0cd041ca1477",
+   "split_sha256": "7240bae99e90ea5400e0dd54c41c2c62e4d04714837c5f89c38323382147ede2",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 9793,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 413,
+    "conflicting_rows_kept": 53,
+    "conflicting_groups": 24,
+    "final_rows": 9380,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "5.79:1",
+    "train": 6566,
+    "val": 1407,
+    "test": 1407
+   },
+   "class_counts": {
+    "train": {
+     "VPN-BROWSING": 1750,
+     "VPN-CHAT": 810,
+     "VPN-FT": 1319,
+     "VPN-MAIL": 302,
+     "VPN-P2P": 466,
+     "VPN-STREAMING": 333,
+     "VPN-VOIP": 1586
+    },
+    "val": {
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 174,
+     "VPN-FT": 282,
+     "VPN-MAIL": 65,
+     "VPN-P2P": 100,
+     "VPN-STREAMING": 71,
+     "VPN-VOIP": 340
+    },
+    "test": {
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 174,
+     "VPN-FT": 282,
+     "VPN-MAIL": 65,
+     "VPN-P2P": 100,
+     "VPN-STREAMING": 71,
+     "VPN-VOIP": 340
+    }
+   },
+   "final_class_counts": {
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 1158,
+    "VPN-FT": 1883,
+    "VPN-MAIL": 432,
+    "VPN-P2P": 666,
+    "VPN-STREAMING": 475,
+    "VPN-VOIP": 2266
+   },
+   "exact_duplicates_removed_per_class": {
+    "VPN-CHAT": 38,
+    "VPN-FT": 49,
+    "VPN-MAIL": 59,
+    "VPN-P2P": 262,
+    "VPN-VOIP": 5
+   },
+   "conflicting_rows_per_class": {
+    "VPN-CHAT": 11,
+    "VPN-FT": 18,
+    "VPN-MAIL": 20,
+    "VPN-P2P": 2,
+    "VPN-STREAMING": 1,
+    "VPN-VOIP": 1
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 9,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 937,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 191955072.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1553,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601185122.0
+    },
+    "min_fiat": {
+     "negative": 937,
+     "exactly_-1": 937,
+     "zero": 184,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 20840916.0
+    },
+    "min_biat": {
+     "negative": 1553,
+     "exactly_-1": 1553,
+     "zero": 263,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 16122675.0
+    },
+    "max_fiat": {
+     "negative": 937,
+     "exactly_-1": 937,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 191316907.0
+    },
+    "max_biat": {
+     "negative": 1553,
+     "exactly_-1": 1553,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 937,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 27400000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1553,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 40000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 666666.666666667
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 40900000.0
+    },
+    "min_flowiat": {
+     "negative": 89,
+     "exactly_-1": 34,
+     "zero": 489,
+     "missing": 0,
+     "infinite": 0,
+     "min": -209.0,
+     "max": 18919905.0
+    },
+    "max_flowiat": {
+     "negative": 6,
+     "exactly_-1": 6,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 20000000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1066,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 69300000.0
+    },
+    "min_active": {
+     "negative": 5016,
+     "exactly_-1": 5016,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5016,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 5016,
+     "exactly_-1": 5016,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 7311,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 5016,
+     "exactly_-1": 5016,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5016,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 5016,
+     "exactly_-1": 5016,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 7311,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 99.34,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "A2-VPN_30s": {
+   "task": "A2-VPN",
+   "timeout": 30,
+   "parquet": "A2-VPN_30s.parquet",
+   "parquet_sha256": "85833b6e52bd3e571bfdb70df0c68547528f7cf1308454e6564cade493b87827",
+   "split_sha256": "9298c75d1fd182b37e619cb065dc8517b3a9bf4a3f454bba8fe278a490832b7a",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 7734,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 790,
+    "conflicting_rows_kept": 39,
+    "conflicting_groups": 17,
+    "final_rows": 6944,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "8.39:1",
+    "train": 4860,
+    "val": 1042,
+    "test": 1042
+   },
+   "class_counts": {
+    "train": {
+     "VPN-BROWSING": 1750,
+     "VPN-CHAT": 520,
+     "VPN-FT": 786,
+     "VPN-MAIL": 255,
+     "VPN-P2P": 435,
+     "VPN-STREAMING": 208,
+     "VPN-VOIP": 906
+    },
+    "val": {
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 111,
+     "VPN-FT": 169,
+     "VPN-MAIL": 55,
+     "VPN-P2P": 93,
+     "VPN-STREAMING": 45,
+     "VPN-VOIP": 194
+    },
+    "test": {
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 111,
+     "VPN-FT": 169,
+     "VPN-MAIL": 55,
+     "VPN-P2P": 93,
+     "VPN-STREAMING": 45,
+     "VPN-VOIP": 194
+    }
+   },
+   "final_class_counts": {
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 742,
+    "VPN-FT": 1124,
+    "VPN-MAIL": 365,
+    "VPN-P2P": 621,
+    "VPN-STREAMING": 298,
+    "VPN-VOIP": 1294
+   },
+   "exact_duplicates_removed_per_class": {
+    "VPN-CHAT": 38,
+    "VPN-FT": 34,
+    "VPN-MAIL": 483,
+    "VPN-P2P": 230,
+    "VPN-VOIP": 5
+   },
+   "conflicting_rows_per_class": {
+    "VPN-CHAT": 11,
+    "VPN-FT": 11,
+    "VPN-MAIL": 13,
+    "VPN-P2P": 2,
+    "VPN-STREAMING": 1,
+    "VPN-VOIP": 1
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 4,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 697,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 191955072.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1063,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601185122.0
+    },
+    "min_fiat": {
+     "negative": 697,
+     "exactly_-1": 697,
+     "zero": 170,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 29999996.0
+    },
+    "min_biat": {
+     "negative": 1063,
+     "exactly_-1": 1063,
+     "zero": 215,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 29999866.0
+    },
+    "max_fiat": {
+     "negative": 697,
+     "exactly_-1": 697,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 191316907.0
+    },
+    "max_biat": {
+     "negative": 1063,
+     "exactly_-1": 1063,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 697,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 30000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1063,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 40000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 666666.666666667
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 30700000.0
+    },
+    "min_flowiat": {
+     "negative": 81,
+     "exactly_-1": 31,
+     "zero": 411,
+     "missing": 0,
+     "infinite": 0,
+     "min": -209.0,
+     "max": 29830144.0
+    },
+    "max_flowiat": {
+     "negative": 6,
+     "exactly_-1": 6,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 29800000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 688,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 69300000.0
+    },
+    "min_active": {
+     "negative": 3206,
+     "exactly_-1": 3206,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3206,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 3206,
+     "exactly_-1": 3206,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4533,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 3206,
+     "exactly_-1": 3206,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3206,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 3206,
+     "exactly_-1": 3206,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4533,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 99.24,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "A2-VPN_60s": {
+   "task": "A2-VPN",
+   "timeout": 60,
+   "parquet": "A2-VPN_60s.parquet",
+   "parquet_sha256": "3b9dc890152098984cd8882948d8701ad8749e387936d1654a8b697550f38734",
+   "split_sha256": "d8ed92d795ff3132e89b68da53dc4fad072f41acf3e1088168da66d3f516724e",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 6935,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 412,
+    "conflicting_rows_kept": 61,
+    "conflicting_groups": 28,
+    "final_rows": 6523,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "12.50:1",
+    "train": 4565,
+    "val": 979,
+    "test": 979
+   },
+   "class_counts": {
+    "train": {
+     "VPN-BROWSING": 1724,
+     "VPN-CHAT": 334,
+     "VPN-FT": 591,
+     "VPN-MAIL": 227,
+     "VPN-P2P": 423,
+     "VPN-STREAMING": 139,
+     "VPN-VOIP": 1127
+    },
+    "val": {
+     "VPN-BROWSING": 369,
+     "VPN-CHAT": 72,
+     "VPN-FT": 127,
+     "VPN-MAIL": 49,
+     "VPN-P2P": 91,
+     "VPN-STREAMING": 29,
+     "VPN-VOIP": 242
+    },
+    "test": {
+     "VPN-BROWSING": 370,
+     "VPN-CHAT": 72,
+     "VPN-FT": 127,
+     "VPN-MAIL": 48,
+     "VPN-P2P": 91,
+     "VPN-STREAMING": 29,
+     "VPN-VOIP": 242
+    }
+   },
+   "final_class_counts": {
+    "VPN-BROWSING": 2463,
+    "VPN-CHAT": 478,
+    "VPN-FT": 845,
+    "VPN-MAIL": 324,
+    "VPN-P2P": 605,
+    "VPN-STREAMING": 197,
+    "VPN-VOIP": 1611
+   },
+   "exact_duplicates_removed_per_class": {
+    "VPN-BROWSING": 37,
+    "VPN-CHAT": 36,
+    "VPN-FT": 53,
+    "VPN-MAIL": 59,
+    "VPN-P2P": 218,
+    "VPN-VOIP": 9
+   },
+   "conflicting_rows_per_class": {
+    "VPN-BROWSING": 5,
+    "VPN-CHAT": 11,
+    "VPN-FT": 21,
+    "VPN-MAIL": 20,
+    "VPN-P2P": 2,
+    "VPN-VOIP": 2
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 6,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1172,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 191955072.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1764,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601185122.0
+    },
+    "min_fiat": {
+     "negative": 1172,
+     "exactly_-1": 1172,
+     "zero": 157,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 55491775.0
+    },
+    "min_biat": {
+     "negative": 1763,
+     "exactly_-1": 1763,
+     "zero": 188,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 59922423.0
+    },
+    "max_fiat": {
+     "negative": 1172,
+     "exactly_-1": 1172,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 191316907.0
+    },
+    "max_biat": {
+     "negative": 1763,
+     "exactly_-1": 1763,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1172,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 58900000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1764,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 59900000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 2000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 111000000.0
+    },
+    "min_flowiat": {
+     "negative": 79,
+     "exactly_-1": 29,
+     "zero": 362,
+     "missing": 0,
+     "infinite": 0,
+     "min": -209.0,
+     "max": 52405206.0
+    },
+    "max_flowiat": {
+     "negative": 5,
+     "exactly_-1": 5,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 52400000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1408,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 69300000.0
+    },
+    "min_active": {
+     "negative": 2894,
+     "exactly_-1": 2894,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2894,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 2894,
+     "exactly_-1": 2894,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4534,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 2894,
+     "exactly_-1": 2894,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2894,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 2894,
+     "exactly_-1": 2894,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4534,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 98.9,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "A2-VPN_120s": {
+   "task": "A2-VPN",
+   "timeout": 120,
+   "parquet": "A2-VPN_120s.parquet",
+   "parquet_sha256": "891c211de9aa060ad6d1953c667e4e434ba8efc532e8a50e22d4f864ccb75d3e",
+   "split_sha256": "ba15166a1502ac1ded6873d4c853516fadf56ee52b8e0d2f09d9ca3306f684ed",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 5631,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 983,
+    "conflicting_rows_kept": 111,
+    "conflicting_groups": 52,
+    "final_rows": 4648,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "15.48:1",
+    "train": 3252,
+    "val": 698,
+    "test": 698
+   },
+   "class_counts": {
+    "train": {
+     "VPN-BROWSING": 1570,
+     "VPN-CHAT": 216,
+     "VPN-FT": 468,
+     "VPN-MAIL": 212,
+     "VPN-P2P": 418,
+     "VPN-STREAMING": 101,
+     "VPN-VOIP": 267
+    },
+    "val": {
+     "VPN-BROWSING": 337,
+     "VPN-CHAT": 47,
+     "VPN-FT": 100,
+     "VPN-MAIL": 45,
+     "VPN-P2P": 90,
+     "VPN-STREAMING": 22,
+     "VPN-VOIP": 57
+    },
+    "test": {
+     "VPN-BROWSING": 337,
+     "VPN-CHAT": 47,
+     "VPN-FT": 100,
+     "VPN-MAIL": 45,
+     "VPN-P2P": 90,
+     "VPN-STREAMING": 22,
+     "VPN-VOIP": 57
+    }
+   },
+   "final_class_counts": {
+    "VPN-BROWSING": 2244,
+    "VPN-CHAT": 310,
+    "VPN-FT": 668,
+    "VPN-MAIL": 302,
+    "VPN-P2P": 598,
+    "VPN-STREAMING": 145,
+    "VPN-VOIP": 381
+   },
+   "exact_duplicates_removed_per_class": {
+    "VPN-BROWSING": 256,
+    "VPN-CHAT": 39,
+    "VPN-FT": 48,
+    "VPN-MAIL": 420,
+    "VPN-P2P": 215,
+    "VPN-VOIP": 5
+   },
+   "conflicting_rows_per_class": {
+    "VPN-BROWSING": 31,
+    "VPN-CHAT": 14,
+    "VPN-FT": 39,
+    "VPN-MAIL": 23,
+    "VPN-P2P": 2,
+    "VPN-VOIP": 2
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 11,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 7,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 743,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 191955072.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1420,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601185122.0
+    },
+    "min_fiat": {
+     "negative": 743,
+     "exactly_-1": 743,
+     "zero": 155,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 119913931.0
+    },
+    "min_biat": {
+     "negative": 1420,
+     "exactly_-1": 1420,
+     "zero": 173,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 119999620.0
+    },
+    "max_fiat": {
+     "negative": 743,
+     "exactly_-1": 743,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 191316907.0
+    },
+    "max_biat": {
+     "negative": 1420,
+     "exactly_-1": 1420,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 743,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 120000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1420,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 120000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 7,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 2000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 7,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 198000000.0
+    },
+    "min_flowiat": {
+     "negative": 72,
+     "exactly_-1": 24,
+     "zero": 334,
+     "missing": 0,
+     "infinite": 0,
+     "min": -209.0,
+     "max": 21239660.0
+    },
+    "max_flowiat": {
+     "negative": 6,
+     "exactly_-1": 6,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 7,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60000000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1076,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 84800000.0
+    },
+    "min_active": {
+     "negative": 2150,
+     "exactly_-1": 2150,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2150,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 2150,
+     "exactly_-1": 2150,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2829,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 2150,
+     "exactly_-1": 2150,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2150,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 2150,
+     "exactly_-1": 2150,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2829,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.87,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "A2-NonVPN_15s": {
+   "task": "A2-NonVPN",
+   "timeout": 15,
+   "parquet": "A2-NonVPN_15s.parquet",
+   "parquet_sha256": "0adb0bd4c973999bb51497458f7b58aabbad6490e482195b772f65e917317919",
+   "split_sha256": "62aeac5d5f856742b1effa8d7ad7334e5acd1b31c797c01510a073ee3a8cd5ef",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 8965,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 271,
+    "conflicting_rows_kept": 10,
+    "conflicting_groups": 3,
+    "final_rows": 8694,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "11.85:1",
+    "train": 6085,
+    "val": 1304,
+    "test": 1305
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 621,
+     "FT": 599,
+     "MAIL": 166,
+     "P2P": 659,
+     "STREAMING": 315,
+     "VOIP": 1975
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 133,
+     "FT": 129,
+     "MAIL": 36,
+     "P2P": 141,
+     "STREAMING": 67,
+     "VOIP": 423
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 133,
+     "FT": 129,
+     "MAIL": 36,
+     "P2P": 141,
+     "STREAMING": 68,
+     "VOIP": 423
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 887,
+    "FT": 857,
+    "MAIL": 238,
+    "P2P": 941,
+    "STREAMING": 450,
+    "VOIP": 2821
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 3,
+    "FT": 161,
+    "MAIL": 11,
+    "P2P": 59,
+    "STREAMING": 32,
+    "VOIP": 5
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 1,
+    "FT": 2,
+    "MAIL": 3,
+    "P2P": 1,
+    "STREAMING": 2,
+    "VOIP": 1
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 3,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 303618407.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1098,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 303618407.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1400,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 132578770.0
+    },
+    "min_fiat": {
+     "negative": 1098,
+     "exactly_-1": 1098,
+     "zero": 19,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 37680787.0
+    },
+    "min_biat": {
+     "negative": 1400,
+     "exactly_-1": 1400,
+     "zero": 257,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 43002377.0
+    },
+    "max_fiat": {
+     "negative": 1098,
+     "exactly_-1": 1098,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "max_biat": {
+     "negative": 1400,
+     "exactly_-1": 1400,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 132255240.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1098,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1400,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 43000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 99,
+     "exactly_-1": 27,
+     "zero": 424,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 14956581.0
+    },
+    "max_flowiat": {
+     "negative": 6,
+     "exactly_-1": 6,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1177,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 136000000.0
+    },
+    "min_active": {
+     "negative": 5655,
+     "exactly_-1": 5655,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303618407.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5655,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 304000000.0
+    },
+    "max_active": {
+     "negative": 5655,
+     "exactly_-1": 5655,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303618407.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6940,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 89600000.0
+    },
+    "min_idle": {
+     "negative": 5655,
+     "exactly_-1": 5655,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5655,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 304000000.0
+    },
+    "max_idle": {
+     "negative": 5655,
+     "exactly_-1": 5655,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6940,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 89800000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.06,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "A2-NonVPN_30s": {
+   "task": "A2-NonVPN",
+   "timeout": 30,
+   "parquet": "A2-NonVPN_30s.parquet",
+   "parquet_sha256": "6e42a948bdaed33fc3f7ffd343931e442402496b15bc6e76714f76d616bbfd81",
+   "split_sha256": "55203dff5bc98f8b9c770aa57cefa78614e2bda0ac517335076dc15039200e9c",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 6917,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 223,
+    "conflicting_rows_kept": 9,
+    "conflicting_groups": 3,
+    "final_rows": 6694,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "32.47:1",
+    "train": 4685,
+    "val": 1004,
+    "test": 1005
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 412,
+     "FT": 553,
+     "MAIL": 53,
+     "P2P": 695,
+     "STREAMING": 217,
+     "VOIP": 1005
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 88,
+     "FT": 118,
+     "MAIL": 12,
+     "P2P": 149,
+     "STREAMING": 47,
+     "VOIP": 215
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 88,
+     "FT": 119,
+     "MAIL": 12,
+     "P2P": 149,
+     "STREAMING": 47,
+     "VOIP": 215
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 588,
+    "FT": 790,
+    "MAIL": 77,
+    "P2P": 993,
+    "STREAMING": 311,
+    "VOIP": 1435
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 7,
+    "FT": 171,
+    "MAIL": 4,
+    "P2P": 7,
+    "STREAMING": 31,
+    "VOIP": 3
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 1,
+    "FT": 2,
+    "MAIL": 2,
+    "P2P": 1,
+    "STREAMING": 2,
+    "VOIP": 1
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 2,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 303618407.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 707,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 303618407.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1037,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 132578770.0
+    },
+    "min_fiat": {
+     "negative": 707,
+     "exactly_-1": 707,
+     "zero": 19,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 37680787.0
+    },
+    "min_biat": {
+     "negative": 1037,
+     "exactly_-1": 1037,
+     "zero": 210,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 43002377.0
+    },
+    "max_fiat": {
+     "negative": 707,
+     "exactly_-1": 707,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "max_biat": {
+     "negative": 1037,
+     "exactly_-1": 1037,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 132255240.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 707,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1037,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 43000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 80,
+     "exactly_-1": 28,
+     "zero": 375,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 29950803.0
+    },
+    "max_flowiat": {
+     "negative": 5,
+     "exactly_-1": 5,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 770,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 136000000.0
+    },
+    "min_active": {
+     "negative": 3787,
+     "exactly_-1": 3787,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303618407.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3787,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 304000000.0
+    },
+    "max_active": {
+     "negative": 3787,
+     "exactly_-1": 3787,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303618407.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5192,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 89600000.0
+    },
+    "min_idle": {
+     "negative": 3787,
+     "exactly_-1": 3787,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3787,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 304000000.0
+    },
+    "max_idle": {
+     "negative": 3787,
+     "exactly_-1": 3787,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5192,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 89800000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.79,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "A2-NonVPN_60s": {
+   "task": "A2-NonVPN",
+   "timeout": 60,
+   "parquet": "A2-NonVPN_60s.parquet",
+   "parquet_sha256": "d6a837421883eae230152d36b8237ef199660123d12869f6b0e4fe0f3fe54e23",
+   "split_sha256": "835183b4c266cb39db00d1d876e505a2f49e8ed54d5b705676675037d3022036",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 8580,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 374,
+    "conflicting_rows_kept": 34,
+    "conflicting_groups": 15,
+    "final_rows": 8206,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "11.31:1",
+    "train": 5744,
+    "val": 1231,
+    "test": 1231
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 528,
+     "FT": 847,
+     "MAIL": 512,
+     "P2P": 697,
+     "STREAMING": 155,
+     "VOIP": 1255
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 113,
+     "FT": 181,
+     "MAIL": 110,
+     "P2P": 150,
+     "STREAMING": 33,
+     "VOIP": 269
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 113,
+     "FT": 182,
+     "MAIL": 110,
+     "P2P": 149,
+     "STREAMING": 33,
+     "VOIP": 269
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 754,
+    "FT": 1210,
+    "MAIL": 732,
+    "P2P": 996,
+    "STREAMING": 221,
+    "VOIP": 1793
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 24,
+    "FT": 162,
+    "MAIL": 117,
+    "P2P": 4,
+    "STREAMING": 31,
+    "VOIP": 36
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 3,
+    "FT": 11,
+    "MAIL": 13,
+    "P2P": 1,
+    "STREAMING": 3,
+    "VOIP": 3
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 6,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 646565983.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 583,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 646565983.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1593,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 193679113.0
+    },
+    "min_fiat": {
+     "negative": 583,
+     "exactly_-1": 583,
+     "zero": 18,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 59999851.0
+    },
+    "min_biat": {
+     "negative": 1593,
+     "exactly_-1": 1593,
+     "zero": 184,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 59418882.0
+    },
+    "max_fiat": {
+     "negative": 583,
+     "exactly_-1": 583,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "max_biat": {
+     "negative": 1593,
+     "exactly_-1": 1593,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 193245407.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 583,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1593,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 59400000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 69,
+     "exactly_-1": 27,
+     "zero": 335,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 59947704.0
+    },
+    "max_flowiat": {
+     "negative": 6,
+     "exactly_-1": 6,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 64700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 874,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 204000000.0
+    },
+    "min_active": {
+     "negative": 3951,
+     "exactly_-1": 3951,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646565983.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3951,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 647000000.0
+    },
+    "max_active": {
+     "negative": 3951,
+     "exactly_-1": 3951,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646565983.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5593,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 184000000.0
+    },
+    "min_idle": {
+     "negative": 3951,
+     "exactly_-1": 3951,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3951,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 646000000.0
+    },
+    "max_idle": {
+     "negative": 3951,
+     "exactly_-1": 3951,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5593,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 185000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.85,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "A2-NonVPN_120s": {
+   "task": "A2-NonVPN",
+   "timeout": 120,
+   "parquet": "A2-NonVPN_120s.parquet",
+   "parquet_sha256": "24a91ad15cfa177ecdd2c1ab9ba21f891d85e2d90449fa4d8646dc88944bf2d9",
+   "split_sha256": "f85463f2d61fe66729c65f00bca1a8f5ddfcc397e0684094b08f0234d9d47b3c",
+   "features": [
+    "duration",
+    "total_fiat",
+    "total_biat",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 5151,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 210,
+    "conflicting_rows_kept": 9,
+    "conflicting_groups": 3,
+    "final_rows": 4941,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 7,
+    "largest_to_smallest_class": "14.37:1",
+    "train": 3458,
+    "val": 741,
+    "test": 742
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 167,
+     "FT": 324,
+     "MAIL": 122,
+     "P2P": 698,
+     "STREAMING": 124,
+     "VOIP": 273
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 36,
+     "FT": 70,
+     "MAIL": 26,
+     "P2P": 150,
+     "STREAMING": 26,
+     "VOIP": 58
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 36,
+     "FT": 70,
+     "MAIL": 26,
+     "P2P": 150,
+     "STREAMING": 27,
+     "VOIP": 58
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 239,
+    "FT": 464,
+    "MAIL": 174,
+    "P2P": 998,
+    "STREAMING": 177,
+    "VOIP": 389
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 3,
+    "FT": 160,
+    "MAIL": 11,
+    "P2P": 2,
+    "STREAMING": 31,
+    "VOIP": 3
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 1,
+    "FT": 2,
+    "MAIL": 3,
+    "STREAMING": 2,
+    "VOIP": 1
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 1,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 442007269.0
+    },
+    "total_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 371,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 442007269.0
+    },
+    "total_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 693,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 132578770.0
+    },
+    "min_fiat": {
+     "negative": 371,
+     "exactly_-1": 371,
+     "zero": 17,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 119999708.0
+    },
+    "min_biat": {
+     "negative": 693,
+     "exactly_-1": 693,
+     "zero": 171,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 118922989.0
+    },
+    "max_fiat": {
+     "negative": 371,
+     "exactly_-1": 371,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 441730336.0
+    },
+    "max_biat": {
+     "negative": 693,
+     "exactly_-1": 693,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 132255240.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 371,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 693,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 119000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 60,
+     "exactly_-1": 24,
+     "zero": 290,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 13171363.0
+    },
+    "max_flowiat": {
+     "negative": 5,
+     "exactly_-1": 5,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 441730336.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 5,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 459,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 143000000.0
+    },
+    "min_active": {
+     "negative": 2004,
+     "exactly_-1": 2004,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 442007269.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2004,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 442000000.0
+    },
+    "max_active": {
+     "negative": 2004,
+     "exactly_-1": 2004,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 442007269.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3321,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 140000000.0
+    },
+    "min_idle": {
+     "negative": 2004,
+     "exactly_-1": 2004,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 441730336.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2004,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 442000000.0
+    },
+    "max_idle": {
+     "negative": 2004,
+     "exactly_-1": 2004,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 441730336.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3321,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 140000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.14,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0
+   }
+  },
+  "B_15s": {
+   "task": "B",
+   "timeout": 15,
+   "parquet": "B_15s.parquet",
+   "parquet_sha256": "17de245d7e8730edee8aa99f247e976b7fa657d44250c2a86f334f456acba991",
+   "split_sha256": "8473568654b979fd5cef39a7b18446b70526580da6a73767505caf2c65ddae43",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 18758,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 684,
+    "conflicting_rows_kept": 100,
+    "conflicting_groups": 41,
+    "final_rows": 18074,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 14,
+    "largest_to_smallest_class": "11.85:1",
+    "train": 12651,
+    "val": 2711,
+    "test": 2712
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 621,
+     "FT": 600,
+     "MAIL": 166,
+     "P2P": 659,
+     "STREAMING": 315,
+     "VOIP": 1975,
+     "VPN-BROWSING": 1750,
+     "VPN-CHAT": 810,
+     "VPN-FT": 1318,
+     "VPN-MAIL": 302,
+     "VPN-P2P": 466,
+     "VPN-STREAMING": 333,
+     "VPN-VOIP": 1586
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 133,
+     "FT": 128,
+     "MAIL": 36,
+     "P2P": 141,
+     "STREAMING": 68,
+     "VOIP": 423,
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 174,
+     "VPN-FT": 282,
+     "VPN-MAIL": 65,
+     "VPN-P2P": 100,
+     "VPN-STREAMING": 71,
+     "VPN-VOIP": 340
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 133,
+     "FT": 129,
+     "MAIL": 36,
+     "P2P": 141,
+     "STREAMING": 67,
+     "VOIP": 423,
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 174,
+     "VPN-FT": 283,
+     "VPN-MAIL": 65,
+     "VPN-P2P": 100,
+     "VPN-STREAMING": 71,
+     "VPN-VOIP": 340
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 887,
+    "FT": 857,
+    "MAIL": 238,
+    "P2P": 941,
+    "STREAMING": 450,
+    "VOIP": 2821,
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 1158,
+    "VPN-FT": 1883,
+    "VPN-MAIL": 432,
+    "VPN-P2P": 666,
+    "VPN-STREAMING": 475,
+    "VPN-VOIP": 2266
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 3,
+    "FT": 161,
+    "MAIL": 11,
+    "P2P": 59,
+    "STREAMING": 32,
+    "VOIP": 5,
+    "VPN-CHAT": 38,
+    "VPN-FT": 49,
+    "VPN-MAIL": 59,
+    "VPN-P2P": 262,
+    "VPN-VOIP": 5
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 2,
+    "FT": 9,
+    "MAIL": 16,
+    "P2P": 1,
+    "STREAMING": 3,
+    "VOIP": 1,
+    "VPN-CHAT": 14,
+    "VPN-FT": 20,
+    "VPN-MAIL": 30,
+    "VPN-P2P": 2,
+    "VPN-STREAMING": 1,
+    "VPN-VOIP": 1
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 15,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "min_fiat": {
+     "negative": 2035,
+     "exactly_-1": 2035,
+     "zero": 203,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 37680787.0
+    },
+    "min_biat": {
+     "negative": 2953,
+     "exactly_-1": 2953,
+     "zero": 520,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 43002377.0
+    },
+    "max_fiat": {
+     "negative": 2035,
+     "exactly_-1": 2035,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "max_biat": {
+     "negative": 2953,
+     "exactly_-1": 2953,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2035,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2953,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 43000000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3957,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 215000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4350,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 188,
+     "exactly_-1": 61,
+     "zero": 913,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 18919905.0
+    },
+    "max_flowiat": {
+     "negative": 12,
+     "exactly_-1": 12,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2243,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 136000000.0
+    },
+    "min_active": {
+     "negative": 10671,
+     "exactly_-1": 10671,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10671,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 10671,
+     "exactly_-1": 10671,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 14251,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 10671,
+     "exactly_-1": 10671,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10671,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 10671,
+     "exactly_-1": 10671,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 14251,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.76,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "B_30s": {
+   "task": "B",
+   "timeout": 30,
+   "parquet": "B_30s.parquet",
+   "parquet_sha256": "041e19e33d36f5b2cdf4554171501b20b49621021fc4005df377a63715edd01e",
+   "split_sha256": "d7757245af921198114c38b308516c4fb95189faddb6dd316358fe7dc7033645",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 14651,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 1013,
+    "conflicting_rows_kept": 83,
+    "conflicting_groups": 33,
+    "final_rows": 13638,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 14,
+    "largest_to_smallest_class": "32.47:1",
+    "train": 9546,
+    "val": 2046,
+    "test": 2046
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 412,
+     "FT": 553,
+     "MAIL": 54,
+     "P2P": 695,
+     "STREAMING": 217,
+     "VOIP": 1005,
+     "VPN-BROWSING": 1750,
+     "VPN-CHAT": 520,
+     "VPN-FT": 786,
+     "VPN-MAIL": 255,
+     "VPN-P2P": 435,
+     "VPN-STREAMING": 208,
+     "VPN-VOIP": 906
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 88,
+     "FT": 119,
+     "MAIL": 11,
+     "P2P": 149,
+     "STREAMING": 47,
+     "VOIP": 215,
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 111,
+     "VPN-FT": 169,
+     "VPN-MAIL": 55,
+     "VPN-P2P": 93,
+     "VPN-STREAMING": 45,
+     "VPN-VOIP": 194
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 88,
+     "FT": 118,
+     "MAIL": 12,
+     "P2P": 149,
+     "STREAMING": 47,
+     "VOIP": 215,
+     "VPN-BROWSING": 375,
+     "VPN-CHAT": 111,
+     "VPN-FT": 169,
+     "VPN-MAIL": 55,
+     "VPN-P2P": 93,
+     "VPN-STREAMING": 45,
+     "VPN-VOIP": 194
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 588,
+    "FT": 790,
+    "MAIL": 77,
+    "P2P": 993,
+    "STREAMING": 311,
+    "VOIP": 1435,
+    "VPN-BROWSING": 2500,
+    "VPN-CHAT": 742,
+    "VPN-FT": 1124,
+    "VPN-MAIL": 365,
+    "VPN-P2P": 621,
+    "VPN-STREAMING": 298,
+    "VPN-VOIP": 1294
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 7,
+    "FT": 171,
+    "MAIL": 4,
+    "P2P": 7,
+    "STREAMING": 31,
+    "VOIP": 3,
+    "VPN-CHAT": 38,
+    "VPN-FT": 34,
+    "VPN-MAIL": 483,
+    "VPN-P2P": 230,
+    "VPN-VOIP": 5
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 1,
+    "FT": 19,
+    "MAIL": 5,
+    "P2P": 1,
+    "STREAMING": 3,
+    "VOIP": 1,
+    "VPN-CHAT": 13,
+    "VPN-FT": 12,
+    "VPN-MAIL": 24,
+    "VPN-P2P": 2,
+    "VPN-STREAMING": 1,
+    "VPN-VOIP": 1
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 15,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 11,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "min_fiat": {
+     "negative": 1404,
+     "exactly_-1": 1404,
+     "zero": 189,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 37680787.0
+    },
+    "min_biat": {
+     "negative": 2100,
+     "exactly_-1": 2100,
+     "zero": 425,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 43002377.0
+    },
+    "max_fiat": {
+     "negative": 1404,
+     "exactly_-1": 1404,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 303595747.0
+    },
+    "max_biat": {
+     "negative": 2100,
+     "exactly_-1": 2100,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1404,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2100,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 43000000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2867,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 215000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3050,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 11,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 1000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 11,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 161,
+     "exactly_-1": 59,
+     "zero": 786,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 29950803.0
+    },
+    "max_flowiat": {
+     "negative": 11,
+     "exactly_-1": 11,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 11,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1458,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 136000000.0
+    },
+    "min_active": {
+     "negative": 6993,
+     "exactly_-1": 6993,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6993,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 6993,
+     "exactly_-1": 6993,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 9725,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 6993,
+     "exactly_-1": 6993,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6993,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 6993,
+     "exactly_-1": 6993,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 9725,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 98.03,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "B_60s": {
+   "task": "B",
+   "timeout": 60,
+   "parquet": "B_60s.parquet",
+   "parquet_sha256": "f686948724a3b8bdca8a5b89653dbae8a49f11864951ceb8473cf8bb5388101c",
+   "split_sha256": "dd456586155ef0c53c891d4ba951ced4d0aecf794d7c9e590ba7254f308a5724",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 15516,
+    "comma_only_lines_skipped": 1,
+    "exact_duplicates_removed": 786,
+    "conflicting_rows_kept": 174,
+    "conflicting_groups": 75,
+    "final_rows": 14729,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 14,
+    "largest_to_smallest_class": "12.69:1",
+    "train": 10309,
+    "val": 2210,
+    "test": 2210
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 528,
+     "FT": 847,
+     "MAIL": 512,
+     "P2P": 698,
+     "STREAMING": 155,
+     "VOIP": 1255,
+     "VPN-BROWSING": 1724,
+     "VPN-CHAT": 334,
+     "VPN-FT": 591,
+     "VPN-MAIL": 227,
+     "VPN-P2P": 423,
+     "VPN-STREAMING": 138,
+     "VPN-VOIP": 1127
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 113,
+     "FT": 182,
+     "MAIL": 110,
+     "P2P": 149,
+     "STREAMING": 33,
+     "VOIP": 269,
+     "VPN-BROWSING": 369,
+     "VPN-CHAT": 72,
+     "VPN-FT": 127,
+     "VPN-MAIL": 48,
+     "VPN-P2P": 91,
+     "VPN-STREAMING": 30,
+     "VPN-VOIP": 242
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 113,
+     "FT": 181,
+     "MAIL": 110,
+     "P2P": 149,
+     "STREAMING": 33,
+     "VOIP": 269,
+     "VPN-BROWSING": 370,
+     "VPN-CHAT": 72,
+     "VPN-FT": 127,
+     "VPN-MAIL": 49,
+     "VPN-P2P": 91,
+     "VPN-STREAMING": 29,
+     "VPN-VOIP": 242
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 754,
+    "FT": 1210,
+    "MAIL": 732,
+    "P2P": 996,
+    "STREAMING": 221,
+    "VOIP": 1793,
+    "VPN-BROWSING": 2463,
+    "VPN-CHAT": 478,
+    "VPN-FT": 845,
+    "VPN-MAIL": 324,
+    "VPN-P2P": 605,
+    "VPN-STREAMING": 197,
+    "VPN-VOIP": 1611
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 24,
+    "FT": 162,
+    "MAIL": 117,
+    "P2P": 4,
+    "STREAMING": 31,
+    "VOIP": 36,
+    "VPN-BROWSING": 37,
+    "VPN-CHAT": 36,
+    "VPN-FT": 53,
+    "VPN-MAIL": 59,
+    "VPN-P2P": 218,
+    "VPN-VOIP": 9
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 5,
+    "FT": 17,
+    "MAIL": 44,
+    "P2P": 1,
+    "STREAMING": 7,
+    "VOIP": 3,
+    "VPN-BROWSING": 9,
+    "VPN-CHAT": 17,
+    "VPN-FT": 26,
+    "VPN-MAIL": 41,
+    "VPN-P2P": 2,
+    "VPN-VOIP": 2
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 25,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 646565983.0
+    },
+    "min_fiat": {
+     "negative": 1755,
+     "exactly_-1": 1755,
+     "zero": 175,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 59999851.0
+    },
+    "min_biat": {
+     "negative": 3356,
+     "exactly_-1": 3356,
+     "zero": 372,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 59922423.0
+    },
+    "max_fiat": {
+     "negative": 1755,
+     "exactly_-1": 1755,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "max_biat": {
+     "negative": 3356,
+     "exactly_-1": 3356,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1755,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3357,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 59900000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 3722,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 264000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4641,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 2000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 148,
+     "exactly_-1": 56,
+     "zero": 697,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 59947704.0
+    },
+    "max_flowiat": {
+     "negative": 11,
+     "exactly_-1": 11,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 64700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2282,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 204000000.0
+    },
+    "min_active": {
+     "negative": 6845,
+     "exactly_-1": 6845,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646565983.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6845,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 647000000.0
+    },
+    "max_active": {
+     "negative": 6845,
+     "exactly_-1": 6845,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646565983.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10127,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 184000000.0
+    },
+    "min_idle": {
+     "negative": 6845,
+     "exactly_-1": 6845,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6845,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 646000000.0
+    },
+    "max_idle": {
+     "negative": 6845,
+     "exactly_-1": 6845,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 646287731.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 10127,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 185000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.76,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "B_120s": {
+   "task": "B",
+   "timeout": 120,
+   "parquet": "B_120s.parquet",
+   "parquet_sha256": "e0b38f745836ec4053ffd5daf25e0cb04dcae20220009045af5e0ee05914dab8",
+   "split_sha256": "c0fc95b49ad0a6d10c3ef30699bb2223706510571f059a0949d320972d393bd7",
+   "features": [
+    "duration",
+    "min_fiat",
+    "min_biat",
+    "max_fiat",
+    "max_biat",
+    "mean_fiat",
+    "mean_biat",
+    "std_fiat",
+    "std_biat",
+    "flowPktsPerSecond",
+    "flowBytesPerSecond",
+    "min_flowiat",
+    "max_flowiat",
+    "mean_flowiat",
+    "std_flowiat",
+    "min_active",
+    "mean_active",
+    "max_active",
+    "std_active",
+    "min_idle",
+    "mean_idle",
+    "max_idle",
+    "std_idle"
+   ],
+   "summary": {
+    "initial_rows": 10782,
+    "comma_only_lines_skipped": 0,
+    "exact_duplicates_removed": 1193,
+    "conflicting_rows_kept": 173,
+    "conflicting_groups": 77,
+    "final_rows": 9589,
+    "missing_values": 0,
+    "features": 23,
+    "classes": 14,
+    "largest_to_smallest_class": "17.24:1",
+    "train": 6711,
+    "val": 1439,
+    "test": 1439
+   },
+   "class_counts": {
+    "train": {
+     "BROWSING": 1750,
+     "CHAT": 167,
+     "FT": 324,
+     "MAIL": 122,
+     "P2P": 698,
+     "STREAMING": 124,
+     "VOIP": 273,
+     "VPN-BROWSING": 1570,
+     "VPN-CHAT": 217,
+     "VPN-FT": 468,
+     "VPN-MAIL": 212,
+     "VPN-P2P": 418,
+     "VPN-STREAMING": 101,
+     "VPN-VOIP": 267
+    },
+    "val": {
+     "BROWSING": 375,
+     "CHAT": 36,
+     "FT": 70,
+     "MAIL": 26,
+     "P2P": 150,
+     "STREAMING": 26,
+     "VOIP": 58,
+     "VPN-BROWSING": 337,
+     "VPN-CHAT": 47,
+     "VPN-FT": 100,
+     "VPN-MAIL": 45,
+     "VPN-P2P": 90,
+     "VPN-STREAMING": 22,
+     "VPN-VOIP": 57
+    },
+    "test": {
+     "BROWSING": 375,
+     "CHAT": 36,
+     "FT": 70,
+     "MAIL": 26,
+     "P2P": 150,
+     "STREAMING": 27,
+     "VOIP": 58,
+     "VPN-BROWSING": 337,
+     "VPN-CHAT": 46,
+     "VPN-FT": 100,
+     "VPN-MAIL": 45,
+     "VPN-P2P": 90,
+     "VPN-STREAMING": 22,
+     "VPN-VOIP": 57
+    }
+   },
+   "final_class_counts": {
+    "BROWSING": 2500,
+    "CHAT": 239,
+    "FT": 464,
+    "MAIL": 174,
+    "P2P": 998,
+    "STREAMING": 177,
+    "VOIP": 389,
+    "VPN-BROWSING": 2244,
+    "VPN-CHAT": 310,
+    "VPN-FT": 668,
+    "VPN-MAIL": 302,
+    "VPN-P2P": 598,
+    "VPN-STREAMING": 145,
+    "VPN-VOIP": 381
+   },
+   "exact_duplicates_removed_per_class": {
+    "CHAT": 3,
+    "FT": 160,
+    "MAIL": 11,
+    "P2P": 2,
+    "STREAMING": 31,
+    "VOIP": 3,
+    "VPN-BROWSING": 256,
+    "VPN-CHAT": 39,
+    "VPN-FT": 48,
+    "VPN-MAIL": 420,
+    "VPN-P2P": 215,
+    "VPN-VOIP": 5
+   },
+   "conflicting_rows_per_class": {
+    "CHAT": 3,
+    "FT": 9,
+    "MAIL": 16,
+    "STREAMING": 10,
+    "VOIP": 1,
+    "VPN-BROWSING": 40,
+    "VPN-CHAT": 16,
+    "VPN-FT": 41,
+    "VPN-MAIL": 33,
+    "VPN-P2P": 2,
+    "VPN-VOIP": 2
+   },
+   "exact_duplicates_across_train_test": 0,
+   "test_rows_with_conflicting_twin_in_train": 21,
+   "odd_values": {
+    "duration": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601404954.0
+    },
+    "min_fiat": {
+     "negative": 1114,
+     "exactly_-1": 1114,
+     "zero": 172,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 119999708.0
+    },
+    "min_biat": {
+     "negative": 2113,
+     "exactly_-1": 2113,
+     "zero": 344,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 119999620.0
+    },
+    "max_fiat": {
+     "negative": 1114,
+     "exactly_-1": 1114,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 441730336.0
+    },
+    "max_biat": {
+     "negative": 2113,
+     "exactly_-1": 2113,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109667.0
+    },
+    "mean_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1114,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 152000000.0
+    },
+    "mean_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2113,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 120000000.0
+    },
+    "std_fiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2419,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 215000000.0
+    },
+    "std_biat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 2808,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 98000000.0
+    },
+    "flowPktsPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 2000000.0
+    },
+    "flowBytesPerSecond": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 617000000.0
+    },
+    "min_flowiat": {
+     "negative": 132,
+     "exactly_-1": 48,
+     "zero": 624,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1247.0,
+     "max": 21239660.0
+    },
+    "max_flowiat": {
+     "negative": 11,
+     "exactly_-1": 11,
+     "zero": 1,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 12,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 60700000.0
+    },
+    "std_flowiat": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 1535,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 143000000.0
+    },
+    "min_active": {
+     "negative": 4154,
+     "exactly_-1": 4154,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "mean_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4154,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 601000000.0
+    },
+    "max_active": {
+     "negative": 4154,
+     "exactly_-1": 4154,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 601404954.0
+    },
+    "std_active": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6150,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    },
+    "min_idle": {
+     "negative": 4154,
+     "exactly_-1": 4154,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "mean_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 4154,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 600000000.0
+    },
+    "max_idle": {
+     "negative": 4154,
+     "exactly_-1": 4154,
+     "zero": 0,
+     "missing": 0,
+     "infinite": 0,
+     "min": -1.0,
+     "max": 600109654.0
+    },
+    "std_idle": {
+     "negative": 0,
+     "exactly_-1": 0,
+     "zero": 6150,
+     "missing": 0,
+     "infinite": 0,
+     "min": 0.0,
+     "max": 168000000.0
+    }
+   },
+   "consistency_checks": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.49,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  }
+ },
+ "cleaning_log_sha256": "113067599e89f0459d84b4c49fa5370ff04cae2b621f4dbffc4ea51c55c8108e",
+ "column_name_check": {
+  "A1_15s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.01,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.72,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.0,
+    "total_fiat as packet count (+-10%)": 1.98
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.72,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A1_30s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.01,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.77,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.02,
+    "total_fiat as packet count (+-10%)": 2.0
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.77,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A1_60s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.02,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.6,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.05,
+    "total_fiat as packet count (+-10%)": 1.47
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.6,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A1_120s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.01,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 0.31,
+    "bytes per packet in 40-1500": 21.52,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.23,
+    "total_fiat as packet count (+-10%)": 1.35
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 0.31,
+    "bytes per packet in 40-1500": 21.52,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "A2-VPN_15s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 99.26,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.0
+   },
+   "S": {
+    "fiat: min <= mean <= max": 18.8,
+    "biat: min <= mean <= max": 14.07,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 99.26,
+    "min_flowiat <= min(min_fiat, min_biat)": 80.98,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.0
+   }
+  },
+  "A2-VPN_30s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 98.67,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.0
+   },
+   "S": {
+    "fiat: min <= mean <= max": 17.48,
+    "biat: min <= mean <= max": 9.21,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 98.67,
+    "min_flowiat <= min(min_fiat, min_biat)": 77.95,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.0
+   }
+  },
+  "A2-VPN_60s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 98.8,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.0
+   },
+   "S": {
+    "fiat: min <= mean <= max": 22.08,
+    "biat: min <= mean <= max": 16.28,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 98.8,
+    "min_flowiat <= min(min_fiat, min_biat)": 70.64,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.03
+   }
+  },
+  "A2-VPN_120s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.22,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.0
+   },
+   "S": {
+    "fiat: min <= mean <= max": 20.32,
+    "biat: min <= mean <= max": 5.55,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.22,
+    "min_flowiat <= min(min_fiat, min_biat)": 64.2,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.0
+   }
+  },
+  "A2-NonVPN_15s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.06,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.04
+   },
+   "S": {
+    "fiat: min <= mean <= max": 5.24,
+    "biat: min <= mean <= max": 4.06,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.06,
+    "min_flowiat <= min(min_fiat, min_biat)": 83.1,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.0
+   }
+  },
+  "A2-NonVPN_30s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.77,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.05
+   },
+   "S": {
+    "fiat: min <= mean <= max": 8.72,
+    "biat: min <= mean <= max": 6.89,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.77,
+    "min_flowiat <= min(min_fiat, min_biat)": 83.55,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.0
+   }
+  },
+  "A2-NonVPN_60s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.64,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.04
+   },
+   "S": {
+    "fiat: min <= mean <= max": 11.82,
+    "biat: min <= mean <= max": 7.71,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 96.64,
+    "min_flowiat <= min(min_fiat, min_biat)": 79.83,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.0
+   }
+  },
+  "A2-NonVPN_120s": {
+   "T": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.11,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 100.0,
+    "total_fiat as packet count (+-10%)": 0.07
+   },
+   "S": {
+    "fiat: min <= mean <= max": 14.58,
+    "biat: min <= mean <= max": 11.96,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.11,
+    "min_flowiat <= min(min_fiat, min_biat)": 85.56,
+    "0 <= std_fiat <= max - min": 0.0,
+    "0 <= std_biat <= max - min": 0.0
+   }
+  },
+  "B_15s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.01,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.72,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.0,
+    "total_fiat as packet count (+-10%)": 1.98
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.72,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "B_30s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.01,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.77,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.02,
+    "total_fiat as packet count (+-10%)": 2.0
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.77,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "B_60s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.02,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.6,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.05,
+    "total_fiat as packet count (+-10%)": 1.47
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.6,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  },
+  "B_120s": {
+   "T": {
+    "fiat: min <= mean <= max": 0.0,
+    "biat: min <= mean <= max": 0.01,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.17,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "total_fiat <= duration": 100.0,
+    "total/mean + 1, fwd + bwd = packets (+-2%)": 0.03,
+    "total_fiat as packet count (+-10%)": 1.35
+   },
+   "S": {
+    "fiat: min <= mean <= max": 100.0,
+    "biat: min <= mean <= max": 100.0,
+    "flowiat: min <= mean <= max": 100.0,
+    "active: min <= mean <= max": 100.0,
+    "idle: min <= mean <= max": 100.0,
+    "mean_flowiat x (packets - 1) = duration (+-1%)": 100.0,
+    "bytes per packet in 40-1500": 97.17,
+    "min_flowiat <= min(min_fiat, min_biat)": 100.0,
+    "0 <= std_fiat <= max - min": 100.0,
+    "0 <= std_biat <= max - min": 100.0
+   }
+  }
+ },
+ "family_match": {
+  "15s": {
+   "rows": {
+    "A1": 18758,
+    "B": 18758,
+    "A2 (VPN + NonVPN)": 18758
+   },
+   "A1 rows whose key is in A2 (%)": 100.0,
+   "keys where A1 labels differ from A2 VPN/Non-VPN labels": 0,
+   "keys where B labels differ from A2 labels": 0,
+   "rows paired on a unique key": 17644,
+   "shared columns agreeing on paired rows (%)": {
+    "duration": 100.0,
+    "min_fiat": 100.0,
+    "min_biat": 100.0,
+    "max_fiat": 100.0,
+    "max_biat": 100.0,
+    "mean_fiat": 100.0,
+    "mean_biat": 100.0,
+    "flowPktsPerSecond": 100.0,
+    "flowBytesPerSecond": 100.0,
+    "min_flowiat": 100.0,
+    "max_flowiat": 100.0,
+    "mean_flowiat": 100.0,
+    "std_flowiat": 100.0,
+    "min_active": 100.0,
+    "mean_active": 100.0,
+    "max_active": 100.0,
+    "std_active": 100.0,
+    "min_idle": 100.0,
+    "mean_idle": 100.0,
+    "max_idle": 100.0,
+    "std_idle": 100.0
+   },
+   "A1 vs B cells differing, per column": {},
+   "B labels differ from A1 labels mapped to VPN/Non-VPN": 0
+  },
+  "30s": {
+   "rows": {
+    "A1": 14651,
+    "B": 14651,
+    "A2 (VPN + NonVPN)": 14651
+   },
+   "A1 rows whose key is in A2 (%)": 100.0,
+   "keys where A1 labels differ from A2 VPN/Non-VPN labels": 0,
+   "keys where B labels differ from A2 labels": 0,
+   "rows paired on a unique key": 13043,
+   "shared columns agreeing on paired rows (%)": {
+    "duration": 100.0,
+    "min_fiat": 100.0,
+    "min_biat": 100.0,
+    "max_fiat": 100.0,
+    "max_biat": 100.0,
+    "mean_fiat": 100.0,
+    "mean_biat": 100.0,
+    "flowPktsPerSecond": 100.0,
+    "flowBytesPerSecond": 100.0,
+    "min_flowiat": 100.0,
+    "max_flowiat": 100.0,
+    "mean_flowiat": 100.0,
+    "std_flowiat": 100.0,
+    "min_active": 100.0,
+    "mean_active": 100.0,
+    "max_active": 100.0,
+    "std_active": 100.0,
+    "min_idle": 100.0,
+    "mean_idle": 100.0,
+    "max_idle": 100.0,
+    "std_idle": 100.0
+   },
+   "A1 vs B cells differing, per column": {},
+   "B labels differ from A1 labels mapped to VPN/Non-VPN": 0
+  },
+  "60s": {
+   "rows": {
+    "A1": 15515,
+    "B": 15515,
+    "A2 (VPN + NonVPN)": 15515
+   },
+   "A1 rows whose key is in A2 (%)": 100.0,
+   "keys where A1 labels differ from A2 VPN/Non-VPN labels": 0,
+   "keys where B labels differ from A2 labels": 0,
+   "rows paired on a unique key": 14256,
+   "shared columns agreeing on paired rows (%)": {
+    "duration": 100.0,
+    "min_fiat": 100.0,
+    "min_biat": 100.0,
+    "max_fiat": 100.0,
+    "max_biat": 100.0,
+    "mean_fiat": 100.0,
+    "mean_biat": 100.0,
+    "flowPktsPerSecond": 100.0,
+    "flowBytesPerSecond": 100.0,
+    "min_flowiat": 100.0,
+    "max_flowiat": 100.0,
+    "mean_flowiat": 100.0,
+    "std_flowiat": 100.0,
+    "min_active": 100.0,
+    "mean_active": 100.0,
+    "max_active": 100.0,
+    "std_active": 100.0,
+    "min_idle": 100.0,
+    "mean_idle": 100.0,
+    "max_idle": 100.0,
+    "std_idle": 100.0
+   },
+   "A1 vs B cells differing, per column": {},
+   "B labels differ from A1 labels mapped to VPN/Non-VPN": 0
+  },
+  "120s": {
+   "rows": {
+    "A1": 10782,
+    "B": 10782,
+    "A2 (VPN + NonVPN)": 10782
+   },
+   "A1 rows whose key is in A2 (%)": 100.0,
+   "keys where A1 labels differ from A2 VPN/Non-VPN labels": 0,
+   "keys where B labels differ from A2 labels": 0,
+   "rows paired on a unique key": 8849,
+   "shared columns agreeing on paired rows (%)": {
+    "duration": 100.0,
+    "min_fiat": 100.0,
+    "min_biat": 100.0,
+    "max_fiat": 100.0,
+    "max_biat": 100.0,
+    "mean_fiat": 100.0,
+    "mean_biat": 100.0,
+    "flowPktsPerSecond": 0.03,
+    "flowBytesPerSecond": 100.0,
+    "min_flowiat": 100.0,
+    "max_flowiat": 100.0,
+    "mean_flowiat": 100.0,
+    "std_flowiat": 100.0,
+    "min_active": 100.0,
+    "mean_active": 100.0,
+    "max_active": 100.0,
+    "std_active": 100.0,
+    "min_idle": 100.0,
+    "mean_idle": 100.0,
+    "max_idle": 100.0,
+    "std_idle": 100.0
+   },
+   "A1 vs B cells differing, per column": {
+    "flowPktsPerSecond": 10288
+   },
+   "B labels differ from A1 labels mapped to VPN/Non-VPN": 0
+  }
+ },
+ "timeouts": {
+  "A1": {
+   "15s": {
+    "initial_rows": 18758,
+    "final_rows": 18038,
+    "class_mix_pct": {
+     "Non-VPN": 48.16,
+     "VPN": 51.84
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "30s": {
+    "initial_rows": 14651,
+    "final_rows": 13610,
+    "class_mix_pct": {
+     "Non-VPN": 49.14,
+     "VPN": 50.86
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "60s": {
+    "initial_rows": 15516,
+    "final_rows": 14677,
+    "class_mix_pct": {
+     "Non-VPN": 55.78,
+     "VPN": 44.22
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "120s": {
+    "initial_rows": 10782,
+    "final_rows": 9524,
+    "class_mix_pct": {
+     "Non-VPN": 51.82,
+     "VPN": 48.18
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   }
+  },
+  "A2-VPN": {
+   "15s": {
+    "initial_rows": 9793,
+    "final_rows": 9380,
+    "class_mix_pct": {
+     "VPN-BROWSING": 26.65,
+     "VPN-CHAT": 12.35,
+     "VPN-FT": 20.07,
+     "VPN-MAIL": 4.61,
+     "VPN-P2P": 7.1,
+     "VPN-STREAMING": 5.06,
+     "VPN-VOIP": 24.16
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "30s": {
+    "initial_rows": 7734,
+    "final_rows": 6944,
+    "class_mix_pct": {
+     "VPN-BROWSING": 36.0,
+     "VPN-CHAT": 10.69,
+     "VPN-FT": 16.19,
+     "VPN-MAIL": 5.26,
+     "VPN-P2P": 8.94,
+     "VPN-STREAMING": 4.29,
+     "VPN-VOIP": 18.63
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "60s": {
+    "initial_rows": 6935,
+    "final_rows": 6523,
+    "class_mix_pct": {
+     "VPN-BROWSING": 37.76,
+     "VPN-CHAT": 7.33,
+     "VPN-FT": 12.95,
+     "VPN-MAIL": 4.97,
+     "VPN-P2P": 9.27,
+     "VPN-STREAMING": 3.02,
+     "VPN-VOIP": 24.7
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "120s": {
+    "initial_rows": 5631,
+    "final_rows": 4648,
+    "class_mix_pct": {
+     "VPN-BROWSING": 48.28,
+     "VPN-CHAT": 6.67,
+     "VPN-FT": 14.37,
+     "VPN-MAIL": 6.5,
+     "VPN-P2P": 12.87,
+     "VPN-STREAMING": 3.12,
+     "VPN-VOIP": 8.2
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   }
+  },
+  "A2-NonVPN": {
+   "15s": {
+    "initial_rows": 8965,
+    "final_rows": 8694,
+    "class_mix_pct": {
+     "BROWSING": 28.76,
+     "CHAT": 10.2,
+     "FT": 9.86,
+     "MAIL": 2.74,
+     "P2P": 10.82,
+     "STREAMING": 5.18,
+     "VOIP": 32.45
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "30s": {
+    "initial_rows": 6917,
+    "final_rows": 6694,
+    "class_mix_pct": {
+     "BROWSING": 37.35,
+     "CHAT": 8.78,
+     "FT": 11.8,
+     "MAIL": 1.15,
+     "P2P": 14.83,
+     "STREAMING": 4.65,
+     "VOIP": 21.44
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "60s": {
+    "initial_rows": 8580,
+    "final_rows": 8206,
+    "class_mix_pct": {
+     "BROWSING": 30.47,
+     "CHAT": 9.19,
+     "FT": 14.75,
+     "MAIL": 8.92,
+     "P2P": 12.14,
+     "STREAMING": 2.69,
+     "VOIP": 21.85
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "120s": {
+    "initial_rows": 5151,
+    "final_rows": 4941,
+    "class_mix_pct": {
+     "BROWSING": 50.6,
+     "CHAT": 4.84,
+     "FT": 9.39,
+     "MAIL": 3.52,
+     "P2P": 20.2,
+     "STREAMING": 3.58,
+     "VOIP": 7.87
+    },
+    "features_in_order": [
+     "duration",
+     "total_fiat",
+     "total_biat",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   }
+  },
+  "B": {
+   "15s": {
+    "initial_rows": 18758,
+    "final_rows": 18074,
+    "class_mix_pct": {
+     "BROWSING": 13.83,
+     "CHAT": 4.91,
+     "FT": 4.74,
+     "MAIL": 1.32,
+     "P2P": 5.21,
+     "STREAMING": 2.49,
+     "VOIP": 15.61,
+     "VPN-BROWSING": 13.83,
+     "VPN-CHAT": 6.41,
+     "VPN-FT": 10.42,
+     "VPN-MAIL": 2.39,
+     "VPN-P2P": 3.68,
+     "VPN-STREAMING": 2.63,
+     "VPN-VOIP": 12.54
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "30s": {
+    "initial_rows": 14651,
+    "final_rows": 13638,
+    "class_mix_pct": {
+     "BROWSING": 18.33,
+     "CHAT": 4.31,
+     "FT": 5.79,
+     "MAIL": 0.56,
+     "P2P": 7.28,
+     "STREAMING": 2.28,
+     "VOIP": 10.52,
+     "VPN-BROWSING": 18.33,
+     "VPN-CHAT": 5.44,
+     "VPN-FT": 8.24,
+     "VPN-MAIL": 2.68,
+     "VPN-P2P": 4.55,
+     "VPN-STREAMING": 2.19,
+     "VPN-VOIP": 9.49
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "60s": {
+    "initial_rows": 15516,
+    "final_rows": 14729,
+    "class_mix_pct": {
+     "BROWSING": 16.97,
+     "CHAT": 5.12,
+     "FT": 8.22,
+     "MAIL": 4.97,
+     "P2P": 6.76,
+     "STREAMING": 1.5,
+     "VOIP": 12.17,
+     "VPN-BROWSING": 16.72,
+     "VPN-CHAT": 3.25,
+     "VPN-FT": 5.74,
+     "VPN-MAIL": 2.2,
+     "VPN-P2P": 4.11,
+     "VPN-STREAMING": 1.34,
+     "VPN-VOIP": 10.94
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   },
+   "120s": {
+    "initial_rows": 10782,
+    "final_rows": 9589,
+    "class_mix_pct": {
+     "BROWSING": 26.07,
+     "CHAT": 2.49,
+     "FT": 4.84,
+     "MAIL": 1.81,
+     "P2P": 10.41,
+     "STREAMING": 1.85,
+     "VOIP": 4.06,
+     "VPN-BROWSING": 23.4,
+     "VPN-CHAT": 3.23,
+     "VPN-FT": 6.97,
+     "VPN-MAIL": 3.15,
+     "VPN-P2P": 6.24,
+     "VPN-STREAMING": 1.51,
+     "VPN-VOIP": 3.97
+    },
+    "features_in_order": [
+     "duration",
+     "min_fiat",
+     "min_biat",
+     "max_fiat",
+     "max_biat",
+     "mean_fiat",
+     "mean_biat",
+     "std_fiat",
+     "std_biat",
+     "flowPktsPerSecond",
+     "flowBytesPerSecond",
+     "min_flowiat",
+     "max_flowiat",
+     "mean_flowiat",
+     "std_flowiat",
+     "min_active",
+     "mean_active",
+     "max_active",
+     "std_active",
+     "min_idle",
+     "mean_idle",
+     "max_idle",
+     "std_idle"
+    ],
+    "units": "times in microseconds, rates per second"
+   }
+  }
+ },
+ "kaggle": {
+  "file": "datasets/kaggle/consolidated_traffic_data.csv",
+  "rows": 59706,
+  "header equals the A2 header": true,
+  "unique rows (features + label)": 40987,
+  "unique feature rows (label ignored)": 40728,
+  "A2 rows stacked": 59706,
+  "same multiset of rows as the 8 A2 files (12 significant digits)": true,
+  "Kaggle rows without an A2 partner": 0,
+  "distinct rows by number of timeout files they appear in": {
+   "1": 33894,
+   "2": 2475,
+   "3": 1286,
+   "4": 3332
+  },
+  "exact duplicates within single A2 files (sum of 8)": 3676
+ }
+}

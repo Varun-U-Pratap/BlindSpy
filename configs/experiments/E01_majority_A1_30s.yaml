@@ -1,0 +1,9 @@
+experiment_id: E01
+run_name: E01-majority-A1-30s
+kind: train
+task: A1
+timeout: 30
+model: majority
+params:
+  strategy: most_frequent
+save_model: true

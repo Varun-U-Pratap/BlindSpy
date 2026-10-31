@@ -1,0 +1,9 @@
+experiment_id: E04
+run_name: E04-knn_log_standard-A2-VPN-15s
+kind: train
+task: A2-VPN
+timeout: 15
+model: knn_log_standard
+params:
+  n_neighbors: 5
+save_model: true

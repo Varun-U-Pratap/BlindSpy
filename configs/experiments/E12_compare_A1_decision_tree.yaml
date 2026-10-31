@@ -1,0 +1,16 @@
+experiment_id: E12
+run_name: E12-compare-decision_tree-A1
+task: A1
+timeout: 15
+model: tree
+params:
+  ccp_alpha: 0.00032005927785036195
+  criterion: entropy
+  max_depth: null
+  min_samples_leaf: 1
+builds_on: E17-tree-A1-15s
+source_run_id: f54ca230785c4aaa93dd41a52cd92044
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.8905028543931407

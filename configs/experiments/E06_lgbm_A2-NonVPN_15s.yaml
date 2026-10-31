@@ -1,0 +1,8 @@
+experiment_id: E06
+run_name: E06-lgbm-A2-NonVPN-15s
+kind: train
+task: A2-NonVPN
+timeout: 15
+model: lgbm
+params: {}
+save_model: true

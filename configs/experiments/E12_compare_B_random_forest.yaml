@@ -1,0 +1,16 @@
+experiment_id: E12
+run_name: E12-compare-random_forest-B
+task: B
+timeout: 15
+model: rf
+params:
+  max_depth: null
+  max_features: 0.5136747678832945
+  min_samples_leaf: 1
+  n_estimators: 708
+builds_on: E17-rf-B-15s
+source_run_id: a90dc2150e4b4c0cbf751c600c04a532
+save_model: true
+kind: final
+role: comparison
+source_val_f1_macro: 0.8167177568114445

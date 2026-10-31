@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-compare-random_forest-A2-NonVPN
+kind: train
+task: A2-NonVPN
+timeout: 15
+model: rf
+params:
+  n_estimators: 300
+builds_on: E05-rf-A2-NonVPN-15s
+source_run_id: 2efc59b8de634e8a80f01f2e08eff356
+source_val_f1_macro: 0.8940519867541425
+reason: 'Comparison set: the best 15 s validation variant of Random Forest for A2-NonVPN (0.8941, E05-rf-A2-NonVPN-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true

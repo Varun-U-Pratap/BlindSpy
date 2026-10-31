@@ -1,0 +1,24 @@
+experiment_id: E07
+run_name: E07-knn_log_standard-A1-15s
+kind: optuna
+task: A1
+timeout: 15
+model: knn_log_standard
+trials: 50
+search_space:
+  n_neighbors:
+    type: int
+    low: 1
+    high: 50
+  weights:
+    type: categorical
+    choices:
+    - uniform
+    - distance
+  metric:
+    type: categorical
+    choices:
+    - euclidean
+    - manhattan
+fixed_params: {}
+save_model: true

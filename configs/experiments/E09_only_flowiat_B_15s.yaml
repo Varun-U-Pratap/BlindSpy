@@ -1,0 +1,16 @@
+experiment_id: E09
+run_name: E09-only_flowiat-B-15s
+kind: train
+task: B
+timeout: 15
+model: xgb
+params:
+  colsample_bytree: 0.8951628908652679
+  learning_rate: 0.10125778281260306
+  max_depth: 6
+  min_child_weight: 2
+  n_estimators: 505
+  subsample: 0.9151822993048108
+feature_set: only_flowiat
+builds_on: E07-xgb-B-15s
+save_model: true

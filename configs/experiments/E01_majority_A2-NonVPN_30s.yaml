@@ -1,0 +1,9 @@
+experiment_id: E01
+run_name: E01-majority-A2-NonVPN-30s
+kind: train
+task: A2-NonVPN
+timeout: 30
+model: majority
+params:
+  strategy: most_frequent
+save_model: true

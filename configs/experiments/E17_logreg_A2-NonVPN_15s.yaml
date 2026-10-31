@@ -1,0 +1,21 @@
+experiment_id: E17
+run_name: E17-logreg-A2-NonVPN-15s
+kind: optuna
+task: A2-NonVPN
+timeout: 15
+model: logreg
+trials: 50
+search_space:
+  signed_log:
+    type: categorical
+    choices:
+    - false
+    - true
+  C:
+    type: float
+    low: 0.001
+    high: 1000.0
+    log: true
+fixed_params:
+  max_iter: 1000
+save_model: true

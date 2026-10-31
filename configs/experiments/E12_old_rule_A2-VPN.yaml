@@ -1,0 +1,13 @@
+experiment_id: E12
+run_name: E12-old_rule-A2-VPN
+task: A2-VPN
+timeout: 15
+model: knn_log_standard
+params:
+  n_neighbors: 5
+builds_on: E04-knn_log_standard-A2-VPN-15s
+source_run_id: 3dcf524022a84ac697757fd158380596
+save_model: true
+kind: final
+role: old_rule
+source_val_f1_macro: 0.8543640134567895

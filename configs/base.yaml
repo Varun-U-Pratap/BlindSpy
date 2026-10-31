@@ -1,0 +1,82 @@
+# Shared defaults for every run. Changing anything that alters the cleaned data
+# requires a new data_version (see reports/DATA_CHANGELOG.md).
+seed: 42
+split:
+  train: 0.70
+  val: 0.15
+  test: 0.15
+cv_folds: 5
+# joblib compression level for every saved model (lossless; Phase 3 on, decided 28 Oct).
+# Phase 2 models were saved uncompressed (level 0). Logged as the param model_compress.
+model_compress: 3
+data_version: v1     # see reports/DATA_CHANGELOG.md and data/manifest.json
+official_runner: utsav-s-r
+mlflow_experiment: blindspy
+paths:
+  raw: datasets/CSVs
+  processed: data/processed
+  manifest: data/manifest.json
+  mlruns: mlruns
+  experiments_notes: reports/experiments
+  figures: reports/figures
+# Cleaning rules applied by scripts/prepare_data.py, in order. Each becomes one line per
+# file in data/processed/<version>/cleaning_log.csv (rule + reason copied from here).
+# Evidence for every rule: reports/experiments/utsav-s-r/E00.md and data/manifest.json.
+cleaning:
+  parse:
+    rule: Strip the trailing commas from every header line; skip data lines made only of commas.
+    reason: The files were exported with stray commas that liac-arff can't read; the 60 s files of A1 and B have one comma-only line after @DATA, which is not a flow.
+  column_map:
+    rule: Rename the columns with COLUMN_MAP (src/blindspy/data.py).
+    reason: A1 and B files hold the paper's Table 2 features (fiat/biat as min, max, mean, std) but 9 of their 12 headers shift those names by one pair; A2 files hold total_fiat/total_biat as named. Verified on every row (E00).
+  restore_flow_pkts:
+    rule: A1 120 s only - replace flowPktsPerSecond with the value from B 120 s, row for row.
+    reason: In A1 120 s that column disagrees with A2 on 99.97% of paired rows; B 120 s is identical to A1 120 s in the other 22 columns of every row and matches A2 on 100%.
+  missing:
+    rule: Count missing values; none expected, so nothing is imputed.
+    reason: Imputation would invent values; the check proves none are needed.
+  infinite:
+    rule: Count infinite values; none expected.
+    reason: The flow tool writes rate 0 for zero-duration flows instead of dividing by zero.
+  fiat_not_measurable:
+    rule: Keep min_fiat = max_fiat = -1 (with mean_fiat = 0) as-is.
+    reason: -1 means no forward gap exists (fewer than 2 forward packets); mean_fiat = 0 marks the same rows, so a flag column would repeat it. Never set to zero.
+  biat_not_measurable:
+    rule: Keep min_biat = max_biat = -1 (with mean_biat = 0) as-is.
+    reason: -1 means no backward gap exists (fewer than 2 backward packets).
+  flowiat_not_measurable:
+    rule: Keep max_flowiat = -1 as-is.
+    reason: Single-packet flows have no gap between packets.
+  active_idle_not_measurable:
+    rule: Keep min/max_active and min/max_idle = -1 (with mean = 0) as-is.
+    reason: The flow never had an idle period longer than the tool's activity threshold, so no active/idle period exists.
+  single_packet:
+    rule: Keep duration = 0 flows (rates 0) as-is.
+    reason: Real single-packet flows; dropping them would bias the data toward long flows.
+  negative_flowiat:
+    rule: Keep negative min_flowiat values (other than the -1 code) as-is.
+    reason: Out-of-order capture timestamps (at most a few ms); a property of the capture, not a coding error to undo.
+  rounding:
+    rule: Keep means, stds and rates of 1e7 or more as stored (3 significant figures).
+    reason: The source files already rounded them; the exact values can't be recovered.
+  packet_size:
+    rule: Keep flows whose bytes per packet fall outside 40-1500 as-is.
+    reason: Header-only packets (down to 30 B) and segments merged at capture (up to about 7 kB) are real traffic.
+  exact_duplicates:
+    rule: Drop exact duplicates (all 23 features + label) within each file, keeping the first copy, before splitting.
+    reason: A copy in both train and test would score the model on rows it trained on.
+  conflicting_duplicates:
+    rule: Keep rows with identical features but different labels (one per label after exact de-duplication); count them per class.
+    reason: They are real ambiguity in the data; removing them would make the test set easier than reality.
+  no_normalization:
+    rule: No scaling or normalization at data level.
+    reason: Scaling is fitted inside each model pipeline on training folds only.
+  no_feature_selection:
+    rule: All 23 features kept.
+    reason: The paper's feature set; feature groups are studied later in E09.
+  no_outlier_removal:
+    rule: No outlier removal or clipping.
+    reason: Long and bursty flows are real traffic patterns.
+  no_resampling:
+    rule: No class balancing at data level.
+    reason: Resampling runs inside the pipeline on training folds only (E08).

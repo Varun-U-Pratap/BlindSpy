@@ -1,0 +1,9 @@
+# Streamlit settings for the demo (read when it is started from the repository folder).
+# headless: no first-run email prompt (on a new laptop it would stop the demo from starting) and no
+# automatic browser tab; open http://localhost:8501. address: reachable from this laptop only.
+[browser]
+gatherUsageStats = false
+
+[server]
+headless = true
+address = "localhost"

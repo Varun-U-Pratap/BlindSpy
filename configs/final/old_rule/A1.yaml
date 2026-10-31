@@ -1,0 +1,15 @@
+experiment_id: E12
+run_name: E12-old_rule-A1
+kind: train
+task: A1
+timeout: 15
+model: knn_log_standard
+params:
+  n_neighbors: 5
+builds_on: E04-knn_log_standard-A1-15s
+source_run_id: c6c790eac3c94fab99804f7eadf2cda1
+source_val_f1_macro: 0.9047673040463236
+reason: 'What the superseded 28 Oct tie rule would pick for A1: E04-knn_log_standard-A1-15s (0.9048, 0.026
+  below the best; the simplest of 10 runs within 0.03). Scored once on the test set in Phase 4 to show
+  what the old rule would cost; never changes the headline model.'
+save_model: true

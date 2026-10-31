@@ -1,0 +1,18 @@
+experiment_id: E12
+run_name: E12-compare-random_forest-B
+kind: train
+task: B
+timeout: 15
+model: rf
+params:
+  max_depth: null
+  max_features: 0.5136747678832945
+  min_samples_leaf: 1
+  n_estimators: 708
+builds_on: E17-rf-B-15s
+source_run_id: a90dc2150e4b4c0cbf751c600c04a532
+source_val_f1_macro: 0.8167177568114445
+reason: 'Comparison set: the best 15 s validation variant of Random Forest for B (0.8167, E17-rf-B-15s;
+  2 variants compared). Scored once on the test set in Phase 4 as comparison only; never changes the headline
+  model.'
+save_model: true
