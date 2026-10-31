@@ -128,3 +128,16 @@ def test_committed_models_on_committed_samples(task):
     assert meta["calibration"] == ("isotonic" if task in ("A1", "A2-VPN") else "none")
     assert out["confidence"].between(0, 1).all() and len(out) == 20
     assert meta["model_file_bytes"] < 50 * 10**6
+
+
+@pytest.mark.parametrize("task", data.CORE_TASKS)
+def test_committed_malformed_sample_exits_2(task, tmp_path, capsys):
+    # app/samples/malformed_renamed_column.csv (scripts/make_samples.py): one column renamed
+    spec = importlib.util.spec_from_file_location("predict_cli", ROOT / "scripts" / "predict.py")
+    cli = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(cli)
+    bad = ROOT / "app" / "samples" / "malformed_renamed_column.csv"
+    argv = ["--task", task, "--input", str(bad), "--output", str(tmp_path / "out.csv")]
+    assert cli.main(argv) == 2
+    assert "flowBytesPerSec" in capsys.readouterr().err
+    assert not (tmp_path / "out.csv").exists()
