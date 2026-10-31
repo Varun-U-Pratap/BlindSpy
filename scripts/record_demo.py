@@ -1,7 +1,7 @@
 """Record the 1-minute demo video: reports/demo/demo_video.mp4.
 
 Follows reports/demo/video_script.md on the real app: starts `streamlit run app/demo.py` fresh
-(cold model load), drives a headless Chrome over its DevTools protocol (1280 x 720), captures the
+(each model loads on its first use), drives a headless Chrome over its DevTools protocol (1280 x 720), captures the
 page's frames with their real timestamps, draws a cursor, click marks and a caption bar on them,
 and encodes them at 10 frames per second with scripts/encode_video.swift (AVFoundation). The
 screen of this Mac is not recorded; a title card names the command that starts the demo.
@@ -116,6 +116,17 @@ class Page:
         x, y, _, _ = self.rect("document.querySelector('[data-testid=stDataFrame]')")
         self.click(x + 18, y + HEAD_H + ROW_H * (row - 1) + ROW_H / 2)
 
+    def show_chart(self, heading: str):
+        """Wait until the SHAP chart under the heading is loaded (an image below it), then
+        scroll the heading to the top; scrolling earlier leaves the chart below the view."""
+        h = ("[...document.querySelectorAll('h3')]"
+             f".find(e => e.innerText.startsWith({json.dumps(heading)}))")  # fmt: skip
+        self.wait_for(f"(() => {{ const h = {h}; if (!h) return false; const top = "
+                      "h.getBoundingClientRect().top; const im = [...document.querySelectorAll("
+                      "'[data-testid=stMain] img')].find(i => i.getBoundingClientRect().top > top);"
+                      " return !!im && im.complete && im.naturalHeight > 0; })()")  # fmt: skip
+        self.scroll_to(h)
+
     def scroll_to(self, expr, block="start"):
         self.js(f"{expr}.scrollIntoView({{behavior: 'smooth', block: '{block}'}})")
         self.hold(1.2)
@@ -195,7 +206,7 @@ def main() -> None:
                                f"--window-size={W},{H}", "about:blank"],
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # fmt: skip
     try:
-        for _ in range(100):  # the demo server is up (models load on the first page view)
+        for _ in range(100):  # the demo server is up (a model loads when its task is first shown)
             try:
                 urllib.request.urlopen(f"http://localhost:{DEMO_PORT}/_stcore/health", timeout=1)
                 break
@@ -219,17 +230,14 @@ def main() -> None:
             p.call("Emulation.setDeviceMetricsOverride", width=W, height=H, deviceScaleFactor=1,
                    mobile=False)  # fmt: skip
             p.call("Page.enable")
-            p.caption = "A fresh start: the page loads the four final models"
+            p.caption = "A fresh start: the demo loads the A1 model (each model loads on first use)"
             p.call("Page.navigate", url=f"http://localhost:{DEMO_PORT}")
             p.wait_for("!!document.querySelector('[data-testid=stDataFrame]')")
             p.caption = "Task A1, VPN or not: 20 test flows from app/samples/, 17 of 20 correct"
             p.hold(4)
             p.caption = "Click a row: row 10, a VPN flow predicted as Non-VPN (confidence 0.63)"
             p.click_row(10)
-            p.wait_for("document.body.innerText.includes('Row 10: predicted')")
-            p.scroll_to(
-                "[...document.querySelectorAll('h3')].find(e => e.innerText.startsWith('Row'))"
-            )
+            p.show_chart("Row 10: predicted")
             p.caption = "Its explanation: a two-packet flow, most gaps -1 (not measurable)"
             p.hold(5)
             p.scroll_to("document.querySelector('h1')")
@@ -237,12 +245,9 @@ def main() -> None:
             p.choose(0, "B: VPN or not and traffic type together (14 classes)")
             p.wait_for("document.body.innerText.includes('B_test_sample.csv:')")
             p.hold(2.5)
-            p.caption = "Row 7: a VPN-CHAT flow predicted as VPN-FT (confidence 0.73)"
+            p.caption = "Click row 7: a VPN-CHAT flow predicted as VPN-FT (confidence 0.73)"
             p.click_row(7)
-            p.wait_for("document.body.innerText.includes('Row 7: predicted VPN-FT')")
-            p.scroll_to(
-                "[...document.querySelectorAll('h3')].find(e => e.innerText.startsWith('Row'))"
-            )
+            p.show_chart("Row 7: predicted VPN-FT")
             p.hold(4.5)
             p.scroll_to("document.querySelector('h1')")
             p.caption = "A malformed file (one column renamed) is rejected with a clear message"
