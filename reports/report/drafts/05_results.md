@@ -533,5 +533,5 @@ Row 10 is one of the three wrong predictions in the A1 sample (17 of 20 correct)
 two-packet flow (10.46 packets per second over 191,235 microseconds): its whole duration is one
 gap, and its forward and backward gaps are not measurable (`-1`: fewer than two packets in each
 direction). Its confidence, 0.6288, is the second lowest in the file; the lowest, 0.6267 (row 15),
-is also a wrong prediction. Near-empty flows like this are the ones Section 4.3 found hard for
-every model.
+is also a wrong prediction. Section 4.3 showed that near-empty flows like this often share their
+features with flows of another label, so timing features alone cannot always separate them.

@@ -10,8 +10,8 @@ full, as they are at the commit the report is built from.*
 The repository is https://github.com/Varun-U-Pratap/BlindSpy (branch `main` at hand-in). The
 results come from tag `v1.0-final` (https://github.com/Varun-U-Pratap/BlindSpy/tree/v1.0-final);
 the hand-in tag `v1.0.1-final` (https://github.com/Varun-U-Pratap/BlindSpy/tree/v1.0.1-final) is
-placed on the commit that adds this report, the README for markers and the demo, and changes no
-result. Tags at the time this report was built:
+placed on the last commit of the hand-in, which holds this report, the README for markers, the
+demo and its video, and changes no result. Tags at the time this report was built:
 
 {{git tags}}
 

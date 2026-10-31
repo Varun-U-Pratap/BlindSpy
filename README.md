@@ -76,7 +76,9 @@ code 2:
 uv run python scripts/predict.py --task B --input app/samples/malformed_renamed_column.csv --output predictions.csv
 ```
 
-The demo (opens in the browser at http://localhost:8501; stop it with Ctrl+C):
+The demo (then open http://localhost:8501 in a browser; stop it with Ctrl+C). Start it from the
+repository folder, so that its settings in `.streamlit/config.toml` apply (no first-run prompt,
+reachable from this laptop only):
 
 ```bash
 uv run streamlit run app/demo.py
@@ -234,6 +236,15 @@ store. `E02_paper_j48_<rows>_<task>_<timeout>s.yaml` and `E03_paper_ibk_…` rer
 10-fold benchmark. To rebuild the result tables from the official history:
 `uv run python scripts/results_tables.py` (writes `reports/baseline_tables.md`).
 
+**Which scripts need the official MLflow store.** `results_tables.py` (Phases 2-4, which also read
+the confusion matrices and predictions saved with the runs), `save_final_models.py` and
+`export_artifacts.py` read `mlruns/utsav-s-r/`, which is not in git: it exists only on the official
+runner's laptop (and in its backup zips). In a fresh clone they stop with "No such file", and the
+committed outputs are the record; on the official laptop they rewrite those outputs byte for byte.
+`results_tables.py --phase 5`, `make_notebooks.py`, `explain_final.py` (needs the dataset),
+`export_history.py` (rewrites the experiment log; it leaves `history.csv` alone without the store)
+and `build_report.py` work in a fresh clone.
+
 ## Phase 3 results, notebooks and report
 
 Tag `v0.2-tuned` marks the end of Phase 3; how it was verified (data rebuilt byte-identical, 13
@@ -242,7 +253,8 @@ runs rerun from a fresh clone with identical scores) is recorded in `reports/pha
 Phase 3 (E04-E17) configs are in `configs/experiments/` too, and the chosen models in
 `configs/final/` (`<task>.yaml` = headline model per task, `compare/` = the 28-model comparison
 set, `old_rule/` = the picks of the superseded tie rule); `scripts/write_final_configs.py`
-writes them from `reports/history.csv`. Rebuild the outputs from the official history:
+writes them from `reports/history.csv`. Rebuild the outputs (the tables need the official store,
+see above):
 
 ```bash
 uv run python scripts/results_tables.py --phase 3
@@ -259,18 +271,23 @@ markdown drafts in `reports/report/drafts/`. It needs Google Chrome and Node.js 
 package, installed once into any folder outside the repository:
 
 ```bash
-npm install --prefix ~/blindspy-report-node docx
+npm install --prefix ~/blindspy-report-node docx@9.15.0
 ```
 
 ```bash
-uv run python scripts/build_report.py --tag v0.2-tuned --node-modules ~/blindspy-report-node
+uv run python scripts/build_report.py --tag final --node-modules ~/blindspy-report-node
 ```
+
+`--tag final` writes the hand-in report, `reports/report/BlindSpy_report.pdf` and `.docx`. A
+milestone's report (`--tag v0.2-tuned`, `--tag v1.0-final`) is rebuilt only from a checkout of that
+tag (`git checkout v0.2-tuned` first); at a later commit it would overwrite the milestone's file
+with the later drafts.
 
 ## Phase 4: final models, explanation and the final report
 
 The final runs (E12, tag `v1.0-final`) retrained each model of `configs/final/` on training +
 validation rows and scored the test rows once; how a fresh clone reproduced them is recorded in
-`reports/phase4_evidence.md`. From the official history:
+`reports/phase4_evidence.md`. From the official history (on the official laptop, see above):
 
 ```bash
 uv run python scripts/results_tables.py --phase 4
@@ -278,7 +295,7 @@ uv run python scripts/results_tables.py --phase 4
 
 writes `reports/phase4_tables.md` (final scores with intervals, the 26 paired tests, calibration,
 SHAP tables). `scripts/explain_final.py` writes the SHAP tables and figures,
-`scripts/save_final_models.py` writes `models/final/`, `scripts/make_samples.py` writes
+`scripts/save_final_models.py` writes `models/final/` from the official store, `scripts/make_samples.py` writes
 `app/samples/`, and `scripts/make_notebooks.py` also writes `notebooks/05_explain.ipynb` and
 `notebooks/06_final_results.ipynb`. The final report is built with
 `scripts/build_report.py --tag final` (as in the Phase 3 section above).
