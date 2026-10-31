@@ -321,6 +321,22 @@ def complexity(b: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def appendix_runs(path: Path = ROOT / "reports" / "history.csv") -> pd.DataFrame:
+    """Every run of the official store, one line each in start order, for the report's appendix:
+    the cross-validation (or paper-protocol 10-fold) macro F1, the validation macro F1 and, only
+    for the 30 E12 runs, the test macro F1. E16 scores on the Kaggle split are not test scores
+    of ours and stay in its own tables."""
+    h = pd.read_csv(path, low_memory=False).sort_values("start_time", kind="mergesort")
+    cv = h["metrics.cv_f1_macro_mean"].fillna(h["metrics.bench_f1_macro"])
+    return pd.DataFrame({
+        "run": h["run_name"], "experiment": h["tags.experiment_id"], "task": h["params.task"],
+        "model": h["params.model"], "protocol": h["tags.protocol"],
+        "CV or 10-fold macro F1": cv.round(4), "val macro F1": h["metrics.val_f1_macro"].round(4),
+        "test macro F1": h["metrics.test_f1_macro"].round(4),
+        "commit": h["tags.git_commit"].str[:7],
+    }).reset_index(drop=True)  # fmt: skip
+
+
 def md(df: pd.DataFrame) -> str:
     cols = [str(c) for c in df.columns]
     lines = ["| " + " | ".join(cols) + " |", "|" + "---|" * len(cols)]
