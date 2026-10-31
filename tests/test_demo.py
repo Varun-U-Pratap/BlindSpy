@@ -68,3 +68,12 @@ def test_row_explanation_matches_predict(task):
         assert len(ex) == 10 and np.all(np.diff(ex["SHAP"].to_numpy()) <= 0)
         tops = [out[f"top_feature_{n}"].iloc[pos].split(" (")[0] for n in (1, 2, 3)]
         assert list(ex["feature"].head(3)) == tops
+
+
+def test_streamlit_config_starts_without_prompt():
+    # without headless, a laptop that never ran Streamlit stops at an email prompt
+    import tomllib
+
+    cfg = tomllib.loads((ROOT / ".streamlit" / "config.toml").read_text())
+    assert cfg["server"]["headless"] is True and cfg["server"]["address"] == "localhost"
+    assert cfg["browser"]["gatherUsageStats"] is False

@@ -23,9 +23,10 @@ measured it; where nothing was measured, it says so.*
   names are shifted by one pair, and the A2 files hold different features (`total_fiat`,
   `total_biat`) from A1 and B (`std_fiat`, `std_biat`). The mapping was decided from value checks
   that hold on 100% of rows (E00, Sections 2.3-2.4), not from documentation of the export.
-- **Partial packet captures.** Only the VPN packet captures were downloaded in full, so the flows
-  could not be rebuilt from packets and no new features were computed; everything uses the
-  published 23 features.
+- **Only the published features.** Of the dataset's packet captures, the VPN ones were downloaded
+  in full and the non-VPN ones only in part, so flows could not be rebuilt from packets for every
+  class. Rebuilding them was a stretch goal and was not attempted: every result uses the published
+  23 features, with their capture problems.
 
 ## 7.2 The protocol
 

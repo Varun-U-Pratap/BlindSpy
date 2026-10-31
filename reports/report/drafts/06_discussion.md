@@ -15,8 +15,9 @@ one, and the changes we made (deduplication, a held-out test set, other models) 
 against it.
 
 **Trees combined into ensembles, then boosted.** On validation at 15 s, the Phase 2 decision tree
-(E02) scored 0.8901 (A1), 0.8247 (A2-VPN), 0.8294 (A2-NonVPN) and 0.7585 (B). The final models
-score 0.9308, 0.8830, 0.9075 and 0.8428 on the same rows, so most of the gain over the paper's
+(E02) scored 0.8901 (A1), 0.8247 (A2-VPN), 0.8294 (A2-NonVPN) and 0.7585 (B). The configurations
+chosen as final models scored 0.9308, 0.8830, 0.9075 and 0.8428 on the same rows (trained, like
+the tree, on the training rows only; Section 4.13), so most of the gain over the paper's
 algorithms came from three steps:
 
 - a 300-tree Random Forest (+0.0302 to +0.0647 over the tree, E05);
@@ -26,8 +27,8 @@ algorithms came from three steps:
   models into one 0.0017-0.0186 below each task's best.
 
 The progress chart (Section 5.1) shows each step per task. The order of the seven method types was
-stable: by test score it agreed with the order by validation score (Spearman 0.8214-0.9643, E12
-(c)), so model selection on validation carried over to new rows.
+stable: their order by test score closely followed their order by validation score (Spearman
+0.8214-0.9643, E12 (c)), so model selection on validation carried over to new rows.
 
 **The signed log for distance-based models.** One preprocessing step, sign(x)·log1p(|x|), lifted
 KNN by 0.080-0.104 in every task (E04) and was chosen by every logistic-regression and SVM search
@@ -70,8 +71,9 @@ of correct predictions at that confidence, for those two tasks.
   cross-validation rose in all 12, because the best of 50 cross-validation scores is optimistic.
   Only B improved by more than 0.01 (E07 (b) not supported).
 - **Removing duplicates did not lower the paper-protocol scores**, contrary to the hypothesis
-  (E02 (d), E03 (e)). The removed rows are mostly near-empty flows of 0-2 packets whose features
-  also occur with another label, so keeping them adds errors no model can avoid. The duplicate
+  (E02 (d), E03 (e)). The removed rows are near-empty flows (median 0-2 packets), and 39-92% of
+  them have a twin with the same features and another label, so keeping them adds errors no model
+  can avoid. The duplicate
   rule stays, because it guarantees that no flow is scored after being trained on.
 - **Validation was not always within 0.03 of test** (E12 (a) not supported): A2-NonVPN scored
   0.0328 higher on test. E14 had shown before the test set was opened that its official validation
@@ -89,14 +91,14 @@ They agree on most points (Section 5.6):
   without the byte rate loses 0.015-0.044 (E09 (c) not supported), so the "timing only" claim needs
   the byte rate, which depends on packet sizes, not only on time.
 - **In A1 the backward gaps matter more.** Dropping the backward inter-arrival times costs 0.0155,
-  more than rates and duration (0.0122): whether a flow is tunnelled shows in how the replies are
-  spaced.
+  more than rates and duration (0.0122); for the binary VPN task they are the group the model can
+  least do without. Why the replies' spacing matters most there was not tested.
 - **Active and idle times matter least.** They hold 3.1-5.7% of mean |SHAP|, and dropping either
   group moves validation macro F1 by -0.0036 to +0.0051. A model on either group alone loses
   0.38-0.63.
 - **They differ on the flow gaps.** The flow inter-arrival times hold the largest SHAP share in A1,
-  A2-VPN and A2-NonVPN (25.5-29.6%), yet dropping them costs at most 0.0166, because the forward
-  and backward gaps carry much the same timing. With correlated features a model can swap one
+  A2-VPN and A2-NonVPN (25.5-29.6%), yet dropping them costs at most 0.0166 in any task, probably
+  because the strongly correlated forward and backward gaps carry much the same timing. With correlated features a model can swap one
   group for another; SHAP shows the one it happened to use.
 
 The worked examples show the limit of a confidence score: the most confident errors are flows
