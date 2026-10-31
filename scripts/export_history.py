@@ -49,13 +49,15 @@ def build_log(folder: Path, runner: str) -> str:
 
 def history_frame(tracking_uri: str, experiment: str) -> pd.DataFrame:
     """Every run of the experiment, oldest first: identity columns, then params, tags and
-    metrics (MLflow's own mlflow.* tags dropped)."""
+    metrics. MLflow's own mlflow.* tags are kept (parent run of each Optuna trial, source
+    script, git branch and commit), except mlflow.user: the local login name, which the
+    runner tag already identifies."""
     mlflow.set_tracking_uri(tracking_uri)
     runs = mlflow.search_runs(experiment_names=[experiment], output_format="pandas")
     if runs.empty:
         return pd.DataFrame(columns=FIRST_COLUMNS)
     runs = runs.rename(columns={"tags.mlflow.runName": "run_name"})
-    runs = runs.drop(columns=[c for c in runs.columns if c.startswith("tags.mlflow.")])
+    runs = runs.drop(columns=["tags.mlflow.user"], errors="ignore")
     runs = runs.drop(columns=["experiment_id", "artifact_uri"], errors="ignore")
     for col in ("start_time", "end_time"):
         runs[col] = pd.to_datetime(runs[col]).dt.strftime("%Y-%m-%d %H:%M:%S")
