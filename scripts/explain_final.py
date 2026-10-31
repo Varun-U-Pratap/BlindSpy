@@ -121,6 +121,7 @@ def beeswarm(values: np.ndarray, X: pd.DataFrame) -> None:
 
     # colour = signed log of the value (E04), since raw values span orders of magnitude; the
     # SHAP values themselves are unchanged
+    np.random.seed(42)  # shap places the dots with numpy's global random generator
     shap.summary_plot(values, signed_log(X), show=False, max_display=15, plot_size=(9, 7))
     plt.title("A1: SHAP towards VPN per flow (test rows; colour = signed log of the value)")
     plt.tight_layout()
