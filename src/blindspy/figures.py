@@ -44,9 +44,9 @@ def progress_chart(h: pd.DataFrame, path=FIG / "progress_chart.png") -> pd.DataF
     test = R.e12_runs(h)
     test = test[test["params.role"] == "headline"].set_index("params.task")
     versions = sorted(set(s["tags.data_version"]))
-    fig, axes = plt.subplots(1, 4, figsize=(18, 4.6), sharey=False)
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
     x = np.arange(len(R.SELECTION_EXPS))
-    for ax, task in zip(axes, CORE_TASKS, strict=True):
+    for ax, task in zip(axes.flat, CORE_TASKS, strict=True):
         g = t[t["task"] == task]
         ax.plot(x, g["best so far"], "-o", color="#1f77b4", label="best so far (validation)")
         ax.plot(x, g["best in experiment"], "x", color="#7f7f7f", label="best of the experiment")
@@ -64,12 +64,12 @@ def progress_chart(h: pd.DataFrame, path=FIG / "progress_chart.png") -> pd.DataF
         ax.text(-0.4, 0.985, f"data {', '.join(versions)}", fontsize=7, va="top")
         ax.set_xticks([*x, len(x)], [*R.SELECTION_EXPS, "E12"], rotation=45, fontsize=8)
         ax.set_title(f"{task}: 15 s validation macro F1 by experiment", fontsize=10)
-    handles, labels = axes[0].get_legend_handles_labels()
+    handles, labels = axes.flat[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=8, ncol=len(labels), loc="lower center")
     fig.suptitle("Progress: best model so far per task (one data version, v1, for every "
-                 "experiment; E16's Kaggle rows are a separate data version and not shown)",
+                 "experiment;\nE16's Kaggle rows are a separate data version and not shown)",
                  fontsize=10)  # fmt: skip
-    fig.tight_layout(rect=(0, 0.06, 1, 1))
+    fig.tight_layout(rect=(0, 0.04, 1, 1))
     fig.savefig(path, dpi=120)
     plt.close(fig)
     return t
@@ -78,8 +78,8 @@ def progress_chart(h: pd.DataFrame, path=FIG / "progress_chart.png") -> pd.DataF
 def accuracy_vs_cost(h: pd.DataFrame, path=FIG / "accuracy_vs_cost.png") -> None:
     s = R.selection_runs(h)
     s = s.assign(type=s["params.model"].map(R.METHOD_TYPE).fillna("majority"))
-    fig, axes = plt.subplots(1, 4, figsize=(18, 4.4))
-    for ax, task in zip(axes, CORE_TASKS, strict=True):
+    fig, axes = plt.subplots(2, 2, figsize=(12, 9))
+    for ax, task in zip(axes.flat, CORE_TASKS, strict=True):
         g = s[s["params.task"] == task]
         for typ, d in g.groupby("type"):
             ax.scatter(d["metrics.train_time_s"], d["metrics.val_f1_macro"], s=18, alpha=0.75,
@@ -87,9 +87,10 @@ def accuracy_vs_cost(h: pd.DataFrame, path=FIG / "accuracy_vs_cost.png") -> None
         ax.set_xscale("log")
         ax.set_xlabel("training time, s (log scale)")
         ax.set_title(f"{task}: {len(g)} model-selection runs (all timeouts)", fontsize=10)
-    axes[0].set_ylabel("validation macro F1")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, fontsize=8, ncol=len(labels), loc="lower center")
+    for ax in axes[:, 0]:
+        ax.set_ylabel("validation macro F1")
+    handles, labels = axes.flat[0].get_legend_handles_labels()
+    fig.legend(handles, labels, fontsize=8, ncol=4, loc="lower center")
     fig.suptitle("Accuracy vs cost: one dot per run", fontsize=10)
     fig.tight_layout(rect=(0, 0.06, 1, 1))
     fig.savefig(path, dpi=120)
@@ -104,13 +105,13 @@ def timeout_effect(h: pd.DataFrame, path=FIG / "timeout_effect.png") -> None:
     models = {"E02-tree": "decision tree", "E03-knn": "KNN", "E03-svm_rbf": "SVM-RBF",
               "E03-logreg": "logistic regression"}  # fmt: skip
     timeouts = [15, 30, 60, 120]
-    fig, axes = plt.subplots(3, 4, figsize=(18, 11), gridspec_kw={"height_ratios": [1, 1, 1.1]})
+    fig, axes = plt.subplots(4, 3, figsize=(15, 17), gridspec_kw={"width_ratios": [1, 1, 1.15]})
     for j, task in enumerate(CORE_TASKS):
         g = s[(s["params.task"] == task) & s["label"].isin(models)]
         for i, (metric, name) in enumerate([("metrics.val_f1_macro", "macro F1"),
                                             ("metrics.val_balanced_accuracy",
                                              "balanced accuracy")]):  # fmt: skip
-            ax = axes[i, j]
+            ax = axes[j, i]
             for lab, typ in models.items():
                 d = g[g["label"] == lab].set_index("params.timeout")[metric].reindex(timeouts)
                 ax.plot(range(4), d.to_numpy(), "-o", color=TYPE_COLORS[typ], label=typ)
@@ -120,16 +121,17 @@ def timeout_effect(h: pd.DataFrame, path=FIG / "timeout_effect.png") -> None:
         mix = pd.DataFrame({t: manifest[f"{task}_{t}s"]["final_class_counts"] for t in timeouts})
         mix = (mix / mix.sum()).T
         colors = plt.cm.tab20(np.linspace(0, 1, 20))[: mix.shape[1]]
-        mix.plot.bar(stacked=True, ax=axes[2, j], color=colors, width=0.8, legend=False)
-        axes[2, j].set_xticklabels([f"{t} s" for t in timeouts], rotation=0)
-        axes[2, j].set_title(f"{task}: class mix per timeout file", fontsize=10)
-        axes[2, j].legend(fontsize=6, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.1))
+        mix.plot.bar(stacked=True, ax=axes[j, 2], color=colors, width=0.8, legend=False)
+        axes[j, 2].set_xticklabels([f"{t} s" for t in timeouts], rotation=0)
+        axes[j, 2].set_title(f"{task}: class mix per timeout file", fontsize=10)
+        axes[j, 2].legend(fontsize=6, ncol=1 if mix.shape[1] < 10 else 2, loc="center left",
+                          bbox_to_anchor=(1.0, 0.5))  # fmt: skip
     axes[0, 0].legend(fontsize=7)
     fig.suptitle("Timeout effect (Phase 2 baselines). Shaded: the 60 s files, whose VOIP and FT "
-                 "flows look different (E00 addendum), so a 60 s break in the trend is not read as "
-                 "a timeout effect; class mixes differ too, so the comparison is confounded.",
+                 "flows look different (E00 addendum),\nso a 60 s break in the trend is not read "
+                 "as a timeout effect; class mixes differ too, so the comparison is confounded.",
                  fontsize=10)  # fmt: skip
-    fig.tight_layout()
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(path, dpi=120)
     plt.close(fig)
 

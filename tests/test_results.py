@@ -497,3 +497,15 @@ def test_e15_adopted_read_from_bool_or_string_tags():
         assert v["E15a"]["tasks_above_0.05"] == 2 and v["E15a"]["supported"]
         assert v["E15b"]["supported"] and v["E15c"]["supported"]
         assert v["E15_adopted"]["adopted"] == flags
+
+
+def test_verdict_summary_groups_parts_per_experiment(tmp_path):
+    f = tmp_path / "t.md"
+    f.write_text(
+        'x\n```json\n{"E02a": {"supported": true}, "E02b": {"supported": false}, '
+        '"E01": {"supported": true}, "E09_stop_and_ask": {"triggered": false}}\n```\n'
+    )
+    t = R.verdict_summary([f]).set_index("experiment")
+    assert list(t.index) == ["E01", "E02"]
+    assert t.loc["E02", "supported"] == "a" and t.loc["E02", "not supported"] == "b"
+    assert t.loc["E01", "supported"] == "single check"
