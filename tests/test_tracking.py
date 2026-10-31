@@ -59,5 +59,6 @@ def test_history_csv_one_row_per_run(tmp_path):
     hist = export_history.history_frame(uri, "x")
     assert len(hist) == 2 and list(hist["run_name"]) == ["E01-tree-A1-15s", "E02-tree-A1-15s"]
     assert hist.columns[0] == "run_id" and "metrics.val_f1_macro" in hist.columns
-    assert not any(c.startswith("tags.mlflow.") for c in hist.columns)
+    assert "tags.mlflow.user" not in hist.columns and "tags.mlflow.runName" not in hist.columns
+    assert "tags.mlflow.source.name" in hist.columns
     assert list(hist["metrics.val_f1_macro"]) == [0.5, 0.6]

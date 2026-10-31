@@ -81,7 +81,13 @@ parameter, one metric and `smoke.png`.
 - One notes file per experiment: `reports/experiments/<runner>/E##.md` (copy `E_TEMPLATE.md`;
   creating the file claims the ID). `uv run python scripts/export_history.py` builds
   `reports/EXPERIMENT_LOG.md` from the official runner's files and writes every MLflow run of
-  that store to `reports/history.csv`.
+  that store to `reports/history.csv` (one row per run, every parameter, metric and tag).
+- The files saved next to each run (confusion matrices, per-class reports, feature importances,
+  test and validation predictions, Optuna trial tables, configs) are kept in git as
+  `reports/run_artifacts_text.tar.gz`, listed file by file in `reports/run_artifacts_index.csv`
+  (run name, experiment, size, SHA-256); `uv run python scripts/export_artifacts.py` rebuilds
+  both on the official laptop. Plots and model files are not in git (only the four final
+  models in `models/final/`).
 
 ## Reproduce a baseline (Phase 2, tag `v0.1.1-baseline`)
 
