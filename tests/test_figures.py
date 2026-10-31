@@ -27,6 +27,10 @@ def test_every_listed_graph_exists():
     assert F.write_index() == []
 
 
+STORE = ROOT / "mlruns" / RUNNER / "mlflow.db"
+
+
+@pytest.mark.skipif(not STORE.exists(), reason="official MLflow store not on this machine")
 def test_confusion_pairs_match_the_headline_details(h):
     pairs = R.e12_confusion_pairs(h, RUNNER)
     details = R.e12_headline_details(h).set_index("task")
