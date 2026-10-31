@@ -1,10 +1,11 @@
 """Record the 1-minute demo video: reports/demo/demo_video.mp4.
 
 Follows reports/demo/video_script.md on the real app: starts `streamlit run app/demo.py` fresh
-(each model loads on its first use), drives a headless Chrome over its DevTools protocol (1280 x 720), captures the
-page's frames with their real timestamps, draws a cursor, click marks and a caption bar on them,
-and encodes them at 10 frames per second with scripts/encode_video.swift (AVFoundation). The
-screen of this Mac is not recorded; a title card names the command that starts the demo.
+(each model loads on its first use), drives a headless Chrome over its DevTools protocol
+(1280 x 720), captures the page's frames with their real timestamps, draws a cursor, click marks
+and a caption bar on them, and encodes them at 10 frames per second with
+scripts/encode_video.swift (AVFoundation). The screen of this Mac is not recorded; a title card
+names the command that starts the demo.
 
 Usage: uv run python scripts/record_demo.py --encoder <compiled encode_video> [--keep <dir>]
 (compile once: swiftc -O scripts/encode_video.swift -o <dir>/encode_video)

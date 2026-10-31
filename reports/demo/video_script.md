@@ -1,5 +1,22 @@
 # Demo video: 1-minute recording script
 
+**The committed video, `reports/demo/demo_video.mp4`** (1 min 12 s, 1280 x 720, H.264, 4.2 MB),
+was made by `scripts/record_demo.py` on 31 Oct 2026 from commit 45a1c59. It follows the steps
+below on the real app: it starts the demo fresh, drives a headless Chrome through them, captures
+the page's own frames and adds a cursor, click marks, captions and title cards; it does not record
+this Mac's screen, so the Terminal command is shown on the title card. To make it again (demo not
+running, port 8504 free):
+
+```bash
+swiftc -O scripts/encode_video.swift -o /tmp/encode_video
+```
+
+```bash
+uv run python scripts/record_demo.py --encoder /tmp/encode_video
+```
+
+The steps below are also the script for recording the real screen by hand.
+
 The backup video of the demo (`app/demo.py`), recorded on the presenting Mac with the built-in
 screen recorder. It shows the demo starting from a fresh start, a correct and a wrong prediction
 with their explanations, a 14-class task, and the rejection of a malformed file.
@@ -32,6 +49,5 @@ Then stop the demo in Terminal with Ctrl+C.
 
 ## After recording
 
-Tell the session the file name in `backups/`. The session checks its length and content, shrinks
-it to 720p with HandBrakeCLI (well under GitHub's 50 MB warning) and commits the small copy as
-`reports/demo/demo_video.mp4`. The raw recording stays only in `backups/`.
+For a hand-made recording: shrink it to 720p with HandBrakeCLI (well under GitHub's 50 MB warning)
+before committing; the raw recording stays only in `backups/`.
