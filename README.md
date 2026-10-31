@@ -8,7 +8,134 @@ Draper-Gil et al. (ICISSP 2016):
 - **A2**: two separate 7-class models, one on VPN flows and one on non-VPN flows.
 - **B**: one 14-class model over all traffic.
 
-## Setup
+## For markers: what is here
+
+- **Report:** `reports/report/BlindSpy_report.pdf` (and `.docx`), assembled from the markdown
+  drafts in `reports/report/drafts/`. Every number in it comes from a generated file and names
+  its experiment ID.
+- **Final results** (test set scored once, 95% bootstrap intervals): test macro F1 A1 0.9434,
+  A2-VPN 0.8652, A2-NonVPN 0.9403, B 0.8480 (`reports/phase4_tables.md`, experiment E12).
+- **Final models:** `models/final/<task>.joblib` with `<task>.json` (feature names, order and
+  units, class labels, the MLflow run and git commit they came from).
+- **History:** `reports/EXPERIMENT_LOG.md` (one entry per experiment, failures included),
+  `reports/history.csv` (all 2,013 MLflow runs, every parameter, metric and tag),
+  `reports/run_artifacts_text.tar.gz` (every text file saved with a run),
+  `reports/DATA_CHANGELOG.md` (data versions), and the git tags below.
+
+| Tag | What it holds |
+| --- | --- |
+| `v0.1-baseline` | Phase 2: the first 80 baseline runs (E01-E03, data v1) |
+| `v0.1.1-baseline` | Phase 2 rerun of all 144 configs with corrected timing (scores identical); the result tables use it |
+| `v0.2-tuned` | End of Phase 3: improvement experiments E04-E17, final configs, analyses, notebooks 03-04 |
+| `v1.0-final` | Phase 4: final models, the test set scored once (E12), calibration (E15), SHAP, notebooks 05-06 |
+| `v1.0.1-final` | Hand-in: the final report, this README, the demo and its video; no result changed |
+
+## Run it on any laptop
+
+Tested on macOS (Apple Silicon) from a fresh clone. The Windows and Linux commands are
+**not yet tested**; they will be marked tested once a teammate has run them. Scores were shown to
+be identical on the same machine type; another operating system or CPU may differ in the last
+digits (not measured).
+
+**1. Install uv and git.** uv downloads Python 3.12 by itself.
+
+- macOS: `curl -LsSf https://astral.sh/uv/install.sh | sh`, then `brew install libomp` (needed
+  by XGBoost and LightGBM).
+- Linux (not yet tested): `curl -LsSf https://astral.sh/uv/install.sh | sh`.
+- Windows (not yet tested), in PowerShell:
+  `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`.
+
+**2. Clone and install** (all systems):
+
+```bash
+git clone https://github.com/Varun-U-Pratap/BlindSpy.git
+```
+
+```bash
+cd BlindSpy
+```
+
+```bash
+uv sync
+```
+
+**3. Classify a flow file and launch the demo.** These need only the committed models and
+sample files, not the dataset:
+
+```bash
+uv run python scripts/predict.py --task B --input app/samples/B_test_sample.csv --output predictions.csv
+```
+
+It writes one row per flow: the predicted label, its confidence and the three features that
+pushed the model most towards that label. The file must hold exactly the task's 23 features in
+the order listed in `models/final/<task>.json` (a `label` column at the end is optional). Tasks:
+`A1`, `A2-VPN`, `A2-NonVPN`, `B`. A malformed file is rejected with a clear message and exit
+code 2:
+
+```bash
+uv run python scripts/predict.py --task B --input app/samples/malformed_renamed_column.csv --output predictions.csv
+```
+
+The demo (opens in the browser at http://localhost:8501; stop it with Ctrl+C):
+
+```bash
+uv run streamlit run app/demo.py
+```
+
+Choose a task, pick a sample file (or upload a CSV), and click a row of the predictions table to
+see the features behind that prediction.
+
+**4. Get the dataset** (only for rebuilding the data and reproducing scores). Download the
+ISCXVPN2016 dataset from https://www.unb.ca/cic/datasets/vpn.html and put its `CSVs` folder (it
+holds the ARFF files, in `Scenario A1-ARFF`, `Scenario A2-ARFF` and `Scenario B-ARFF`) at
+`datasets/CSVs/`, keeping the folder names as downloaded. Check the files:
+
+- macOS / Linux: `shasum -a 256 -c data/arff_sha256.txt` (Linux also: `sha256sum -c
+  data/arff_sha256.txt`). All 20 lines must say `OK`.
+- Windows (not yet tested), in PowerShell:
+  `Get-Content data/arff_sha256.txt | ForEach-Object { $h, $p = $_ -split '  ', 2; if ((Get-FileHash -Algorithm SHA256 $p).Hash.ToLower() -eq $h) { "OK  $p" } else { "FAILED  $p" } }`
+
+Then build the cleaned data (on macOS a rebuild is byte-identical to ours; other systems not
+measured):
+
+```bash
+uv run python scripts/prepare_data.py --version v1
+```
+
+**5. Reproduce the final test scores.** Set a runner name of your own (anything except
+`utsav-s-r`, the official runner), so your runs go to your own MLflow store:
+
+```bash
+cp configs/local.example.yaml configs/local.yaml
+```
+
+Edit `configs/local.yaml` to say `runner: <your name>` (Windows: `copy` instead of `cp`). Then
+retrain the 30 final models on training + validation rows and score each once on the test rows
+(about 20 minutes on a laptop):
+
+```bash
+uv run python scripts/run_experiment.py configs/experiments/E12_*.yaml
+```
+
+(Windows PowerShell, not yet tested: `uv run python scripts/run_experiment.py
+(Get-ChildItem configs/experiments/E12_*.yaml).FullName`.) `run_experiment.py` prints a warning
+because your runner is not the official one; the runs still complete. Compare with the official
+scores:
+
+```bash
+uv run python scripts/check_final_scores.py --runner <your name>
+```
+
+It prints each run's test macro F1 and accuracy next to the official ones from
+`reports/history.csv` and ends with how many of the 30 are identical and how many agree to 4
+decimals (exit code 0 only if all 30 agree).
+
+Note: adding Streamlit for the demo changed `uv.lock` after the final runs, so the lock-file hash
+logged with your runs differs from the official ones (only Streamlit and five packages it needs
+were added; no version changed). For the exact environment of the final runs, use
+`git checkout v1.0-final` before `uv sync` (that tag has no demo).
+
+## Setup for development
 
 Requires [uv](https://docs.astral.sh/uv/) (it downloads Python 3.12 itself) and git.
 On macOS also run `brew install libomp` (needed by XGBoost and LightGBM).
@@ -138,6 +265,23 @@ npm install --prefix ~/blindspy-report-node docx
 ```bash
 uv run python scripts/build_report.py --tag v0.2-tuned --node-modules ~/blindspy-report-node
 ```
+
+## Phase 4: final models, explanation and the final report
+
+The final runs (E12, tag `v1.0-final`) retrained each model of `configs/final/` on training +
+validation rows and scored the test rows once; how a fresh clone reproduced them is recorded in
+`reports/phase4_evidence.md`. From the official history:
+
+```bash
+uv run python scripts/results_tables.py --phase 4
+```
+
+writes `reports/phase4_tables.md` (final scores with intervals, the 26 paired tests, calibration,
+SHAP tables). `scripts/explain_final.py` writes the SHAP tables and figures,
+`scripts/save_final_models.py` writes `models/final/`, `scripts/make_samples.py` writes
+`app/samples/`, and `scripts/make_notebooks.py` also writes `notebooks/05_explain.ipynb` and
+`notebooks/06_final_results.ipynb`. The final report is built with
+`scripts/build_report.py --tag final` (as in the Phase 3 section above).
 
 ## Development
 
