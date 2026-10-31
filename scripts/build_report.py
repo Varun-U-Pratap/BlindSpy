@@ -8,7 +8,12 @@ order, drops each draft's "Working draft" note, and writes
 Only the markdown the drafts use is supported: headings (#, ##, ###), paragraphs, bullet and
 numbered lists, tables, PNG images and inline **bold**, *italic* and `code`.
 
+After the numbered drafts comes the reference list (reports/references.md), then the appendix
+(drafts/appendix.md), whose lines `{{include <file>}}` insert a whole repository file (its title
+line dropped, its headings one level lower) and `{{git tags}}` a table of the git tags.
+
 Usage: uv run python scripts/build_report.py --tag v0.2-tuned --node-modules <dir with docx>
+(--tag final writes the hand-in report, BlindSpy_report.pdf and .docx.)
 (`npm install --prefix <dir> docx` once; the folder is not part of the repository.)
 """
 
@@ -112,6 +117,43 @@ def parse(text: str, base: Path) -> list[dict]:
     return blocks
 
 
+def include(path: Path) -> str:
+    """A repository file for the appendix: title line dropped, headings one level lower (### at
+    most, the deepest level the report has)."""
+    lines = path.read_text().splitlines()
+    if lines and lines[0].startswith("# "):
+        lines = lines[1:]
+
+    def shift(m: re.Match) -> str:
+        return "#" * min(3, len(m.group(1)) + 1) + " "
+
+    return "\n".join(re.sub(r"^(#{1,6}) ", shift, x) for x in lines)
+
+
+def git_tags() -> str:
+    fmt = "%(refname:short)|%(*objectname:short)|%(taggerdate:short)|%(contents:subject)"
+    out = subprocess.run(["git", "for-each-ref", "refs/tags", "--sort=taggerdate",
+                          f"--format={fmt}"], cwd=ROOT, check=True, capture_output=True,
+                         text=True).stdout.splitlines()  # fmt: skip
+    rows = ["| tag | commit | date | message |", "|---|---|---|---|"]
+    for line in out:
+        tag, commit, day, subject = line.split("|", 3)
+        rows.append(f"| {tag} | {commit} | {day} | {subject.split(': ', 1)[-1]} |")
+    return "\n".join(rows)
+
+
+def appendix(path: Path) -> str:
+    text = []
+    for line in path.read_text().splitlines():
+        if m := re.fullmatch(r"\{\{include (.+)\}\}", line.strip()):
+            text.append(include(ROOT / m.group(1)))
+        elif line.strip() == "{{git tags}}":
+            text.append(git_tags())
+        else:
+            text.append(line)
+    return "\n".join(text)
+
+
 def load_drafts() -> list[dict]:
     blocks = []
     for path in sorted(DRAFTS.glob("[0-9][0-9]_*.md")):
@@ -122,6 +164,8 @@ def load_drafts() -> list[dict]:
     # the reference list, kept in one file from the start and copied into the report
     refs = (ROOT / "reports" / "references.md").read_text().split("\n", 1)[1]
     blocks += [{"t": "pagebreak"}, *parse("# References\n" + refs, ROOT / "reports")]
+    if (DRAFTS / "appendix.md").exists():
+        blocks += [{"t": "pagebreak"}, *parse(appendix(DRAFTS / "appendix.md"), DRAFTS)]
     for b in blocks:
         if b["t"] == "table":
             b["font_pt"], b["anywhere"] = table_font(b["plain"])
@@ -222,10 +266,12 @@ def main() -> None:
     a = ap.parse_args()
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, check=True,
                             capture_output=True, text=True).stdout.strip()  # fmt: skip
-    front = [f"Report at milestone {a.tag}", f"Built {date.today().isoformat()} from the "
+    milestone = "Final report (hand-in)" if a.tag == "final" else f"Report at milestone {a.tag}"
+    front = [milestone, f"Built {date.today().isoformat()} from the "
              f"report drafts at commit {commit}"]  # fmt: skip
     blocks = load_drafts()
-    pdf, docx = OUT / f"BlindSpy_report_{a.tag}.pdf", OUT / f"BlindSpy_report_{a.tag}.docx"
+    name = "BlindSpy_report" if a.tag == "final" else f"BlindSpy_report_{a.tag}"
+    pdf, docx = OUT / f"{name}.pdf", OUT / f"{name}.docx"
     with tempfile.TemporaryDirectory() as tmp:
         page = Path(tmp) / "report.html"
         page.write_text(to_html(blocks, front))
