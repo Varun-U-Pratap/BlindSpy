@@ -1,0 +1,8 @@
+30 E12 runs in the store
+test macro F1, headline: {'A1': 0.9434, 'A2-NonVPN': 0.9403, 'A2-VPN': 0.8652, 'B': 0.848}
+(a) test - val: {'A1': 0.0126, 'A2-NonVPN': 0.0328, 'A2-VPN': -0.0178, 'B': 0.0052} -> NOT supported
+old-rule picks (not comparison members): {'A1': 0.9112, 'A2-VPN': 0.8442}
+(c) Spearman: {'A1': 0.9643, 'A2-NonVPN': 0.9286, 'A2-VPN': 0.8214, 'B': 0.9643}
+26 paired tests, 14 clear after Holm
+30 intervals and 26 tests compared with reports/phase4_tables.md
+FAILED: none

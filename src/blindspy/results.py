@@ -1432,6 +1432,28 @@ def e12_tests(scores: pd.DataFrame, draws: dict) -> pd.DataFrame:
     return t
 
 
+def e12_mc_error(tests: pd.DataFrame, draws: dict, alpha: float = HOLM_ALPHA) -> pd.DataFrame:
+    """Monte Carlo error of each paired test's p from its own B draws (described, not a new test):
+    the smaller tail share q = (1 + k) / (B + 1) has standard error sqrt(q (1 - q) / B); the band
+    is p = 2q +- 2 standard errors, times the test's Holm rank multiplier (m - rank). A test is
+    settled when the whole Holm band lies on one side of alpha."""
+    t = tests.sort_values("p", kind="mergesort").reset_index(drop=True)
+    rows = []
+    for i, r in t.iterrows():
+        d = draws[r["headline"]] - draws[r["other"]]
+        b, k = len(d), int(min(np.sum(d <= 0), np.sum(d >= 0)))
+        q = (1 + k) / (b + 1)
+        se = np.sqrt(q * (1 - q) / b)
+        mult = len(t) - i
+        lo, hi = min(1.0, mult * max(0.0, 2 * (q - 2 * se))), min(1.0, mult * 2 * (q + 2 * se))
+        rows.append({"task": r["task"], "other": r["other"], "smaller tail count": k,
+                     "p": f"{r['p']:.4f}", "Holm p": f"{r['Holm p']:.4f}",
+                     "Holm p band (+-2 SE)": f"{lo:.4f}-{hi:.4f}",
+                     "different (Holm, 0.05)": r["different (Holm, 0.05)"],
+                     "settled by B resamples": lo > alpha or hi <= alpha})  # fmt: skip
+    return pd.DataFrame(rows)
+
+
 def e12_verdicts(scores: pd.DataFrame, h: pd.DataFrame) -> dict:
     """(a) |test - val| <= 0.03 for every headline model; (b) the headline above the old rule's
     pick in at least 3 of 4 tasks (point estimates); (c) Spearman >= 0.8 between the validation

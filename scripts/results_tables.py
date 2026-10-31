@@ -359,6 +359,13 @@ def e12_sections(h, runner: str, name: str, protocol: str, root) -> tuple[list[s
            f"paired bootstrap, Holm over all {len(tests)} at {R.HOLM_ALPHA})", "",
            R.md(tests.assign(p=tests["p"].map(lambda x: f"{x:.4f}"),
                              **{"Holm p": tests["Holm p"].map(lambda x: f"{x:.4f}")}))]  # fmt: skip
+    mc = R.e12_mc_error(tests, draws)
+    out += ["", f"## E12 Monte Carlo error of the {len(tests)} p-values (from the same "
+            f"{R.N_BOOT:,} draws; described, not a new test; the verdict stays the fixed Holm "
+            "result)", "",
+            f"Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not "
+            f"settled: {int((~mc['settled by B resamples']).sum())} of {len(mc)}.", "",
+            R.md(mc)]  # fmt: skip
     if name == "test":
         out += ["", "## E12 headline models: calibration on the test rows (measured once), class "
                 "extremes, confusion pairs and cost (described, not tested)", "",

@@ -442,7 +442,7 @@ Sizes in MiB (2**20 bytes). Optuna trial runs save no model and are not included
 | E17 svm_rbf | 4 | 2.944 | 1.479 | 1.306 |
 | E17 tree | 4 | 0.732 | 0.275 | 0.07 |
 
-Whole store now: artifacts 2645.3 MiB, mlflow.db 35.8 MiB.
+Whole store now: artifacts 2923.6 MiB, mlflow.db 37.3 MiB.
 
 ## E09 feature-group ablation on the headline model per task (15 s, validation; "all" = the headline run)
 

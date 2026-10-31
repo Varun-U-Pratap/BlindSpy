@@ -85,7 +85,8 @@ def validate(df: pd.DataFrame, meta: dict) -> pd.DataFrame:
     X = df[want]
     bad = [c for c in want if not pd.api.types.is_numeric_dtype(X[c])]
     if bad:
-        rows = {c: [i + 1 for i in np.flatnonzero(pd.to_numeric(X[c], errors="coerce").isna())][:5]
+        rows = {c: [int(i) + 1
+                    for i in np.flatnonzero(pd.to_numeric(X[c], errors="coerce").isna())][:5]
                 for c in bad}  # fmt: skip
         raise InputError(f"non-numeric values in {bad} (first bad data rows: {rows})")
     finite = np.isfinite(X.to_numpy(dtype=float))
