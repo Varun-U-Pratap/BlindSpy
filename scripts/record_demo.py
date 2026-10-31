@@ -103,8 +103,10 @@ class Page:
 
     def choose(self, box: int, option: str):
         """Open the sidebar's box-th select box and pick the option with this text."""
+        # Streamlit 1.66 select boxes: a react-aria ComboBox; clicking its group opens the list
         self.click_el("document.querySelectorAll('[data-testid=stSidebar] "
-                      f"[data-testid=stSelectbox] [data-baseweb=select]')[{box}]")  # fmt: skip
+                      "[data-testid=stSelectbox] .react-aria-ComboBox [role=group]')"
+                      f"[{box}]")  # fmt: skip
         self.hold(0.8)
         self.click_el(f"[...document.querySelectorAll('[role=option]')].find(e => "
                       f"e.textContent.trim() === {json.dumps(option)})")  # fmt: skip
