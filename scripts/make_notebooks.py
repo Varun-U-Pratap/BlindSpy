@@ -1,4 +1,4 @@
-"""Write notebooks/03_models.ipynb (E04-E06) and notebooks/04_tuning.ipynb (E07-E17).
+"""Write notebooks/03_models.ipynb (E04-E06), 04_tuning.ipynb (E07-E17) and 05_explain.ipynb (SHAP).
 
 The notebooks only READ results: reports/history.csv (every MLflow run, exported by
 scripts/export_history.py), the generated CSVs in reports/ and, for E10, the confusion matrices
@@ -423,6 +423,102 @@ verdict_table(R.e16_verdicts(h), ("E16",))""",
     ("markdown", "F04_VERDICTS"),
 ]
 
+NB05 = [
+    (
+        "markdown",
+        """# 05 Explain: what the final models use (SHAP)
+
+SHAP TreeExplainer on the 4 final models (`models/final/<task>.joblib`, trained on train +
+validation in E12), on each task's test rows: the only rows these models never trained on. No
+score is computed and nothing is chosen here; the test scores are E12's. The values are in the
+model's raw output units (log-odds; softmax margins for the 7- and 14-class models). For the
+calibrated A1 and A2-VPN models the explained model is the base model, whose class is the one
+reported (E15). Many of the 23 features are correlated (E00, notebook 01), so the values describe
+how a model uses the features, not what causes the traffic patterns.
+
+The numbers and figures are written by `scripts/explain_final.py` (reports/shap_*.csv,
+reports/figures/shap_*.png); this notebook reads and shows them. E09 (feature-group ablation) is
+on validation with the train-only headline models, so the two are compared by pattern, not by
+value.""",
+    ),
+    (
+        "code",
+        """import json
+
+import pandas as pd
+from IPython.display import Image, display
+
+from blindspy.data import CORE_TASKS, ROOT
+
+pd.set_option("display.width", 200, "display.max_columns", 30, "display.max_colwidth", 80)
+REP, FIG = ROOT / "reports", ROOT / "reports" / "figures"
+imp = pd.read_csv(REP / "shap_importance.csv")
+groups = pd.read_csv(REP / "shap_groups.csv")
+ex = pd.read_csv(REP / "shap_examples.csv")
+for task in CORE_TASKS:
+    m = json.loads((ROOT / "models" / "final" / f"{task}.json").read_text())
+    print(task, m["mlflow_run_name"], m["model"], "calibration:", m["calibration"],
+          "| test macro F1", round(m["test_macro_f1"], 4))""",
+    ),
+    ("markdown", "## 1. Which features each model uses most (mean |SHAP|, test rows)"),
+    (
+        "code",
+        """top = imp[imp["rank"] <= 5].pivot(index="rank", columns="task", values="feature")
+display(top[CORE_TASKS])
+display(Image(FIG / "shap_summary.png"))
+print("Top 3 features per class (mean |SHAP| towards that class)")
+display(pd.read_csv(REP / "shap_class_top.csv"))""",
+    ),
+    ("markdown", "F05_TOP"),
+    ("markdown", "## 2. A1: direction of each feature's effect"),
+    (
+        "code",
+        """col = "rank corr. value vs SHAP towards VPN (A1)"
+display(imp[imp["task"] == "A1"].head(12)[["rank", "feature", "mean |SHAP|", col]])
+display(Image(FIG / "shap_beeswarm_A1.png"))""",
+    ),
+    ("markdown", "F05_A1"),
+    ("markdown", "## 3. Feature groups: SHAP share next to the E09 ablation"),
+    (
+        "code",
+        """display(groups)
+display(Image(FIG / "shap_groups_vs_e09.png"))""",
+    ),
+    ("markdown", "F05_GROUPS"),
+    (
+        "markdown",
+        """## 4. Worked examples: one flow each, its prediction, confidence and what drove it
+
+Picked by a rule fixed before looking at them (`blindspy.explain.pick_examples`): the most and
+the least confident correct prediction, the most confident wrong prediction, and the correct
+prediction of the task's weakest class (lowest test F1) with the median confidence. Confidence is
+the probability reported by predict.py (calibrated for A1 and A2-VPN). Times are microseconds,
+rates per second, -1 = not measurable.""",
+    ),
+    (
+        "code",
+        """for task in CORE_TASKS:
+    print(task)
+    display(ex[ex["task"] == task].drop(columns=["task", "weakest class"]))
+    display(Image(FIG / f"shap_examples_{task}.png"))""",
+    ),
+    ("markdown", "F05_EXAMPLES"),
+    ("markdown", "## 5. The same explanations through predict.py (sample file, A2-VPN)"),
+    (
+        "code",
+        """from blindspy.predict import predict
+
+sample = pd.read_csv(ROOT / "app" / "samples" / "A2-VPN_test_sample.csv")
+predict("A2-VPN", sample).head(8)""",
+    ),
+    (
+        "markdown",
+        """predict.py reports the top 3 of the same SHAP values per row (a test checks that
+`blindspy.explain` and predict.py agree feature by feature).""",
+    ),
+]
+
+
 FINDINGS: dict[str, str] = {
     "F03_SCREEN": """**Findings (screen at 15 s, validation, data v1).**
 
@@ -576,6 +672,48 @@ F1).**
   (mean 0.8395, below (b)). So the gap between (a) and (b) comes from training-set size: stacking
   the four timeout files gives 2.3–4.3 times as many training rows. Mixing the timeouts does not
   raise the score by itself. All four checks are supported.""",
+    "F05_TOP": """**Findings.**
+
+- flowBytesPerSecond is the most used feature in A2-VPN, A2-NonVPN and B (mean |SHAP| 1.062,
+  1.409, 0.989), and min_flowiat is second in all three. A1 relies most on the smallest gaps:
+  min_flowiat (2.224) and min_biat (2.192), then flowBytesPerSecond (1.905).
+- The minimum gaps (min_flowiat, min_fiat, min_biat) appear in the top 5 of every task; duration
+  is in the top 5 of A2-VPN and B.
+- Each class leans on its own features (table "top 3 features per class"): in B, VOIP's top
+  feature is duration and VPN-STREAMING's is mean_biat, while flowBytesPerSecond is among the top
+  3 of most classes.""",
+    "F05_A1": """**Findings (A1).**
+
+- Higher byte and packet rates push a flow towards Non-VPN: rank correlation of value with SHAP
+  towards VPN -0.6624 (flowBytesPerSecond) and -0.6795 (flowPktsPerSecond); so do larger
+  mean_biat (-0.5650) and std_biat (-0.5153).
+- The minimum gaps have mixed effects (min_flowiat 0.2753, min_biat 0.2873, min_fiat -0.1613):
+  the model uses them through interactions, not as a single threshold.
+- This describes the 2016 captures (one VPN setup), not a rule about VPN traffic in general.""",
+    "F05_GROUPS": """**Findings: SHAP against E09.**
+
+- They agree on the small groups: active and idle hold 3.1-5.7% of mean |SHAP| in every task, and
+  E09 found that dropping either changes validation macro F1 by -0.0036 to +0.0051.
+- They agree on the rates + duration group: 21.4-26.9% of mean |SHAP|, and the largest E09 loss
+  when dropped in A2-VPN, A2-NonVPN and B (-0.0395, -0.0301, -0.0549).
+- They differ on the flow gaps (flowiat): it has the largest SHAP share in A1, A2-VPN and
+  A2-NonVPN (25.5-29.6%), yet dropping it costs at most 0.0166 (B) and A1 even gains 0.0014. The
+  same timing is also in the correlated fiat and biat gaps, so another group can stand in. SHAP
+  shows what a model uses; the ablation shows what it cannot do without.
+- No group alone comes close to all 23 features (E09: -0.0604 to -0.6345).""",
+    "F05_EXAMPLES": """**Findings (worked examples).**
+
+- Confident correct flows are driven by one strong timing signal, for example B VOIP by its long
+  duration (1.499e7 microseconds, SHAP 3.854) and A2-VPN VOIP by min_biat and its low byte rate.
+- The least confident correct flows are very short: B MAIL with duration 96 microseconds
+  (confidence 0.295) and A2-VPN FT with gaps of 52 microseconds (0.226), where several classes
+  look alike.
+- The most confident errors come from a byte rate typical of another class: A1 Non-VPN -> VPN at
+  130.9 bytes/s (confidence 0.996), A2-VPN VPN-BROWSING -> VPN-STREAMING at 1.32e6 bytes/s (0.979),
+  B VPN-P2P -> VPN-FT at 365.1 bytes/s (0.999); A2-NonVPN FT -> MAIL is a 79-microsecond flow
+  (1.000). High confidence alone does not show that a prediction is right.
+- The weakest classes are recognised through duration and the minimum gaps (VPN-MAIL in A2-VPN and
+  B), the byte rate (STREAMING in A2-NonVPN) and min_flowiat (Non-VPN in A1).""",
     "F04_VERDICTS": """**Summary of the pre-stated thresholds:** E07 (a) supported, (b) not
 supported, (c) supported; E08 (a) not supported, (b) and (c) supported; E10 (a) and (b) not
 supported, (c) supported; E17 (a), (b) and (c) supported. E09, E13, E14 and E16 are
@@ -599,7 +737,7 @@ def build(cells: list[tuple[str, str]]) -> nbformat.NotebookNode:
 
 def main() -> None:
     paths = []
-    for name, cells in (("03_models", NB03), ("04_tuning", NB04)):
+    for name, cells in (("03_models", NB03), ("04_tuning", NB04), ("05_explain", NB05)):
         paths.append(ROOT / "notebooks" / f"{name}.ipynb")
         nbformat.write(build(cells), paths[-1])
         print("wrote", paths[-1].relative_to(ROOT))
