@@ -39,6 +39,12 @@ uses each type twice (VPN and non-VPN).
 - It does not prove that traffic is encrypted.
 - The data was captured in 2016, in a lab, with specific applications and one VPN setup. Results
   may not hold for current applications, VPN providers or networks. The conclusion repeats this.
+- The files carry no session or capture identifiers, so flows recorded in one session can fall on
+  both sides of a random split. Holding out contiguous blocks of the files lowers out-of-fold
+  accuracy by 0.07-0.26 (Section 7.2), so our scores may be optimistic for traffic from captures
+  the models have never seen.
+- Every score is measured on held-out rows of the same captures; none on independently captured
+  traffic.
 
 ## 1.4 Related work
 
@@ -89,4 +95,10 @@ the A2 feature set (`total_fiat` and `total_biat` in place of the paper's `std_f
    cleaning log. [E00]
 6. Analyses of what the models learned and how far the results can be trusted: feature-group
    ablation, SHAP, learning curve, split-seed stability and calibration. [E09, E13–E15]
-7. A full history: every run, data version and experiment, traceable to a commit.
+7. Final models scored once on an untouched test set, with 95% bootstrap intervals and 26 paired
+   tests fixed in advance: test macro F1 A1 0.9434, A2-VPN 0.8652, A2-NonVPN 0.9403, B 0.8480.
+   [E12, Section 5]
+8. A command-line predictor (`scripts/predict.py`) and a Streamlit demo that classify a new flow
+   file with the final models, report a calibrated confidence and show the features behind each
+   prediction, and reject a malformed file. [Sections 5.10-5.11]
+9. A full history: every run, data version and experiment, traceable to a commit.

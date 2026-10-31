@@ -50,17 +50,17 @@ version, so every run on that version uses exactly the same rows.
 - Candidate models are compared on the validation set.
 - The chosen configuration is retrained on training + validation data and scored **once** on the
   test set, at the final milestone, with 95% percentile intervals from 10,000 stratified bootstrap
-  resamples (rows drawn with replacement within each true class, so every resample keeps the test
+  [18] resamples (rows drawn with replacement within each true class, so every resample keeps the test
   set's class counts; seed 42). A comparison set (the best validation variant of each method type
   per task, Section 3.8) is fixed before the test set is opened and scored the same way, once; it
   never changes the chosen configuration. 26 differences are tested, fixed before the test set is
   opened (E12): per task the chosen model against each of the other six method types, and against
   the old-rule pick (Section 3.8) in A1 and A2-VPN. Each test is a two-sided paired bootstrap on macro F1 (the
-  same resampled rows for both models), Holm-corrected over all 26 at alpha 0.05; other
+  same resampled rows for both models), Holm-corrected [17] over all 26 at alpha 0.05; other
   differences and metrics are only described. 10,000 resamples are needed because with 1,000 the
   smallest possible p-value (0.0020) is above Holm's first threshold (0.05 / 26 = 0.0019).
 - Calibration (E15) is decided on the validation set before the test set is opened; it changes
-  only the reported confidence, never the predicted class. The isotonic calibrator learns from
+  only the reported confidence, never the predicted class. The isotonic calibrator [19] learns from
   5-fold out-of-fold predictions on the training rows, with the same shuffled folds (seed 42) as
   every other cross-validation here: unshuffled folds over the file-ordered rows hold out whole
   blocks of the files and give far too poor out-of-fold predictions (E15).
@@ -112,7 +112,7 @@ as large ones. We also report per-class precision, recall and F1; weighted F1; a
 accuracy; confusion matrices and the five most frequent confusion pairs; ROC-AUC (task A1);
 cross-validation mean and standard deviation; the gap between cross-validation and held-out
 scores; training time, prediction time per 1,000 flows, model size and peak memory; and, for the
-final models, Expected Calibration Error with a reliability diagram (E15). Comparisons with the
+final models, Expected Calibration Error [20, 21] with a reliability diagram (E15). Comparisons with the
 paper use precision against precision and recall against recall.
 
 ## 3.6 Tracking and reproducibility
