@@ -980,7 +980,7 @@ def e09_table(h: pd.DataFrame, s: pd.DataFrame) -> pd.DataFrame:
 def e09_verdicts(t: pd.DataFrame) -> dict:
     """E09 thresholds on e09_table: (a) no group alone reaches all 23 features (4 of 4 tasks);
     (b) dropping any one group costs at most 0.02 (3 of 4 tasks); (c) timing-only within 0.01
-    (3 of 4 tasks). Also flags any set at least 0.03 above all 23 (stop and ask the user)."""
+    (3 of 4 tasks). Also flags any set at least 0.03 above all 23 (stop and ask the team)."""
     by = {task: g.set_index("feature set")["change vs all"] for task, g in t.groupby("task")}
     only = {k: round(float(v[v.index.str.startswith("only_")].max()), 4) for k, v in by.items()}
     drop = {k: round(float(v[v.index.str.startswith("no_")].min()), 4) for k, v in by.items()}

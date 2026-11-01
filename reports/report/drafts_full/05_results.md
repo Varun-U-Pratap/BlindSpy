@@ -510,7 +510,7 @@ predictions.csv`:
 
 `app/demo.py` is a one-page Streamlit [23] app built only on `models/final/` and the code above
 (`blindspy.predict` for the labels and confidences, `blindspy.explain` for the SHAP values); it
-trains nothing. The user chooses a task, picks one of five sample files in `app/samples/` (20
+trains nothing. The person using the demo chooses a task, picks one of five sample files in `app/samples/` (20
 test rows per task, written by `scripts/make_samples.py`, and one malformed file with a renamed
 column) or uploads a CSV, and gets a table of predictions with their confidence. Clicking a row
 shows the 10 features that pushed the model most towards its label, with each feature's value and
