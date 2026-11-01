@@ -343,7 +343,7 @@ def phase3() -> None:
         if "supported" in x:
             print(k, "supported" if x["supported"] else "NOT supported")
         else:  # a stop-and-ask check, not a hypothesis
-            print(k, "TRIGGERED (ask the user)" if x["triggered"] else "not triggered")
+            print(k, "TRIGGERED (ask the team)" if x["triggered"] else "not triggered")
 
 
 def e12_sections(h, runner: str, name: str, protocol: str, root) -> tuple[list[str], dict]:

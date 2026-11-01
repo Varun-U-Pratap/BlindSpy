@@ -506,7 +506,7 @@ predictions.csv`:
 ## 5.11 The demo
 
 The demo is a one-page Streamlit [23] app built only on the four final models and the code above (the predictor for the labels and confidences, the explanation code for the SHAP values); it
-trains nothing. The user chooses a task, picks one of five sample files (20 test rows per task, and one malformed file with a renamed
+trains nothing. The person using the demo chooses a task, picks one of five sample files (20 test rows per task, and one malformed file with a renamed
 column) or uploads a CSV, and gets a table of predictions with their confidence. Clicking a row
 shows the 10 features that pushed the model most towards its label, with each feature's value and
 unit; `-1` is shown as "not measurable" (Section 2.5). A malformed file is rejected with the same

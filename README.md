@@ -41,6 +41,7 @@ Draper-Gil et al. (ICISSP 2016):
 | `v1.0.1-final` | Hand-in: the final report, this README, the demo and its video; no result changed |
 | `v1.0.2-final` | The two reader editions of the report (standalone and full, with a key to the experiment IDs); no result changed |
 | `v1.0.3-final` | The project plan as `reports/PLAN.md`; no result changed |
+| `v1.0.4-final` | Wording: decisions read as agreed by the team; the experiment log and the three reports rebuilt; no result changed |
 
 ## Run it on any laptop
 
