@@ -13,7 +13,8 @@ After the numbered drafts comes the reference list (reports/references.md), then
 line dropped, its headings one level lower) and `{{git tags}}` a table of the git tags.
 
 Usage: uv run python scripts/build_report.py --tag v0.2-tuned --node-modules <dir with docx>
-(--tag final writes the hand-in report, BlindSpy_report.pdf and .docx.)
+(--tag final writes the hand-in report, BlindSpy_report.pdf and .docx; --tag final --edition
+standalone|full writes BlindSpy_report_<edition>.pdf and .docx from drafts_<edition>/.)
 (`npm install --prefix <dir> docx` once; the folder is not part of the repository.)
 """
 
@@ -154,9 +155,9 @@ def appendix(path: Path) -> str:
     return "\n".join(text)
 
 
-def load_drafts() -> list[dict]:
+def load_drafts(drafts: Path = DRAFTS) -> list[dict]:
     blocks = []
-    for path in sorted(DRAFTS.glob("[0-9][0-9]_*.md")):
+    for path in sorted(drafts.glob("[0-9][0-9]_*.md")):
         part = parse(path.read_text(), path.parent)
         if blocks:
             blocks.append({"t": "pagebreak"})
@@ -164,8 +165,8 @@ def load_drafts() -> list[dict]:
     # the reference list, kept in one file from the start and copied into the report
     refs = (ROOT / "reports" / "references.md").read_text().split("\n", 1)[1]
     blocks += [{"t": "pagebreak"}, *parse("# References\n" + refs, ROOT / "reports")]
-    if (DRAFTS / "appendix.md").exists():
-        blocks += [{"t": "pagebreak"}, *parse(appendix(DRAFTS / "appendix.md"), DRAFTS)]
+    if (drafts / "appendix.md").exists():
+        blocks += [{"t": "pagebreak"}, *parse(appendix(drafts / "appendix.md"), drafts)]
     for b in blocks:
         if b["t"] == "table":
             b["font_pt"], b["anywhere"] = table_font(b["plain"])
@@ -263,14 +264,29 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--tag", required=True)
     ap.add_argument("--node-modules", required=True, help="folder that holds node_modules/docx")
+    ap.add_argument("--edition", choices=["standalone", "full"],
+                    help="a reader edition from reports/report/drafts_<edition>/ "
+                         "(scripts/make_report_variants.py); needs --tag final")  # fmt: skip
     a = ap.parse_args()
     commit = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, check=True,
                             capture_output=True, text=True).stdout.strip()  # fmt: skip
     milestone = "Final report (hand-in)" if a.tag == "final" else f"Report at milestone {a.tag}"
     front = [milestone, f"Built {date.today().isoformat()} from the "
              f"report drafts at commit {commit}"]  # fmt: skip
-    blocks = load_drafts()
-    name = "BlindSpy_report" if a.tag == "final" else f"BlindSpy_report_{a.tag}"
+    drafts, name = DRAFTS, "BlindSpy_report" if a.tag == "final" else f"BlindSpy_report_{a.tag}"
+    if a.edition:
+        if a.tag != "final":
+            raise SystemExit("--edition needs --tag final")
+        drafts, name = DRAFTS.parent / f"drafts_{a.edition}", f"BlindSpy_report_{a.edition}"
+        if a.edition == "standalone":
+            front = ["Final report, standalone edition",
+                     "Readable without the code repository: git details and file paths left "
+                     f"out. Built {date.today().isoformat()}."]  # fmt: skip
+        else:
+            front = ["Final report, full edition with reading aids",
+                     f"Built {date.today().isoformat()} from the report drafts at commit "
+                     f"{commit}"]  # fmt: skip
+    blocks = load_drafts(drafts)
     pdf, docx = OUT / f"{name}.pdf", OUT / f"{name}.docx"
     with tempfile.TemporaryDirectory() as tmp:
         page = Path(tmp) / "report.html"
