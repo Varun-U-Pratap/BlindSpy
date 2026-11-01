@@ -19,6 +19,8 @@ Draper-Gil et al. (ICISSP 2016):
   order). `reports/report/BlindSpy_report_full.pdf` (and `.docx`) keeps everything else as it is;
   `reports/report/BlindSpy_report_standalone.pdf` (and `.docx`) also leaves out git details and
   file paths, so it reads without this repository. No number differs between the three.
+- **Plan:** `reports/PLAN.md`, the project plan: tasks, tools, tracking, metrics, every phase
+  with its checklist and result, team rules and risks.
 - **Final results** (test set scored once, 95% bootstrap intervals): test macro F1 A1 0.9434,
   A2-VPN 0.8652, A2-NonVPN 0.9403, B 0.8480 (`reports/phase4_tables.md`, experiment E12).
 - **Demo:** `app/demo.py` (how to run it below) and a 1-minute video of it,
@@ -38,6 +40,7 @@ Draper-Gil et al. (ICISSP 2016):
 | `v1.0-final` | Phase 4: final models, the test set scored once (E12), calibration (E15), SHAP, notebooks 05-06 |
 | `v1.0.1-final` | Hand-in: the final report, this README, the demo and its video; no result changed |
 | `v1.0.2-final` | The two reader editions of the report (standalone and full, with a key to the experiment IDs); no result changed |
+| `v1.0.3-final` | The project plan as `reports/PLAN.md`; no result changed |
 
 ## Run it on any laptop
 
