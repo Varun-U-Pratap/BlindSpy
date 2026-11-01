@@ -13,6 +13,14 @@ Draper-Gil et al. (ICISSP 2016):
 - **Report:** `reports/report/BlindSpy_report.pdf` (and `.docx`), assembled from the markdown
   drafts in `reports/report/drafts/`. Every number in it comes from a generated file and names
   its experiment ID.
+- **Two reader editions of the same report**, built by `scripts/make_report_variants.py` and
+  `scripts/build_report.py --tag final --edition standalone|full`: both start with a key to the
+  experiment IDs (E00-E17), what each is and the order they were run in (the IDs are not in run
+  order). `reports/report/BlindSpy_report_full.pdf` (and `.docx`) keeps everything else as it is;
+  `reports/report/BlindSpy_report_standalone.pdf` (and `.docx`) also leaves out git details and
+  file paths, so it reads without this repository. No number differs between the three.
+- **Plan:** `reports/PLAN.md`, the project plan: tasks, tools, tracking, metrics, every phase
+  with its checklist and result, team rules and risks.
 - **Final results** (test set scored once, 95% bootstrap intervals): test macro F1 A1 0.9434,
   A2-VPN 0.8652, A2-NonVPN 0.9403, B 0.8480 (`reports/phase4_tables.md`, experiment E12).
 - **Demo:** `app/demo.py` (how to run it below) and a 1-minute video of it,
@@ -31,6 +39,9 @@ Draper-Gil et al. (ICISSP 2016):
 | `v0.2-tuned` | End of Phase 3: improvement experiments E04-E17, final configs, analyses, notebooks 03-04 |
 | `v1.0-final` | Phase 4: final models, the test set scored once (E12), calibration (E15), SHAP, notebooks 05-06 |
 | `v1.0.1-final` | Hand-in: the final report, this README, the demo and its video; no result changed |
+| `v1.0.2-final` | The two reader editions of the report (standalone and full, with a key to the experiment IDs); no result changed |
+| `v1.0.3-final` | The project plan as `reports/PLAN.md`; no result changed |
+| `v1.0.4-final` | Wording: decisions read as agreed by the team; the experiment log and the three reports rebuilt; no result changed |
 
 ## Run it on any laptop
 

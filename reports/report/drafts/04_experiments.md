@@ -831,7 +831,7 @@ removed, and with the timing-only set (all but flowBytesPerSecond, the only size
 **Threshold.** (a) every group alone scores below all 23 features in all four tasks; (b) dropping
 any one group costs at most 0.02 in at least 3 of 4 tasks; (c) the timing-only set is within 0.01
 of all 23 features in at least 3 of 4 tasks. If any set scored at least 0.03 above all 23, the
-work would stop and the user would be asked (it did not happen).
+work would stop and the team would be asked (it did not happen).
 
 | task | feature set | features | val macro F1 | change vs all | CV macro F1 |
 |---|---|---|---|---|---|
