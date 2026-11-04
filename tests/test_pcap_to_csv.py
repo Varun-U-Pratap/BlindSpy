@@ -96,3 +96,17 @@ def test_cli_rejects_a_label_of_another_task(capsys):
     assert conv.main(["missing.pcap", "--task", "A1", "--label", "STREAMING",
                       "--output", "x.csv"]) == 2  # fmt: skip
     assert "not a A1 class" in capsys.readouterr().err
+
+
+def test_no_flows_gives_an_empty_table_with_the_task_columns(monkeypatch):
+    monkeypatch.setattr(conv, "read_packets", lambda *a, **k: packets([]))
+    out = conv.convert(Path("empty.pcap"), "A2-VPN", label="VPN-CHAT")
+    assert out.empty and list(out.columns)[:2] == ["duration", "total_fiat"]
+
+
+def test_cli_explains_a_missing_tshark(capsys, tmp_path):
+    pcap = tmp_path / "x.pcap"
+    pcap.write_bytes(b"")
+    rc = conv.main([str(pcap), "--task", "B", "--output", str(tmp_path / "x.csv"),
+                    "--tshark", str(tmp_path / "no-tshark")])  # fmt: skip
+    assert rc == 2 and "tshark not found" in capsys.readouterr().err
