@@ -40,6 +40,10 @@ flow are (no addresses, ports or content).
 
 ## How to make new files
 
+The commands for macOS, Ubuntu and Windows (installing Wireshark, finding the interface,
+recording, converting) are in the repository's `README.md`, section *Capture your own traffic
+and turn it into a flow file*.
+
 1. **Capture** with Wireshark on your own laptop and your own network only. Close other apps.
    One activity per capture, about 5 minutes. Record each activity twice, VPN off and VPN on:
 
