@@ -167,84 +167,80 @@ were added; no version changed). For the exact environment of the final runs, us
 
 ## Capture your own traffic and turn it into a flow file (demo only)
 
-This makes a CSV from traffic recorded on your own laptop, so it can be uploaded in the demo
-with **Upload a CSV**. Such files are never used for training, tuning or any reported score.
-Record only your own laptop on a network you are allowed to record. Which activity to record for
-which class, and how to name the files, is in `app/samples/custom/README.md`. On macOS the
-install check, interface list and convert commands were tested (converting one of the dataset's
-captures); recording itself is **not yet tested** on any system, and the Ubuntu and Windows
-commands are **not yet tested**.
+Record traffic on your own laptop (your own network only), turn it into a CSV with the final
+models' 23 features, and upload it in the demo with **Upload a CSV**. These files are never used
+for training or any reported score. Which activity gives which class and how to name the files:
+`app/samples/custom/README.md`. Run everything from the repository folder; `captures/` is
+git-ignored (a capture holds addresses and site names), only the CSVs are committed.
 
-**1. Install Wireshark** (it includes `tshark`, which records and reads captures).
+Interface to record: VPN off = Wi-Fi; VPN on = the VPN's own interface (the one that appears in
+`tshark -D` only after the VPN connects), because the dataset's VPN captures hold the traffic
+inside the tunnel. Each recording stops by itself after 300 s (or press Ctrl+C).
 
-- macOS: install Wireshark from https://www.wireshark.org/download.html and also run the
-  *Install ChmodBPF* package it offers (without it, recording needs `sudo`). `tshark` is inside
-  the app; make it available in the current Terminal window:
-  `export PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"`
-- Ubuntu: `sudo apt install tshark` and answer **Yes** to "Should non-superusers be able to
-  capture packets?" (later: `sudo dpkg-reconfigure wireshark-common`). Then
-  `sudo usermod -aG wireshark $USER` and log out and in again.
-- Windows: install Wireshark from https://www.wireshark.org/download.html with Npcap (the
-  installer offers it). Make `tshark` available in the current PowerShell window:
-  `$env:Path += ";C:\Program Files\Wireshark"`
+Tested on macOS (install check, interface list, converting). Recording, and the Linux and
+Windows commands, are **not yet tested**.
 
-Check that it works (all systems): `tshark --version`
+### macOS
 
-**2. Find the interface to record.** List the interfaces (all systems): `tshark -D`
-
-- VPN off: the Wi-Fi interface. macOS `en0`; Ubuntu usually `wlp…` or `wlan0` (Ethernet `enp…`
-  or `eth0`); Windows `Wi-Fi` (use its number from the list).
-- VPN on: the VPN's own interface, the one that appears in `tshark -D` only after the VPN
-  connects. macOS `utun…` (some `utun` interfaces exist without a VPN: pick the new one);
-  Ubuntu `tun0` (OpenVPN), `wg0` (WireGuard) or a name of the VPN app; Windows an adapter named
-  after the VPN. The dataset's VPN captures hold the traffic inside the tunnel, so recording
-  Wi-Fi with the VPN on gives different flows. If no new interface appears (possible on Windows
-  with some VPN apps), that VPN cannot be recorded this way on that laptop.
-
-**3. Record one activity for 5 minutes** (from the repository folder; `captures/` is
-git-ignored and never committed: a capture holds addresses, site names and sometimes content).
-Make the folder once:
-
-- macOS / Ubuntu: `mkdir -p captures/raw`
-- Windows (PowerShell): `mkdir captures\raw`
-
-Start the activity, then record (all systems; replace `en0` with your interface name or number;
-recording stops by itself after 300 seconds, or press Ctrl+C):
+Install Wireshark from https://www.wireshark.org/download.html and also run its *Install ChmodBPF*
+package (lets you record without `sudo`; restart the Mac if recording is refused). Then:
 
 ```bash
+export PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
+tshark -D
+mkdir -p captures/raw
 tshark -i en0 -a duration:300 -w captures/raw/youtube_novpn_2026-11-05.pcapng
 ```
 
-If it says *You do not have permission to capture on device*: on macOS, `ls -l /dev/bpf0` must
-show the group `access_bpf` (ChmodBPF sets this when the Mac starts): restart the Mac, or run
-*Install ChmodBPF* again; on Ubuntu, check that `groups` lists `wireshark` (log out and in
-after `usermod`); on Windows, reinstall Npcap without "Restrict Npcap driver's access to
-Administrators only".
+(`en0` = Wi-Fi; with the VPN on use the new `utun…` interface.)
 
-**4. Convert it**, once per task the capture fits (all systems; one line each). A VPN-off capture
-gives `_A1`, `_B` and `_A2-NonVPN` files:
+### Linux (Ubuntu)
+
+Answer **Yes** to "Should non-superusers be able to capture packets?", then log out and in again
+after `usermod`:
+
+```bash
+sudo apt install tshark
+sudo usermod -aG wireshark $USER
+```
+
+```bash
+tshark -D
+mkdir -p captures/raw
+tshark -i wlp2s0 -a duration:300 -w captures/raw/youtube_novpn_2026-11-05.pcapng
+```
+
+(Use your Wi-Fi name from `tshark -D`, e.g. `wlp2s0` or `wlan0`; with the VPN on use `tun0`
+(OpenVPN), `wg0` (WireGuard) or the VPN app's interface. If recording is refused, `groups` must
+list `wireshark`; answered No? run `sudo dpkg-reconfigure wireshark-common`.)
+
+### Windows (PowerShell)
+
+Install Wireshark from https://www.wireshark.org/download.html with Npcap (the installer offers
+it). Then:
+
+```powershell
+$env:Path += ";C:\Program Files\Wireshark"
+tshark -D
+mkdir captures\raw
+tshark -i Wi-Fi -a duration:300 -w captures/raw/youtube_novpn_2026-11-05.pcapng
+```
+
+(With the VPN on use the VPN's adapter from `tshark -D`, by name or number. If no new adapter
+appears when the VPN connects, that VPN cannot be recorded this way.)
+
+### Convert and try it (all systems)
 
 ```bash
 uv run python scripts/pcap_to_csv.py captures/raw/youtube_novpn_2026-11-05.pcapng --task A1 --label Non-VPN --output app/samples/custom/youtube_novpn_A1.csv
-```
-
-```bash
 uv run python scripts/pcap_to_csv.py captures/raw/youtube_novpn_2026-11-05.pcapng --task B --label STREAMING --output app/samples/custom/youtube_novpn_B.csv
-```
-
-```bash
 uv run python scripts/pcap_to_csv.py captures/raw/youtube_novpn_2026-11-05.pcapng --task A2-NonVPN --label STREAMING --output app/samples/custom/youtube_novpn_A2-NonVPN.csv
 ```
 
-A VPN-on capture gives `_A1` (label `VPN`), `_B` (label `VPN-STREAMING`) and `_A2-VPN` (label
-`VPN-STREAMING`). Each command prints the number of flows written. The script refuses a label
-that is not a class of the chosen task, and stops with a clear message if `tshark` is not found
-(then pass `--tshark <path of tshark>`) or the capture holds no IPv4 TCP/UDP flows.
-
-**5. Try it in the demo**: `uv run streamlit run app/demo.py`, choose the task the file name ends
-with, and upload the file with **Upload a CSV**. With the `label` column the demo shows how many
-flows were predicted correctly. Expect lower accuracy than in the report: the models learned
-from 2016 captures.
+For a VPN-on capture use `--task A1 --label VPN`, `--task B --label VPN-STREAMING` and
+`--task A2-VPN --label VPN-STREAMING`. Then `uv run streamlit run app/demo.py`, open
+http://localhost:8501, choose the task the file name ends with and upload the file. Expect lower
+accuracy than in the report: the models learned from 2016 captures.
 
 ## Setup for development
 
