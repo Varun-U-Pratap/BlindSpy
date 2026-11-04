@@ -6,7 +6,9 @@ generated file: `reports/phase4_tables.md` (`scripts/results_tables.py --phase 4
 test predictions of the E12 runs and from `reports/history.csv`) and, for Section 5.5,
 `reports/phase3_tables.md`; a test (`tests/test_report_drafts.py`) checks that each table still
 matches its source. Data version: v1. The test set was scored once, by the 30 E12 runs, all from
-commit 87181d2; nothing was chosen, swapped or re-tuned after their scores were seen.*
+commit 87181d2; nothing was chosen, swapped or re-tuned after their scores were seen. After that,
+one post-hoc change was made (E18, 4 Nov, Section 5.4): the A2-NonVPN and B test rows were
+predicted again by the same models with a calibrated confidence; no label or score changed.*
 
 This section reports the final models on the test rows: 15% of each task's 15 s file (A1 2,706
 flows, A2-VPN 1,407, A2-NonVPN 1,305, B 2,712), held out by the seed-42 split and used by no
@@ -278,6 +280,33 @@ rows, measured once, it lowers the expected calibration error from 0.0442 to 0.0
 Calibration changes only the reported confidence; the predicted class, and so every test score
 above, is the uncalibrated model's.
 
+**Post-hoc change: A2-NonVPN and B calibrated as well (E18).** This was decided on 4 Nov, after the
+test set had been opened and its ECE seen, so it is a post-hoc change and is reported as one. In
+the demo, the uncalibrated A2-NonVPN model gave a confidence of 0.99 or higher to all 20 of its 20
+sample flows. The 0.05 adoption rule above is a rule of thumb that no project data chose, and E15
+had shown isotonic calibration lowers the validation ECE in all four tasks. E18 refitted the
+A2-NonVPN and B headline models with the same isotonic calibrator as A1 and A2-VPN (no other method
+tried) and predicted their test rows again. The labels equal E12's on every test row and the test
+macro F1 is unchanged, so no score, interval or test in Sections 5.1-5.3 changes; only the
+confidence does. Before = the E12 run's confidence, after = the confidence the final model reports
+now (A1 and A2-VPN unchanged):
+
+| task | confidence from | calibration before -> after | same label as E12 (share of test rows) | test macro F1 E12 | test macro F1 now | test ECE before | test ECE after | mean confidence before | mean confidence after | test accuracy | test rows >= 0.99 before | test rows >= 0.99 after | demo sample >= 0.99 before | demo sample >= 0.99 after |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | E12-final-A1 | isotonic -> isotonic | 1.0 | 0.9434 | 0.9434 | 0.009 | 0.009 | 0.9376 | 0.9376 | 0.9435 | 0.5033 | 0.5033 | 12 of 20 | 12 of 20 |
+| A2-VPN | E12-final-A2-VPN | isotonic -> isotonic | 1.0 | 0.8652 | 0.8652 | 0.0169 | 0.0169 | 0.889 | 0.889 | 0.8955 | 0.2395 | 0.2395 | 3 of 20 | 3 of 20 |
+| A2-NonVPN | E18-final-A2-NonVPN | none -> isotonic | 1.0 | 0.9403 | 0.9403 | 0.0339 | 0.0132 | 0.9942 | 0.9539 | 0.9609 | 0.9571 | 0.2176 | 20 of 20 | 7 of 20 |
+| B | E18-final-B | none -> isotonic | 1.0 | 0.848 | 0.848 | 0.042 | 0.0158 | 0.9213 | 0.8917 | 0.8798 | 0.5579 | 0.4425 | 12 of 20 | 9 of 20 |
+
+![Reliability on the test rows, raw (E12) and calibrated (E18)](../../figures/e18_reliability_test.png)
+
+The test ECE falls from 0.0339 to 0.0132 (A2-NonVPN) and from 0.042 to 0.0158 (B), and mean
+confidence moves towards accuracy (A2-NonVPN 0.9942 -> 0.9539 against accuracy 0.9609; B 0.9213 ->
+0.8917 against 0.8798). The share of test rows at confidence 0.99 or higher falls from 0.9571 to
+0.2176 and from 0.5579 to 0.4425. Isotonic calibration still gives 1.0 to some flows in its top
+bin. Since this check used the test rows a second time, the calibrated test ECE of A2-NonVPN and B
+is not an untouched estimate like A1's and A2-VPN's; the raw values stay reported beside it.
+
 ## 5.5 Stability and amount of training data (E14, E13)
 
 Split-seed stability on validation, 10 resplits of training + validation (E14, Section 4.16):
@@ -387,7 +416,10 @@ SHAP values of the four final models on the test rows (`scripts/explain_final.py
   it cannot do without. Because the features are correlated, neither describes what causes the
   traffic patterns.
 
-Worked examples (one flow each; picked by a rule fixed before looking at them):
+Worked examples (one flow each; picked by a rule fixed before looking at them, by the confidence
+the final model reports; since E18 that is the calibrated confidence in all four tasks, so the
+A2-NonVPN and B picks differ from those in the report before E18, while the SHAP values of any
+given flow are unchanged):
 
 | task | example | raw_row | true | predicted | confidence | rank | feature | value | SHAP |
 |---|---|---|---|---|---|---|---|---|---|
@@ -415,35 +447,35 @@ Worked examples (one flow each; picked by a rule fixed before looking at them):
 | A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 1 | duration | 192.0 | 3.2163 |
 | A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 2 | min_flowiat | 192.0 | 3.0667 |
 | A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 3 | max_fiat | 192.0 | 1.4462 |
-| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 1 | min_flowiat | 2.0 | 2.7472 |
-| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 2 | std_flowiat | 2354206.5587 | 2.6679 |
-| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 3 | mean_flowiat | 567400.6667 | 1.7755 |
-| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 1 | min_flowiat | 961.0 | 2.639 |
-| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 2 | std_flowiat | 139858.6502 | 1.0974 |
-| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 3 | max_flowiat | 198751.0 | 0.6833 |
-| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 1 | duration | 79.0 | 4.2734 |
-| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 2 | min_fiat | 79.0 | 4.1959 |
-| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 3 | mean_fiat | 79.0 | 2.9155 |
-| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 1 | flowBytesPerSecond | 180014.1793 | 4.7998 |
-| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 2 | min_flowiat | 0.0 | 1.7719 |
-| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 3 | min_fiat | 5.0 | 1.6621 |
-| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 1 | duration | 14991066.0 | 3.8544 |
-| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 2 | std_biat | 3595.304 | 1.1211 |
-| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 3 | max_flowiat | 30384.0 | 0.8372 |
-| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 1 | min_fiat | 96.0 | 1.3413 |
-| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 2 | duration | 96.0 | 1.3326 |
-| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 3 | mean_flowiat | 96.0 | 0.825 |
-| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 1 | flowBytesPerSecond | 365.1224 | 2.4335 |
-| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 2 | max_flowiat | 284836.0 | 0.5198 |
-| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 3 | min_fiat | -1.0 | 0.4553 |
-| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 1 | duration | 11544.0 | 1.7503 |
-| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 2 | min_fiat | 27.0 | 1.2891 |
-| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 3 | min_flowiat | 27.0 | 0.6031 |
+| A2-NonVPN | most confident correct | 2,522 | CHAT | CHAT | 0.9974 | 1 | flowBytesPerSecond | 2323.347 | 5.1683 |
+| A2-NonVPN | most confident correct | 2,522 | CHAT | CHAT | 0.9974 | 2 | min_flowiat | 57245.0 | 4.621 |
+| A2-NonVPN | most confident correct | 2,522 | CHAT | CHAT | 0.9974 | 3 | duration | 57245.0 | 1.8825 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.2605 | 1 | min_flowiat | 961.0 | 2.639 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.2605 | 2 | std_flowiat | 139858.6502 | 1.0974 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.2605 | 3 | max_flowiat | 198751.0 | 0.6833 |
+| A2-NonVPN | most confident error | 4,578 | MAIL | FT | 0.9963 | 1 | flowPktsPerSecond | 5698.0057 | 4.3778 |
+| A2-NonVPN | most confident error | 4,578 | MAIL | FT | 0.9963 | 2 | mean_flowiat | 351.0 | 3.0715 |
+| A2-NonVPN | most confident error | 4,578 | MAIL | FT | 0.9963 | 3 | min_flowiat | 351.0 | 2.2885 |
+| A2-NonVPN | weakest class, median confidence | 5,856 | STREAMING | STREAMING | 0.985 | 1 | flowBytesPerSecond | 140981.0358 | 5.0093 |
+| A2-NonVPN | weakest class, median confidence | 5,856 | STREAMING | STREAMING | 0.985 | 2 | min_flowiat | 3.0 | 2.975 |
+| A2-NonVPN | weakest class, median confidence | 5,856 | STREAMING | STREAMING | 0.985 | 3 | max_fiat | 282975.0 | 1.749 |
+| B | most confident correct | 10,695 | VPN-VOIP | VPN-VOIP | 1.0 | 1 | min_flowiat | 38498.0 | 2.6451 |
+| B | most confident correct | 10,695 | VPN-VOIP | VPN-VOIP | 1.0 | 2 | min_biat | 957828.0 | 1.6472 |
+| B | most confident correct | 10,695 | VPN-VOIP | VPN-VOIP | 1.0 | 3 | min_fiat | 959191.0 | 1.1159 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2471 | 1 | min_fiat | 96.0 | 1.3413 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2471 | 2 | duration | 96.0 | 1.3326 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2471 | 3 | mean_flowiat | 96.0 | 0.825 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9916 | 1 | flowBytesPerSecond | 365.1224 | 2.4335 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9916 | 2 | max_flowiat | 284836.0 | 0.5198 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9916 | 3 | min_fiat | -1.0 | 0.4553 |
+| B | weakest class, median confidence | 9,693 | VPN-MAIL | VPN-MAIL | 0.963 | 1 | flowBytesPerSecond | 1336.6058 | 2.0379 |
+| B | weakest class, median confidence | 9,693 | VPN-MAIL | VPN-MAIL | 0.963 | 2 | max_flowiat | 186867.0 | 1.2492 |
+| B | weakest class, median confidence | 9,693 | VPN-MAIL | VPN-MAIL | 0.963 | 3 | std_fiat | 78492.1049 | 1.0401 |
 
 ![Worked examples, task B](../../figures/shap_examples_B.png)
 
 The most confident errors come from a byte rate typical of another class (for example a B VPN-P2P
-flow at 365.1 bytes per second predicted as VPN-FT with confidence 0.9986), so a high confidence
+flow at 365.1 bytes per second predicted as VPN-FT with confidence 0.9916), so a high confidence
 alone does not show that a prediction is right.
 
 ## 5.7 Comparison with the paper
@@ -492,26 +524,28 @@ the generated threshold checks:
 | E15 | a, b, c | none |
 | E16 | a, b, c, d | none |
 | E17 | a, b, c | none |
+| E18 | a, b, c | none |
 
 ## 5.10 Using a final model
 
 `scripts/predict.py` checks a flow file against the model's feature list (names, order, numeric
 and finite values) and writes, per flow, the predicted label, its confidence and the three
-features that pushed the model most towards that label. A malformed file stops with an error and
-exit code 2. The first 8 rows of its output for the task B sample file, from
+features that pushed the model most towards that label. The confidence is the isotonic-calibrated
+probability of the label in all four tasks (A1 and A2-VPN from E15, A2-NonVPN and B from E18). A
+malformed file stops with an error and exit code 2. The first 8 rows of its output for the task B sample file, from
 `uv run python scripts/predict.py --task B --input app/samples/B_test_sample.csv --output
 predictions.csv`:
 
 | row | label | true_label | confidence | top_feature_1 | top_feature_2 | top_feature_3 |
 |---|---|---|---|---|---|---|
-| 1 | MAIL | MAIL | 0.9879 | flowBytesPerSecond (+3.048) | max_biat (+1.391) | min_flowiat (+1.088) |
-| 2 | VOIP | VOIP | 0.9998 | duration (+3.221) | min_biat (+0.953) | flowBytesPerSecond (+0.756) |
-| 3 | VOIP | VOIP | 0.9998 | duration (+3.220) | min_biat (+0.989) | flowBytesPerSecond (+0.760) |
+| 1 | MAIL | MAIL | 0.9487 | flowBytesPerSecond (+3.048) | max_biat (+1.391) | min_flowiat (+1.088) |
+| 2 | VOIP | VOIP | 0.9997 | duration (+3.221) | min_biat (+0.953) | flowBytesPerSecond (+0.756) |
+| 3 | VOIP | VOIP | 0.9997 | duration (+3.220) | min_biat (+0.989) | flowBytesPerSecond (+0.760) |
 | 4 | VOIP | VOIP | 1.0 | duration (+3.751) | std_biat (+1.102) | max_flowiat (+0.877) |
-| 5 | VOIP | VOIP | 0.9995 | duration (+3.618) | mean_flowiat (+0.849) | max_flowiat (+0.743) |
+| 5 | VOIP | VOIP | 0.9985 | duration (+3.618) | mean_flowiat (+0.849) | max_flowiat (+0.743) |
 | 6 | VOIP | VOIP | 1.0 | duration (+3.528) | std_biat (+1.169) | std_fiat (+0.747) |
-| 7 | VPN-FT | VPN-CHAT | 0.7308 | flowPktsPerSecond (+0.375) | mean_fiat (+0.346) | flowBytesPerSecond (+0.306) |
-| 8 | VPN-FT | VPN-FT | 0.7385 | max_flowiat (+0.977) | min_flowiat (+0.556) | min_fiat (+0.353) |
+| 7 | VPN-FT | VPN-CHAT | 0.6377 | flowPktsPerSecond (+0.375) | mean_fiat (+0.346) | flowBytesPerSecond (+0.306) |
+| 8 | VPN-FT | VPN-FT | 0.5488 | max_flowiat (+0.977) | min_flowiat (+0.556) | min_fiat (+0.353) |
 
 ## 5.11 The demo
 
@@ -521,13 +555,15 @@ trains nothing. The person using the demo chooses a task, picks one of five samp
 test rows per task, written by `scripts/make_samples.py`, and one malformed file with a renamed
 column) or uploads a CSV, and gets a table of predictions with their confidence. Clicking a row
 shows the 10 features that pushed the model most towards its label, with each feature's value and
-unit; `-1` is shown as "not measurable" (Section 2.5). A malformed file is rejected with the same
+unit; every confidence shown is the calibrated one (E15, E18); `-1` is shown as "not measurable" (Section 2.5). A malformed file is rejected with the same
 message as `scripts/predict.py`. The page is tested headless (`tests/test_demo.py`); the
 screenshots come from `scripts/demo_screenshots.py`. A 1-minute video of the demo,
 `reports/demo/demo_video.mp4`, goes through the steps of `reports/demo/video_script.md` on the
 running app (task A1 and row 10 below, task B and a wrong prediction, the malformed file, task
 A2-VPN); it was made by `scripts/record_demo.py`, which drives the app in a headless browser and
-adds a cursor and captions.
+adds a cursor and captions. The video was recorded on 31 Oct, before E18, so the confidences it
+shows for A2-NonVPN and B are the uncalibrated ones (for example 0.7308 for B row 7, now 0.6377 in
+Section 5.10); its labels are the same.
 
 ![The demo: predictions for the A1 sample file](../../demo/demo_table.png)
 

@@ -17,8 +17,8 @@ to a configuration file, an MLflow run and a commit.
 
 ## A.2 MLflow screenshots
 
-The official MLflow store holds all 2,013 runs (A.5). Below: the run list of the `blindspy`
-experiment (newest first: the 30 E12 runs), and one final run, E12-final-B, with its test metrics
+The official MLflow store holds all 2,015 runs (A.5). Below, as captured on 31 Oct (before E18):
+the run list of the `blindspy` experiment (newest first: the 30 E12 runs), and one final run, E12-final-B, with its test metrics
 and the tags every run carries (runner, machine, commit, uncommitted-changes and pushed flags,
 lock-file hash, package versions, data version and data hashes). The demo is shown in Section
 5.11.
@@ -46,5 +46,5 @@ and rechecks included as they were written):
 {{include reports/appendix_runs.md}}
 
 The full history, every parameter, metric and tag of each of these runs, is in
-`reports/history.csv` (2,013 rows, 463 columns); every text file saved with a run is in
+`reports/history.csv` (2,015 rows, 463 columns); every text file saved with a run is in
 `reports/run_artifacts_text.tar.gz`, listed in `reports/run_artifacts_index.csv`.

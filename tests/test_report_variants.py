@@ -26,7 +26,7 @@ def test_committed_editions_match_a_fresh_build(variant, tmp_path):
 def test_key_lists_every_experiment_in_order_of_its_id():
     page = variants.key_page()
     ids = re.findall(r"^\| (E\d\d) \|", page, flags=re.M)
-    assert ids == [f"E{n:02d}" for n in range(18)]
+    assert ids == [f"E{n:02d}" for n in range(19)]
     assert "not in the order the work was done" in page
 
 

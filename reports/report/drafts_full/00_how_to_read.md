@@ -1,6 +1,6 @@
 # How to read this report
 
-Every experiment in this project has an ID, E00 to E17, and the report uses these IDs throughout:
+Every experiment in this project has an ID, E00 to E18, and the report uses these IDs throughout:
 in headings ("4.6 E04: KNN with a signed log transform"), in the text ("E04 lifted KNN by ..."),
 in table rows and in run names such as E07-xgb-B-15s, which reads "experiment E07, XGBoost, task
 B, 15 s files". The table below says what each ID is, in which order the experiments were run and
@@ -26,10 +26,11 @@ where the report describes them.
 | E15 | Calibration of the final models' confidence, on validation | 16 | 4.20 | done |
 | E16 | Reproducing Isnan et al. (2026) on the Kaggle copy, then correcting it | 15 | 4.18 | done |
 | E17 | The same tuning budget for every method type | 9 | 4.12 | done |
+| E18 | Post-hoc calibration of A2-NonVPN and B, after the test set (labels and scores unchanged) | 18 | 4.22, 5.4 | done |
 
 **The IDs are not in the order the work was done.** Each ID was given when the experiment was
-planned. The plan changed as results came in: E17 was added after E10, and the analyses E09, E13
-and E14 had to wait until the final models were chosen. The real order was:
+planned. The plan changed as results came in: E17 was added after E10, the analyses E09, E13
+and E14 had to wait until the final models were chosen, and E18 was added after the final test. The real order was:
 
 1. E00 (data check, data version v1)
 2. E01, E02 and E03 (baselines), with the paper benchmark
@@ -48,6 +49,7 @@ and E14 had to wait until the final models were chosen. The real order was:
 15. E16 (reproducing Isnan et al.)
 16. E15 (calibration, on validation, before the test set)
 17. E12 (final test: the test set opened once)
+18. E18 (post-hoc calibration of A2-NonVPN and B, after the test set)
 
 Three steps have no ID of their own: the paper benchmark (part of E02 and E03, Section 4.3), the
 storage checks (Sections 4.4 and 4.19) and the final choice of models with the comparison set
