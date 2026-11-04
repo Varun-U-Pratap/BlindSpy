@@ -2,8 +2,8 @@
 
 These CSV files are flows from traffic the team captured on its own laptop, turned into the
 final models' 23 features by `scripts/pcap_to_csv.py`. They are for the demo only: upload one
-with **Upload a CSV** in `app/demo.py`. They are not used for training and are not part of any
-score in the report (the test set was used once, in E12).
+with **Upload a CSV** in `app/demo.py`. They are not used for training, tuning or any score in
+the report.
 
 Expect lower accuracy than in the report (0.85-0.94 test macro F1): the models learned from the
 2016 ISCXVPN2016 captures, and today's apps and VPNs send traffic differently.
@@ -33,9 +33,10 @@ counted a few backward packets that the original tool did not.
 The converter follows the dataset's tool (ISCXFlowMeter): IPv4 TCP and UDP only (other packets,
 including IPv6, are skipped); two-way flows, the first packet's sender is forward; packets in file
 order; a 15 s flow timeout counted from a flow's first packet; a TCP FIN ends a flow; IP total
-length as bytes; gaps of more than 1 s are idle; and the tool's own definition of an active
-period. Captured traffic is never stored in the repository: only the 23 numbers per flow are (no
-addresses, ports or content).
+length as bytes, as captured (a packet the network card combined before capture can be over 1,500
+bytes, as in some dataset flows); gaps of more than 1 s are idle; and the tool's own definition of
+an active period. Captured traffic is never stored in the repository: only the 23 numbers per
+flow are (no addresses, ports or content).
 
 ## How to make new files
 
