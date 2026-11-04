@@ -24,12 +24,18 @@ do not (an `_A2-NonVPN` file uploaded under A2-VPN shows 0 correct).
 ## How the converter was checked
 
 `scripts/check_pcap_to_csv.py` converts the dataset's own captures (`datasets/PCAPs/`) and looks
-for every flow in the dataset's ARFF files; the result is in `reports/pcap_to_csv_check.txt`.
-The converter follows the dataset's tool (ISCXFlowMeter): two-way flows, the first packet's
-sender is forward, packets in file order, a 15 s flow timeout counted from a flow's first packet,
-a TCP FIN ends a flow, IP total length as bytes, gaps of more than 1 s are idle, and the tool's
-own definition of an active period. Captured traffic is never stored in the repository: only the
-23 numbers per flow are (no addresses, ports or content).
+for every flow in the dataset's ARFF files: `reports/pcap_to_csv_check.txt` (15 s timeout) and
+`reports/pcap_to_csv_check_120s.txt` (120 s). Of the flows with 3 or more packets whose duration
+occurs in the A2 15 s file, about 95% are reproduced on all 23 values; some flows of a few
+captures are not in the files at all, and the rest differ by a few packets the original tool did
+not count.
+
+The converter follows the dataset's tool (ISCXFlowMeter): IPv4 TCP and UDP only (other packets,
+including IPv6, are skipped); two-way flows, the first packet's sender is forward; packets in file
+order; a 15 s flow timeout counted from a flow's first packet; a TCP FIN ends a flow; IP total
+length as bytes; gaps of more than 1 s are idle; and the tool's own definition of an active
+period. Captured traffic is never stored in the repository: only the 23 numbers per flow are (no
+addresses, ports or content).
 
 ## How to make new files
 

@@ -48,7 +48,11 @@ def read_packets(pcap: Path, tshark: str = TSHARK) -> pd.DataFrame:
     cmd = [tshark, "-r", str(pcap), "-T", "fields", "-E", "separator=,"]
     for f in FIELDS:
         cmd += ["-e", f]
-    run = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        run = subprocess.run(cmd, capture_output=True, text=True)
+    except FileNotFoundError:
+        raise RuntimeError(f"tshark not found at {tshark}: install Wireshark, or pass --tshark "
+                           "with the path of tshark") from None  # fmt: skip
     if run.returncode != 0:
         raise RuntimeError(f"tshark failed on {pcap}: {run.stderr.strip()}")
     rows = []
@@ -128,6 +132,9 @@ def flow_features(flow: pd.DataFrame) -> dict:
     return out
 
 
+_ONE_PACKET = pd.DataFrame({"ts": [0], "size": [0], "fwd": [True]})
+
+
 def features_for_task(feats: pd.DataFrame, task: str) -> pd.DataFrame:
     """The task's 23 columns in the order of models/final/<task>.json."""
     meta = json.loads((ROOT / "models" / "final" / f"{task}.json").read_text())
@@ -137,7 +144,10 @@ def features_for_task(feats: pd.DataFrame, task: str) -> pd.DataFrame:
 def convert(pcap: Path, task: str, timeout: float = 15, label: str | None = None,
             tshark: str = TSHARK) -> pd.DataFrame:  # fmt: skip
     flows = split_flows(read_packets(pcap, tshark), timeout)
-    out = features_for_task(pd.DataFrame([flow_features(f) for f in flows]), task)
+    feats = pd.DataFrame([flow_features(f) for f in flows])
+    if feats.empty:  # no flows: the right columns, no rows
+        feats = pd.DataFrame(columns=list(flow_features(_ONE_PACKET)))
+    out = features_for_task(feats, task)
     if label is not None:
         out = out.assign(label=label)
     return out
@@ -148,7 +158,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("pcap", type=Path)
     ap.add_argument("--task", required=True, choices=sorted(TASK_LABELS))
     ap.add_argument("--label", help="true class, written as a last `label` column (optional)")
-    ap.add_argument("--timeout", type=float, default=15, help="flow timeout in seconds")
+    ap.add_argument("--timeout", type=float, default=15,
+                    help="flow timeout in seconds (the final models use 15)")  # fmt: skip
     ap.add_argument("--output", type=Path, required=True)
     ap.add_argument("--tshark", default=TSHARK)
     a = ap.parse_args(argv)
@@ -156,7 +167,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"--label {a.label!r} is not a {a.task} class: {', '.join(TASK_LABELS[a.task])}",
               file=sys.stderr)  # fmt: skip
         return 2
-    df = convert(a.pcap, a.task, a.timeout, a.label, a.tshark)
+    try:
+        df = convert(a.pcap, a.task, a.timeout, a.label, a.tshark)
+    except RuntimeError as e:
+        print(e, file=sys.stderr)
+        return 2
     if df.empty:
         print(f"no IPv4 TCP/UDP flows in {a.pcap}", file=sys.stderr)
         return 2
