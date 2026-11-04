@@ -408,7 +408,8 @@ def final_run(
         **{f"class_counts.{k}": json.dumps(v) for k, v in counts.items()},
     }  # fmt: skip
     tags = {
-        "protocol": "final_test" if name == "test" else "final_rehearsal",
+        # E18 (post-hoc calibration) sets its own protocol so its runs stay apart from E12's
+        "protocol": cfg.get("protocol", "final_test") if name == "test" else "final_rehearsal",
         "feature_importance": "impurity" if has_imp else "n/a",
         **{k: v for k, v in info.items() if k.endswith(("f1", "recall"))},
     }

@@ -425,6 +425,22 @@ def phase4() -> None:
         out_e12, v12 = e12_sections(h, runner, "test", "final_test", ROOT)
         out += out_e12
         v.update(v12)
+    if (h["tags.experiment_id"] == "E18").any():
+        runner = load_yaml(ROOT / "configs" / "base.yaml")["official_runner"]
+        t18 = R.e18_table(h, runner)
+        out += ["", "## E18 post-hoc calibration of A2-NonVPN and B (decided 4 Nov, after the test "
+                "set; isotonic as E12's A1 and A2-VPN; labels and F1 must equal E12)", "",
+                "Before = the E12 headline run's confidence; after = the confidence the final "
+                "model reports now (E18 run for A2-NonVPN and B, unchanged E12 run for A1 and "
+                "A2-VPN). Test ECE recomputed from the saved predictions (15 bins) and checked "
+                "against the logged value. Demo sample = the 20 rows of app/samples/"
+                "<task>_test_sample.csv.", "",
+                R.md(t18[[c for c in t18.columns if not c.startswith("_")]]),
+                "", "Reliability diagram: reports/figures/e18_reliability_test.png."]  # fmt: skip
+        R.e18_reliability_figure(
+            h, runner, ROOT / "reports" / "figures" / "e18_reliability_test.png"
+        )
+        v.update(R.e18_verdicts(t18))
     if (ROOT / "reports" / "shap_groups.csv").exists():
         out += shap_sections()
     if (ROOT / "models" / "final" / "B.json").exists():
