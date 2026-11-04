@@ -29,7 +29,8 @@ def packets(rows):
 
 
 def test_flow_features_known_gaps():
-    # a real dataset flow (AIMchat1.pcapng): 0, 53,064, 8,479,284, 8,499,516 us; one idle gap
+    # packet times and directions of a real dataset flow (AIMchat1.pcapng, matched to its A2 row):
+    # 0, 53,064, 8,479,284, 8,499,516 us, one idle gap; the packet sizes are made up
     pk = packets([(0, A, 100, False), (53_064, B, 40, False),
                   (8_479_284, B, 40, False), (8_499_516, A, 100, False)])  # fmt: skip
     [flow] = conv.split_flows(pk, 15)
