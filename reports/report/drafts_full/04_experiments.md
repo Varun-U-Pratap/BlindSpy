@@ -26,6 +26,7 @@ before Section 1):
 15. E16 (reproducing Isnan et al.)
 16. E15 (calibration, on validation, before the test set)
 17. E12 (final test: the test set opened once)
+18. E18 (post-hoc calibration of A2-NonVPN and B, after the test set)
 
 ## 4.0 E00: data findings and data version v1
 
@@ -1126,3 +1127,24 @@ shown its validation rows to be unusually hard), (b) and (c) are supported. 14 o
 differences are clear after Holm; two more sit on the Holm line and are borderline. All results
 are in Section 5.
 
+## 4.22 E18: post-hoc calibration of A2-NonVPN and B (after the test set)
+
+**What.** The A2-NonVPN and B headline models were refitted on training + validation data inside
+the isotonic calibrator that E12 already used for A1 and A2-VPN, and their test rows were predicted
+again. The label is the base model's own prediction and the confidence is the calibrated
+probability of that label. **Why.** The E15 rule had left both models uncalibrated, and the demo
+showed the A2-NonVPN model at confidence 0.99 or higher on all 20 of its 20 sample flows. The 0.05
+cut-off is a rule of thumb no project data chose, and E15 had shown isotonic calibration lowers the
+validation ECE in all four tasks. Decided on 4 Nov, after the test set had been opened and its ECE
+seen, so it is a post-hoc change; the E12 and E15 runs are kept unchanged. **Hypotheses, written
+before the runs.** (a) the labels equal E12's on 100% of test rows; (b) the test macro F1 equals
+E12's exactly; (c) the calibrated test ECE is below the raw one in both tasks; (d) the share of
+rows at confidence 0.99 or higher before and after is reported without a threshold. A rehearsal on
+the validation rows (fitted on training rows, in a separate run store) first reproduced E15's
+isotonic validation ECE and labels exactly.
+
+**Result.** (a), (b) and (c) are supported: the labels equal E12's on every test row, the test
+macro F1 is unchanged (A2-NonVPN 0.9403, B 0.8480), and the test ECE falls from 0.0339 to 0.0132
+(A2-NonVPN) and from 0.042 to 0.0158 (B). The share of test rows at confidence 0.99 or higher falls
+from 0.9571 to 0.2176 and from 0.5579 to 0.4425. All four final models now report a calibrated
+confidence (Section 5.4).

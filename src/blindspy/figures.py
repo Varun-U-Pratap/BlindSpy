@@ -195,6 +195,8 @@ GRAPHS = [
      "notebooks/04_tuning.ipynb"),
     ("Reliability diagram per final model (E15)", ["e15_reliability.png"],
      "scripts/results_tables.py --phase 4"),
+    ("Reliability on the test rows, A2-NonVPN and B, raw vs post-hoc calibrated (E18)",
+     ["e18_reliability_test.png"], "scripts/results_tables.py --phase 4"),
     ("Top-5 confusion-pair table per task", ["(table) reports/phase4_tables.md, section "
      "'E12 top-5 confusion pairs'"], "scripts/results_tables.py --phase 4"),
 ]  # fmt: skip

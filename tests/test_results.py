@@ -514,13 +514,13 @@ def test_verdict_summary_groups_parts_per_experiment(tmp_path):
 def test_appendix_runs_lists_every_run_once():
     h = pd.read_csv(ROOT / "reports" / "history.csv", low_memory=False)
     a = R.appendix_runs()
-    assert len(a) == len(h) == 2013
+    assert len(a) == len(h) == 2015
     assert list(a.columns) == ["run", "experiment", "task", "model", "protocol",
                                "CV or 10-fold macro F1", "val macro F1", "test macro F1",
                                "commit"]  # fmt: skip
     assert sorted(a["run"]) == sorted(h["run_name"])
     test = a[a["test macro F1"].notna()]
-    assert len(test) == 30 and test["experiment"].eq("E12").all()
+    assert len(test) == 32 and test["experiment"].value_counts().to_dict() == {"E12": 30, "E18": 2}
     assert a["commit"].str.fullmatch(r"[0-9a-f]{7}").all()
     paper = a[a["protocol"] == "paper_10fold"]
     assert len(paper) == 128 and paper["CV or 10-fold macro F1"].notna().all()

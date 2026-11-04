@@ -324,8 +324,8 @@ def complexity(b: pd.DataFrame) -> pd.DataFrame:
 def appendix_runs(path: Path = ROOT / "reports" / "history.csv") -> pd.DataFrame:
     """Every run of the official store, one line each in start order, for the report's appendix:
     the cross-validation (or paper-protocol 10-fold) macro F1, the validation macro F1 and, only
-    for the 30 E12 runs, the test macro F1. E16 scores on the Kaggle split are not test scores
-    of ours and stay in its own tables."""
+    for the 30 E12 runs and the 2 post-hoc E18 runs, the test macro F1. E16 scores on the
+    Kaggle split are not test scores of ours and stay in its own tables."""
     h = pd.read_csv(path, low_memory=False).sort_values("start_time", kind="mergesort")
     cv = h["metrics.cv_f1_macro_mean"].fillna(h["metrics.bench_f1_macro"])
     return pd.DataFrame({
@@ -1612,3 +1612,134 @@ def e12_per_class(h: pd.DataFrame, task: str) -> pd.DataFrame:
          "F1": round(r[f"metrics.test_f1.{c}"], 4)}
         for c in r["params.classes"].split(",")
     ])  # fmt: skip
+
+
+# ---- E18: post-hoc calibration of A2-NonVPN and B (Phase 6, after the test set) ------------
+
+E18_PROTOCOL = "final_test_calibration_post_hoc"
+CONF_HIGH = 0.99  # E18 (d): share of rows at confidence >= 0.99
+
+
+def _e18_runs(h: pd.DataFrame) -> pd.DataFrame:
+    return h[(h["tags.experiment_id"] == "E18") & (h["tags.protocol"] == E18_PROTOCOL)]
+
+
+def sample_rows(task: str) -> pd.Index:
+    """raw_row of the 20 demo sample rows (as scripts/make_samples.py draws them from the test
+    set: sample(20, random_state=42))."""
+    from blindspy import data
+
+    return data.load_task(task, 15)[2].sample(20, random_state=42).sort_index().index
+
+
+def e18_table(h: pd.DataFrame, runner: str, root: Path = ROOT) -> pd.DataFrame:
+    """The 4 headline models before (E12) and after E18, from the saved test predictions: for
+    A2-NonVPN and B the E18 run, for A1 and A2-VPN the unchanged E12 run (already calibrated).
+    Labels, test macro F1, test ECE (15 bins, recomputed from the saved confidence and checked
+    against the logged value), mean confidence and the share of test and demo-sample rows at
+    confidence >= 0.99. Unrounded values in the "_" columns, for the verdicts."""
+    from blindspy import calibration
+
+    e12 = e12_runs(h)
+    e18 = _e18_runs(h)
+    rows = []
+    for task in CORE_TASKS:
+        b = e12[(e12["params.task"] == task) & (e12["params.role"] == "headline")].iloc[0]
+        g = e18[e18["params.task"] == task]
+        a = g.iloc[0] if not g.empty else b
+        pb = final_predictions(b["run_id"], runner, root=root)
+        pa = final_predictions(a["run_id"], runner, root=root)
+        if not (pa["raw_row"].equals(pb["raw_row"]) and pa["true"].equals(pb["true"])):
+            raise ValueError(f"{task}: E18 and E12 were not scored on the same rows")
+        y = pa["true"].astype(str).to_numpy()
+        lab_b, lab_a = (
+            pb["predicted"].astype(str).to_numpy(),
+            pa["predicted"].astype(str).to_numpy(),
+        )
+        conf_b = pb["confidence"].to_numpy(dtype=float)
+        conf_a = pa["confidence"].to_numpy(dtype=float)
+        ece_b, ece_a = calibration.ece(conf_b, lab_b == y), calibration.ece(conf_a, lab_a == y)
+        for run, value in ((b, ece_b), (a, ece_a)):
+            if not np.isclose(value, run["metrics.test_ece_used"], rtol=0, atol=1e-12):
+                raise ValueError(f"{run['run_name']}: ECE from the saved predictions != logged")
+        in_sample = pa["raw_row"].isin(sample_rows(task)).to_numpy()
+        rows.append({
+            "task": task, "confidence from": a["run_name"],
+            "calibration before -> after": f"{b['params.calibrate']} -> {a['params.calibrate']}",
+            "same label as E12 (share of test rows)": float(np.mean(lab_a == lab_b)),
+            "test macro F1 E12": round(b["metrics.test_f1_macro"], 4),
+            "test macro F1 now": round(a["metrics.test_f1_macro"], 4),
+            "test ECE before": round(ece_b, 4), "test ECE after": round(ece_a, 4),
+            "mean confidence before": round(float(conf_b.mean()), 4),
+            "mean confidence after": round(float(conf_a.mean()), 4),
+            "test accuracy": round(float(np.mean(lab_a == y)), 4),
+            "test rows >= 0.99 before": round(float(np.mean(conf_b >= CONF_HIGH)), 4),
+            "test rows >= 0.99 after": round(float(np.mean(conf_a >= CONF_HIGH)), 4),
+            "demo sample >= 0.99 before": f"{int((conf_b[in_sample] >= CONF_HIGH).sum())} of "
+                                          f"{int(in_sample.sum())}",
+            "demo sample >= 0.99 after": f"{int((conf_a[in_sample] >= CONF_HIGH).sum())} of "
+                                         f"{int(in_sample.sum())}",
+            "_e18": not g.empty, "_f1_before": b["metrics.test_f1_macro"],
+            "_f1_after": a["metrics.test_f1_macro"], "_ece_before": ece_b, "_ece_after": ece_a,
+        })  # fmt: skip
+    return pd.DataFrame(rows)
+
+
+def e18_verdicts(t: pd.DataFrame) -> dict:
+    """(a) labels equal E12 on 100% of test rows; (b) test macro F1 equal to E12 unrounded;
+    (c) calibrated test ECE below the raw one, in both E18 tasks; (d) reported only."""
+    e = t[t["_e18"]].set_index("task")
+    same = (e["same label as E12 (share of test rows)"] == 1.0).to_dict()
+    f1 = (e["_f1_after"] == e["_f1_before"]).to_dict()
+    lower = (e["_ece_after"] < e["_ece_before"]).to_dict()
+    n = len(e)
+    return {
+        "E18a": {"labels_equal_e12": same, "needed": 2,
+                 "supported": n == 2 and all(same.values())},
+        "E18b": {"test_f1_macro_equal_e12": f1, "needed": 2,
+                 "supported": n == 2 and all(f1.values())},
+        "E18c": {"ece_raw": e["test ECE before"].to_dict(),
+                 "ece_calibrated": e["test ECE after"].to_dict(), "calibrated_lower": lower,
+                 "needed": 2, "supported": n == 2 and all(lower.values())},
+        "E18d": {"test_share_at_least_0.99": {
+                     k: [e.loc[k, "test rows >= 0.99 before"], e.loc[k, "test rows >= 0.99 after"]]
+                     for k in e.index},
+                 "demo_sample_at_least_0.99": {
+                     k: [e.loc[k, "demo sample >= 0.99 before"],
+                         e.loc[k, "demo sample >= 0.99 after"]] for k in e.index},
+                 "note": "reported, no threshold"},
+    }  # fmt: skip
+
+
+def e18_reliability_figure(h: pd.DataFrame, runner: str, path: Path, root: Path = ROOT) -> None:
+    """Reliability on the test rows of the two E18 tasks: the E12 raw confidence and the E18
+    calibrated confidence (15 bins; the labels are the same in both)."""
+    import matplotlib.pyplot as plt
+
+    from blindspy import calibration
+
+    t = e18_table(h, runner, root).set_index("task")
+    e12, e18 = e12_runs(h), _e18_runs(h)
+    tasks = [k for k in CORE_TASKS if k in set(e18["params.task"])]
+    fig, axes = plt.subplots(1, len(tasks), figsize=(3.8 * len(tasks), 3.9), squeeze=False)
+    for ax, task in zip(axes.flat, tasks, strict=True):
+        b = e12[(e12["params.task"] == task) & (e12["params.role"] == "headline")].iloc[0]
+        a = e18[e18["params.task"] == task].iloc[0]
+        ax.plot([0, 1], [0, 1], "k--", lw=0.8)
+        for name, run, key in (("raw, E12", b, "before"), ("isotonic, E18", a, "after")):
+            p = final_predictions(run["run_id"], runner, root=root)
+            correct = p["predicted"].astype(str) == p["true"].astype(str)
+            bins = calibration.reliability_bins(p["confidence"].to_numpy(dtype=float), correct)
+            bins = bins[bins["rows"] > 0]
+            ax.plot(bins["mean_confidence"], bins["accuracy"], "o-", ms=3, lw=1.2,
+                    label=f"{name} (ECE {t.loc[task, f'test ECE {key}']:.4f})")  # fmt: skip
+        ax.set_title(task, fontsize=9)
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.set_xlabel("mean confidence in bin", fontsize=8)
+        ax.set_ylabel("accuracy in bin", fontsize=8)
+        ax.legend(fontsize=7, loc="upper left")
+    fig.suptitle("E18 reliability on the test rows (15 bins; post-hoc)", fontsize=10)
+    fig.tight_layout()
+    fig.savefig(path, dpi=110)
+    plt.close(fig)

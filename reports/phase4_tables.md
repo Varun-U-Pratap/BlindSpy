@@ -205,6 +205,19 @@ Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not 
 | VPN-STREAMING | 71 | 0.8861 | 0.9859 | 0.9333 |
 | VPN-VOIP | 340 | 1.0 | 0.9706 | 0.9851 |
 
+## E18 post-hoc calibration of A2-NonVPN and B (decided 4 Nov, after the test set; isotonic as E12's A1 and A2-VPN; labels and F1 must equal E12)
+
+Before = the E12 headline run's confidence; after = the confidence the final model reports now (E18 run for A2-NonVPN and B, unchanged E12 run for A1 and A2-VPN). Test ECE recomputed from the saved predictions (15 bins) and checked against the logged value. Demo sample = the 20 rows of app/samples/<task>_test_sample.csv.
+
+| task | confidence from | calibration before -> after | same label as E12 (share of test rows) | test macro F1 E12 | test macro F1 now | test ECE before | test ECE after | mean confidence before | mean confidence after | test accuracy | test rows >= 0.99 before | test rows >= 0.99 after | demo sample >= 0.99 before | demo sample >= 0.99 after |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| A1 | E12-final-A1 | isotonic -> isotonic | 1.0 | 0.9434 | 0.9434 | 0.009 | 0.009 | 0.9376 | 0.9376 | 0.9435 | 0.5033 | 0.5033 | 12 of 20 | 12 of 20 |
+| A2-VPN | E12-final-A2-VPN | isotonic -> isotonic | 1.0 | 0.8652 | 0.8652 | 0.0169 | 0.0169 | 0.889 | 0.889 | 0.8955 | 0.2395 | 0.2395 | 3 of 20 | 3 of 20 |
+| A2-NonVPN | E18-final-A2-NonVPN | none -> isotonic | 1.0 | 0.9403 | 0.9403 | 0.0339 | 0.0132 | 0.9942 | 0.9539 | 0.9609 | 0.9571 | 0.2176 | 20 of 20 | 7 of 20 |
+| B | E18-final-B | none -> isotonic | 1.0 | 0.848 | 0.848 | 0.042 | 0.0158 | 0.9213 | 0.8917 | 0.8798 | 0.5579 | 0.4425 | 12 of 20 | 9 of 20 |
+
+Reliability diagram: reports/figures/e18_reliability_test.png.
+
 ## SHAP: top 5 features per final model by mean |SHAP| (test rows; log-odds units, averaged over classes; scripts/explain_final.py)
 
 | rank | A1 | A2-VPN | A2-NonVPN | B |
@@ -306,30 +319,30 @@ Band = 2 x tail share +- 2 standard errors, times the Holm rank multiplier. Not 
 | A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 1 | duration | 192.0 | 3.2163 |
 | A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 2 | min_flowiat | 192.0 | 3.0667 |
 | A2-VPN | weakest class, median confidence | 5,962 | VPN-MAIL | VPN-MAIL | 0.877 | 3 | max_fiat | 192.0 | 1.4462 |
-| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 1 | min_flowiat | 2.0 | 2.7472 |
-| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 2 | std_flowiat | 2354206.5587 | 2.6679 |
-| A2-NonVPN | most confident correct | 1,570 | BROWSING | BROWSING | 1.0 | 3 | mean_flowiat | 567400.6667 | 1.7755 |
-| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 1 | min_flowiat | 961.0 | 2.639 |
-| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 2 | std_flowiat | 139858.6502 | 1.0974 |
-| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.4821 | 3 | max_flowiat | 198751.0 | 0.6833 |
-| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 1 | duration | 79.0 | 4.2734 |
-| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 2 | min_fiat | 79.0 | 4.1959 |
-| A2-NonVPN | most confident error | 4,356 | FT | MAIL | 1.0 | 3 | mean_fiat | 79.0 | 2.9155 |
-| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 1 | flowBytesPerSecond | 180014.1793 | 4.7998 |
-| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 2 | min_flowiat | 0.0 | 1.7719 |
-| A2-NonVPN | weakest class, median confidence | 5,721 | STREAMING | STREAMING | 1.0 | 3 | min_fiat | 5.0 | 1.6621 |
-| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 1 | duration | 14991066.0 | 3.8544 |
-| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 2 | std_biat | 3595.304 | 1.1211 |
-| B | most confident correct | 3,045 | VOIP | VOIP | 1.0 | 3 | max_flowiat | 30384.0 | 0.8372 |
-| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 1 | min_fiat | 96.0 | 1.3413 |
-| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 2 | duration | 96.0 | 1.3326 |
-| B | least confident correct | 2,091 | MAIL | MAIL | 0.2948 | 3 | mean_flowiat | 96.0 | 0.825 |
-| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 1 | flowBytesPerSecond | 365.1224 | 2.4335 |
-| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 2 | max_flowiat | 284836.0 | 0.5198 |
-| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9986 | 3 | min_fiat | -1.0 | 0.4553 |
-| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 1 | duration | 11544.0 | 1.7503 |
-| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 2 | min_fiat | 27.0 | 1.2891 |
-| B | weakest class, median confidence | 9,737 | VPN-MAIL | VPN-MAIL | 0.9845 | 3 | min_flowiat | 27.0 | 0.6031 |
+| A2-NonVPN | most confident correct | 2,522 | CHAT | CHAT | 0.9974 | 1 | flowBytesPerSecond | 2323.347 | 5.1683 |
+| A2-NonVPN | most confident correct | 2,522 | CHAT | CHAT | 0.9974 | 2 | min_flowiat | 57245.0 | 4.621 |
+| A2-NonVPN | most confident correct | 2,522 | CHAT | CHAT | 0.9974 | 3 | duration | 57245.0 | 1.8825 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.2605 | 1 | min_flowiat | 961.0 | 2.639 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.2605 | 2 | std_flowiat | 139858.6502 | 1.0974 |
+| A2-NonVPN | least confident correct | 4,393 | FT | FT | 0.2605 | 3 | max_flowiat | 198751.0 | 0.6833 |
+| A2-NonVPN | most confident error | 4,578 | MAIL | FT | 0.9963 | 1 | flowPktsPerSecond | 5698.0057 | 4.3778 |
+| A2-NonVPN | most confident error | 4,578 | MAIL | FT | 0.9963 | 2 | mean_flowiat | 351.0 | 3.0715 |
+| A2-NonVPN | most confident error | 4,578 | MAIL | FT | 0.9963 | 3 | min_flowiat | 351.0 | 2.2885 |
+| A2-NonVPN | weakest class, median confidence | 5,856 | STREAMING | STREAMING | 0.985 | 1 | flowBytesPerSecond | 140981.0358 | 5.0093 |
+| A2-NonVPN | weakest class, median confidence | 5,856 | STREAMING | STREAMING | 0.985 | 2 | min_flowiat | 3.0 | 2.975 |
+| A2-NonVPN | weakest class, median confidence | 5,856 | STREAMING | STREAMING | 0.985 | 3 | max_fiat | 282975.0 | 1.749 |
+| B | most confident correct | 10,695 | VPN-VOIP | VPN-VOIP | 1.0 | 1 | min_flowiat | 38498.0 | 2.6451 |
+| B | most confident correct | 10,695 | VPN-VOIP | VPN-VOIP | 1.0 | 2 | min_biat | 957828.0 | 1.6472 |
+| B | most confident correct | 10,695 | VPN-VOIP | VPN-VOIP | 1.0 | 3 | min_fiat | 959191.0 | 1.1159 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2471 | 1 | min_fiat | 96.0 | 1.3413 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2471 | 2 | duration | 96.0 | 1.3326 |
+| B | least confident correct | 2,091 | MAIL | MAIL | 0.2471 | 3 | mean_flowiat | 96.0 | 0.825 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9916 | 1 | flowBytesPerSecond | 365.1224 | 2.4335 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9916 | 2 | max_flowiat | 284836.0 | 0.5198 |
+| B | most confident error | 7,408 | VPN-P2P | VPN-FT | 0.9916 | 3 | min_fiat | -1.0 | 0.4553 |
+| B | weakest class, median confidence | 9,693 | VPN-MAIL | VPN-MAIL | 0.963 | 1 | flowBytesPerSecond | 1336.6058 | 2.0379 |
+| B | weakest class, median confidence | 9,693 | VPN-MAIL | VPN-MAIL | 0.963 | 2 | max_flowiat | 186867.0 | 1.2492 |
+| B | weakest class, median confidence | 9,693 | VPN-MAIL | VPN-MAIL | 0.963 | 3 | std_fiat | 78492.1049 | 1.0401 |
 
 ## predict.py on a sample file (first 8 rows of the output)
 
@@ -337,14 +350,14 @@ Command: `uv run python scripts/predict.py --task B --input app/samples/B_test_s
 
 | row | label | true_label | confidence | top_feature_1 | top_feature_2 | top_feature_3 |
 |---|---|---|---|---|---|---|
-| 1 | MAIL | MAIL | 0.9879 | flowBytesPerSecond (+3.048) | max_biat (+1.391) | min_flowiat (+1.088) |
-| 2 | VOIP | VOIP | 0.9998 | duration (+3.221) | min_biat (+0.953) | flowBytesPerSecond (+0.756) |
-| 3 | VOIP | VOIP | 0.9998 | duration (+3.220) | min_biat (+0.989) | flowBytesPerSecond (+0.760) |
+| 1 | MAIL | MAIL | 0.9487 | flowBytesPerSecond (+3.048) | max_biat (+1.391) | min_flowiat (+1.088) |
+| 2 | VOIP | VOIP | 0.9997 | duration (+3.221) | min_biat (+0.953) | flowBytesPerSecond (+0.756) |
+| 3 | VOIP | VOIP | 0.9997 | duration (+3.220) | min_biat (+0.989) | flowBytesPerSecond (+0.760) |
 | 4 | VOIP | VOIP | 1.0 | duration (+3.751) | std_biat (+1.102) | max_flowiat (+0.877) |
-| 5 | VOIP | VOIP | 0.9995 | duration (+3.618) | mean_flowiat (+0.849) | max_flowiat (+0.743) |
+| 5 | VOIP | VOIP | 0.9985 | duration (+3.618) | mean_flowiat (+0.849) | max_flowiat (+0.743) |
 | 6 | VOIP | VOIP | 1.0 | duration (+3.528) | std_biat (+1.169) | std_fiat (+0.747) |
-| 7 | VPN-FT | VPN-CHAT | 0.7308 | flowPktsPerSecond (+0.375) | mean_fiat (+0.346) | flowBytesPerSecond (+0.306) |
-| 8 | VPN-FT | VPN-FT | 0.7385 | max_flowiat (+0.977) | min_flowiat (+0.556) | min_fiat (+0.353) |
+| 7 | VPN-FT | VPN-CHAT | 0.6377 | flowPktsPerSecond (+0.375) | mean_fiat (+0.346) | flowBytesPerSecond (+0.306) |
+| 8 | VPN-FT | VPN-FT | 0.5488 | max_flowiat (+0.977) | min_flowiat (+0.556) | min_fiat (+0.353) |
 
 ## Threshold checks (pre-stated in the E## files)
 
@@ -426,6 +439,61 @@ Command: `uv run python scripts/predict.py --task B --input app/samples/B_test_s
   "tasks_at_least_0.8": 4,
   "needed": 3,
   "supported": true
+ },
+ "E18a": {
+  "labels_equal_e12": {
+   "A2-NonVPN": true,
+   "B": true
+  },
+  "needed": 2,
+  "supported": true
+ },
+ "E18b": {
+  "test_f1_macro_equal_e12": {
+   "A2-NonVPN": true,
+   "B": true
+  },
+  "needed": 2,
+  "supported": true
+ },
+ "E18c": {
+  "ece_raw": {
+   "A2-NonVPN": 0.0339,
+   "B": 0.042
+  },
+  "ece_calibrated": {
+   "A2-NonVPN": 0.0132,
+   "B": 0.0158
+  },
+  "calibrated_lower": {
+   "A2-NonVPN": true,
+   "B": true
+  },
+  "needed": 2,
+  "supported": true
+ },
+ "E18d": {
+  "test_share_at_least_0.99": {
+   "A2-NonVPN": [
+    0.9571,
+    0.2176
+   ],
+   "B": [
+    0.5579,
+    0.4425
+   ]
+  },
+  "demo_sample_at_least_0.99": {
+   "A2-NonVPN": [
+    "20 of 20",
+    "7 of 20"
+   ],
+   "B": [
+    "12 of 20",
+    "9 of 20"
+   ]
+  },
+  "note": "reported, no threshold"
  }
 }
 ```
@@ -449,4 +517,5 @@ Command: `uv run python scripts/predict.py --task B --input app/samples/B_test_s
 | E15 | a, b, c | none |
 | E16 | a, b, c, d | none |
 | E17 | a, b, c | none |
+| E18 | a, b, c | none |
 

@@ -39,43 +39,43 @@ A2-VPN,"weakest class, median confidence",5962,VPN-MAIL,VPN-MAIL,0.877,VPN-MAIL,
 A2-VPN,"weakest class, median confidence",5962,VPN-MAIL,VPN-MAIL,0.877,VPN-MAIL,3,max_fiat,192.0,1.4462
 A2-VPN,"weakest class, median confidence",5962,VPN-MAIL,VPN-MAIL,0.877,VPN-MAIL,4,std_flowiat,0.0,1.369
 A2-VPN,"weakest class, median confidence",5962,VPN-MAIL,VPN-MAIL,0.877,VPN-MAIL,5,min_fiat,192.0,1.2724
-A2-NonVPN,most confident correct,1570,BROWSING,BROWSING,1.0,STREAMING,1,min_flowiat,2.0,2.7472
-A2-NonVPN,most confident correct,1570,BROWSING,BROWSING,1.0,STREAMING,2,std_flowiat,2354206.5587,2.6679
-A2-NonVPN,most confident correct,1570,BROWSING,BROWSING,1.0,STREAMING,3,mean_flowiat,567400.6667,1.7755
-A2-NonVPN,most confident correct,1570,BROWSING,BROWSING,1.0,STREAMING,4,total_fiat,213048.0,1.7143
-A2-NonVPN,most confident correct,1570,BROWSING,BROWSING,1.0,STREAMING,5,flowBytesPerSecond,633.0036,1.6045
-A2-NonVPN,least confident correct,4393,FT,FT,0.4821,STREAMING,1,min_flowiat,961.0,2.639
-A2-NonVPN,least confident correct,4393,FT,FT,0.4821,STREAMING,2,std_flowiat,139858.6502,1.0974
-A2-NonVPN,least confident correct,4393,FT,FT,0.4821,STREAMING,3,max_flowiat,198751.0,0.6833
-A2-NonVPN,least confident correct,4393,FT,FT,0.4821,STREAMING,4,mean_biat,0.0,0.371
-A2-NonVPN,least confident correct,4393,FT,FT,0.4821,STREAMING,5,flowBytesPerSecond,4571.5831,0.3081
-A2-NonVPN,most confident error,4356,FT,MAIL,1.0,STREAMING,1,duration,79.0,4.2734
-A2-NonVPN,most confident error,4356,FT,MAIL,1.0,STREAMING,2,min_fiat,79.0,4.1959
-A2-NonVPN,most confident error,4356,FT,MAIL,1.0,STREAMING,3,mean_fiat,79.0,2.9155
-A2-NonVPN,most confident error,4356,FT,MAIL,1.0,STREAMING,4,min_flowiat,79.0,1.9789
-A2-NonVPN,most confident error,4356,FT,MAIL,1.0,STREAMING,5,mean_flowiat,79.0,1.4962
-A2-NonVPN,"weakest class, median confidence",5721,STREAMING,STREAMING,1.0,STREAMING,1,flowBytesPerSecond,180014.1793,4.7998
-A2-NonVPN,"weakest class, median confidence",5721,STREAMING,STREAMING,1.0,STREAMING,2,min_flowiat,0.0,1.7719
-A2-NonVPN,"weakest class, median confidence",5721,STREAMING,STREAMING,1.0,STREAMING,3,min_fiat,5.0,1.6621
-A2-NonVPN,"weakest class, median confidence",5721,STREAMING,STREAMING,1.0,STREAMING,4,mean_biat,22372.8409,1.6109
-A2-NonVPN,"weakest class, median confidence",5721,STREAMING,STREAMING,1.0,STREAMING,5,flowPktsPerSecond,84.692,0.9498
-B,most confident correct,3045,VOIP,VOIP,1.0,VPN-MAIL,1,duration,14991066.0,3.8544
-B,most confident correct,3045,VOIP,VOIP,1.0,VPN-MAIL,2,std_biat,3595.304,1.1211
-B,most confident correct,3045,VOIP,VOIP,1.0,VPN-MAIL,3,max_flowiat,30384.0,0.8372
-B,most confident correct,3045,VOIP,VOIP,1.0,VPN-MAIL,4,std_fiat,4463.7609,0.8298
-B,most confident correct,3045,VOIP,VOIP,1.0,VPN-MAIL,5,min_biat,2.0,0.6659
-B,least confident correct,2091,MAIL,MAIL,0.2948,VPN-MAIL,1,min_fiat,96.0,1.3413
-B,least confident correct,2091,MAIL,MAIL,0.2948,VPN-MAIL,2,duration,96.0,1.3326
-B,least confident correct,2091,MAIL,MAIL,0.2948,VPN-MAIL,3,mean_flowiat,96.0,0.825
-B,least confident correct,2091,MAIL,MAIL,0.2948,VPN-MAIL,4,min_flowiat,96.0,0.6049
-B,least confident correct,2091,MAIL,MAIL,0.2948,VPN-MAIL,5,std_flowiat,0.0,0.4181
-B,most confident error,7408,VPN-P2P,VPN-FT,0.9986,VPN-MAIL,1,flowBytesPerSecond,365.1224,2.4335
-B,most confident error,7408,VPN-P2P,VPN-FT,0.9986,VPN-MAIL,2,max_flowiat,284836.0,0.5198
-B,most confident error,7408,VPN-P2P,VPN-FT,0.9986,VPN-MAIL,3,min_fiat,-1.0,0.4553
-B,most confident error,7408,VPN-P2P,VPN-FT,0.9986,VPN-MAIL,4,flowPktsPerSecond,7.0216,0.3795
-B,most confident error,7408,VPN-P2P,VPN-FT,0.9986,VPN-MAIL,5,std_fiat,0.0,0.2931
-B,"weakest class, median confidence",9737,VPN-MAIL,VPN-MAIL,0.9845,VPN-MAIL,1,duration,11544.0,1.7503
-B,"weakest class, median confidence",9737,VPN-MAIL,VPN-MAIL,0.9845,VPN-MAIL,2,min_fiat,27.0,1.2891
-B,"weakest class, median confidence",9737,VPN-MAIL,VPN-MAIL,0.9845,VPN-MAIL,3,min_flowiat,27.0,0.6031
-B,"weakest class, median confidence",9737,VPN-MAIL,VPN-MAIL,0.9845,VPN-MAIL,4,std_fiat,8124.6569,0.5628
-B,"weakest class, median confidence",9737,VPN-MAIL,VPN-MAIL,0.9845,VPN-MAIL,5,mean_flowiat,5772.0,0.4888
+A2-NonVPN,most confident correct,2522,CHAT,CHAT,0.9974,STREAMING,1,flowBytesPerSecond,2323.347,5.1683
+A2-NonVPN,most confident correct,2522,CHAT,CHAT,0.9974,STREAMING,2,min_flowiat,57245.0,4.621
+A2-NonVPN,most confident correct,2522,CHAT,CHAT,0.9974,STREAMING,3,duration,57245.0,1.8825
+A2-NonVPN,most confident correct,2522,CHAT,CHAT,0.9974,STREAMING,4,mean_flowiat,57245.0,1.8643
+A2-NonVPN,most confident correct,2522,CHAT,CHAT,0.9974,STREAMING,5,max_flowiat,57245.0,1.8594
+A2-NonVPN,least confident correct,4393,FT,FT,0.2605,STREAMING,1,min_flowiat,961.0,2.639
+A2-NonVPN,least confident correct,4393,FT,FT,0.2605,STREAMING,2,std_flowiat,139858.6502,1.0974
+A2-NonVPN,least confident correct,4393,FT,FT,0.2605,STREAMING,3,max_flowiat,198751.0,0.6833
+A2-NonVPN,least confident correct,4393,FT,FT,0.2605,STREAMING,4,mean_biat,0.0,0.371
+A2-NonVPN,least confident correct,4393,FT,FT,0.2605,STREAMING,5,flowBytesPerSecond,4571.5831,0.3081
+A2-NonVPN,most confident error,4578,MAIL,FT,0.9963,STREAMING,1,flowPktsPerSecond,5698.0057,4.3778
+A2-NonVPN,most confident error,4578,MAIL,FT,0.9963,STREAMING,2,mean_flowiat,351.0,3.0715
+A2-NonVPN,most confident error,4578,MAIL,FT,0.9963,STREAMING,3,min_flowiat,351.0,2.2885
+A2-NonVPN,most confident error,4578,MAIL,FT,0.9963,STREAMING,4,mean_fiat,351.0,1.6739
+A2-NonVPN,most confident error,4578,MAIL,FT,0.9963,STREAMING,5,min_fiat,351.0,0.5696
+A2-NonVPN,"weakest class, median confidence",5856,STREAMING,STREAMING,0.985,STREAMING,1,flowBytesPerSecond,140981.0358,5.0093
+A2-NonVPN,"weakest class, median confidence",5856,STREAMING,STREAMING,0.985,STREAMING,2,min_flowiat,3.0,2.975
+A2-NonVPN,"weakest class, median confidence",5856,STREAMING,STREAMING,0.985,STREAMING,3,max_fiat,282975.0,1.749
+A2-NonVPN,"weakest class, median confidence",5856,STREAMING,STREAMING,0.985,STREAMING,4,mean_biat,33946.8318,1.3973
+A2-NonVPN,"weakest class, median confidence",5856,STREAMING,STREAMING,0.985,STREAMING,5,total_biat,14936606.0,1.0368
+B,most confident correct,10695,VPN-VOIP,VPN-VOIP,1.0,VPN-MAIL,1,min_flowiat,38498.0,2.6451
+B,most confident correct,10695,VPN-VOIP,VPN-VOIP,1.0,VPN-MAIL,2,min_biat,957828.0,1.6472
+B,most confident correct,10695,VPN-VOIP,VPN-VOIP,1.0,VPN-MAIL,3,min_fiat,959191.0,1.1159
+B,most confident correct,10695,VPN-VOIP,VPN-VOIP,1.0,VPN-MAIL,4,duration,14441904.0,0.9544
+B,most confident correct,10695,VPN-VOIP,VPN-VOIP,1.0,VPN-MAIL,5,std_fiat,614.8651,0.8778
+B,least confident correct,2091,MAIL,MAIL,0.2471,VPN-MAIL,1,min_fiat,96.0,1.3413
+B,least confident correct,2091,MAIL,MAIL,0.2471,VPN-MAIL,2,duration,96.0,1.3326
+B,least confident correct,2091,MAIL,MAIL,0.2471,VPN-MAIL,3,mean_flowiat,96.0,0.825
+B,least confident correct,2091,MAIL,MAIL,0.2471,VPN-MAIL,4,min_flowiat,96.0,0.6049
+B,least confident correct,2091,MAIL,MAIL,0.2471,VPN-MAIL,5,std_flowiat,0.0,0.4181
+B,most confident error,7408,VPN-P2P,VPN-FT,0.9916,VPN-MAIL,1,flowBytesPerSecond,365.1224,2.4335
+B,most confident error,7408,VPN-P2P,VPN-FT,0.9916,VPN-MAIL,2,max_flowiat,284836.0,0.5198
+B,most confident error,7408,VPN-P2P,VPN-FT,0.9916,VPN-MAIL,3,min_fiat,-1.0,0.4553
+B,most confident error,7408,VPN-P2P,VPN-FT,0.9916,VPN-MAIL,4,flowPktsPerSecond,7.0216,0.3795
+B,most confident error,7408,VPN-P2P,VPN-FT,0.9916,VPN-MAIL,5,std_fiat,0.0,0.2931
+B,"weakest class, median confidence",9693,VPN-MAIL,VPN-MAIL,0.963,VPN-MAIL,1,flowBytesPerSecond,1336.6058,2.0379
+B,"weakest class, median confidence",9693,VPN-MAIL,VPN-MAIL,0.963,VPN-MAIL,2,max_flowiat,186867.0,1.2492
+B,"weakest class, median confidence",9693,VPN-MAIL,VPN-MAIL,0.963,VPN-MAIL,3,std_fiat,78492.1049,1.0401
+B,"weakest class, median confidence",9693,VPN-MAIL,VPN-MAIL,0.963,VPN-MAIL,4,std_flowiat,80520.9778,0.8087
+B,"weakest class, median confidence",9693,VPN-MAIL,VPN-MAIL,0.963,VPN-MAIL,5,min_fiat,35.0,0.7369

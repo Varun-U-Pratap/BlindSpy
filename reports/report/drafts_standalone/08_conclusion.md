@@ -22,7 +22,8 @@ the test rows (Spearman 0.82-0.96). Class balancing and a two-step model for tas
 (E08 (class balancing), E10 (one model or two steps for task B)). The byte rate and the shortest gaps between packets are among the features the models
 use most (SHAP), dropping the rates and duration costs the most in three of the four tasks (E09, feature-group ablation),
 and both methods find that active and idle times add little (Section 5.6). Confidence is
-calibrated where the validation data showed it was needed (E15, calibration), and the command-line predictor and the Streamlit demo [23] use the four final models to classify new flow files and explain each
+calibrated in all four tasks (E15 (calibration); for A2-NonVPN and B by a post-hoc change after the test set,
+E18 (post-hoc calibration of A2-NonVPN and B), that changed no label or score), and the command-line predictor and the Streamlit demo [23] use the four final models to classify new flow files and explain each
 prediction.
 
 These results hold for this dataset only. The data were captured in a lab in 2016, with specific
@@ -34,4 +35,4 @@ it has not been measured. A session-aware split on data with capture identifiers
 independently of ISCXVPN2016, are the next steps before any of these models is used on a real
 network.
 
-All runs, data versions and decisions are kept: 2,013 MLflow runs in one exported history table, one log entry per experiment, a changelog per data version, and a saved copy of the exact code at each milestone (Appendix).
+All runs, data versions and decisions are kept: 2,015 MLflow runs in one exported history table, one log entry per experiment, a changelog per data version, and a saved copy of the exact code at each milestone (Appendix).

@@ -45,6 +45,8 @@ def test_task_sample_gives_a_prediction_table(task):
     table = at.dataframe[0].value
     assert len(table) == 20
     assert {"label", "confidence", "true_label"} <= set(table.columns)
+    # the model line: every final model reports a calibrated confidence (E15, E18)
+    assert any("**Confidence:** calibrated (isotonic" in m.value for m in at.markdown)
 
 
 def test_malformed_sample_is_rejected():

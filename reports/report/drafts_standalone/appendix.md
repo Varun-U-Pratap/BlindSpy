@@ -7,8 +7,8 @@ https://github.com/Varun-U-Pratap/BlindSpy.
 
 ## A.2 MLflow screenshots
 
-The official MLflow store holds all 2,013 runs (A.5). Below: the run list of the `blindspy`
-experiment (newest first: the 30 E12 runs), and one final run, E12-final-B, with its test metrics
+The official MLflow store holds all 2,015 runs (A.5). Below, as captured on 31 Oct (before E18):
+the run list of the `blindspy` experiment (newest first: the 30 E12 runs), and one final run, E12-final-B, with its test metrics
 and the tags every run carries (runner, machine, code version, lock-file hash, package versions,
 data version and data hashes). The demo is shown in Section 5.11.
 

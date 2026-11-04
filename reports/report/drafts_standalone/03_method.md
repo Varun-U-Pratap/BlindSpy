@@ -197,3 +197,10 @@ entry repeats the ones it uses before it runs.
   model counts as XGBoost; the majority baseline is a reference, not a member. Only the four
   headline models are kept as final model files; the others stay in the run
   store.
+- **Post-hoc calibration of A2-NonVPN and B (E18, decided 4 Nov, after the test set).** The E15
+  rule (calibrate only where the uncalibrated validation ECE is above 0.05) left A2-NonVPN and B
+  with their raw, overconfident probabilities. After the test set had been opened and its ECE seen,
+  the team decided to calibrate them too, with exactly the isotonic calibrator already used for A1
+  and A2-VPN (no other method tried). This is a deviation made after the test set and is reported as
+  one: the predicted label is still the uncalibrated model's, so no label, score or test changes;
+  the original confidence and its test ECE stay reported beside the new ones (Sections 4.22, 5.4).

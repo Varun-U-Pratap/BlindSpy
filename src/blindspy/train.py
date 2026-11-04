@@ -395,6 +395,8 @@ def final_run(
 
     fit_desc = "train" if name == "rehearsal" else "train + validation"
     score_desc = "validation (rehearsal)" if name == "rehearsal" else "test, once"
+    if name == "test" and "protocol" in cfg:  # E18: the test rows were scored before, in E12
+        score_desc = "test, again after E12 (post-hoc; confidence only)"
     params = {
         **_base_params(cfg, pipe, X_fit, seed, compress),
         "protocol": f"final: {cv_folds}-fold stratified CV and fit on {fit_desc}, "
@@ -408,7 +410,8 @@ def final_run(
         **{f"class_counts.{k}": json.dumps(v) for k, v in counts.items()},
     }  # fmt: skip
     tags = {
-        "protocol": "final_test" if name == "test" else "final_rehearsal",
+        # E18 (post-hoc calibration) sets its own protocol so its runs stay apart from E12's
+        "protocol": cfg.get("protocol", "final_test") if name == "test" else "final_rehearsal",
         "feature_importance": "impurity" if has_imp else "n/a",
         **{k: v for k, v in info.items() if k.endswith(("f1", "recall"))},
     }

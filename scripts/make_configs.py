@@ -221,6 +221,24 @@ def write_e12() -> int:
     return n
 
 
+E18_TASKS = ("A2-NonVPN", "B")  # the headline models E15's 0.05 rule left uncalibrated
+
+
+def write_e18() -> int:
+    """E18 (Phase 6, post-hoc, after the test set): the E12 headline configs of A2-NonVPN and B
+    again, with calibrate: isotonic, so all four headline models report calibrated confidence.
+    Own run names and protocol, so the 30 E12 runs and their tables are untouched."""
+    n = 0
+    for task in E18_TASKS:
+        cfg = yaml.safe_load((OUT / f"E12_final_{task}.yaml").read_text())
+        cfg.update({"experiment_id": "E18", "run_name": f"E18-final-{task}",
+                    "calibrate": "isotonic",
+                    "protocol": "final_test_calibration_post_hoc"})  # fmt: skip
+        write(f"E18_final_{task}", cfg)
+        n += 1
+    return n
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     n = 0
@@ -357,6 +375,7 @@ def main() -> None:
             write(f"E16_size_{rows}_s{seed}", cfg)
             n += 1
     n += write_e12()
+    n += write_e18()
     print(f"Wrote {n} configs to {OUT.relative_to(ROOT)}")
 
 
