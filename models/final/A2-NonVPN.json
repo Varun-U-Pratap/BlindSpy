@@ -1,19 +1,19 @@
 {
  "task": "A2-NonVPN",
  "timeout": 15,
- "mlflow_run_name": "E12-final-A2-NonVPN",
- "mlflow_run_id": "b0e2fb9543c5449f8e2f01a9f5b8cf18",
- "git_commit": "87181d20ac570ebb247a3588fca3ab3b73d58c6b",
- "training_date": "2026-10-30T20:25:43+00:00",
- "config_file": "configs/experiments/E12_final_A2-NonVPN.yaml",
+ "mlflow_run_name": "E18-final-A2-NonVPN",
+ "mlflow_run_id": "8d82aa5b4d104fcdb0921d02f58eeda7",
+ "git_commit": "c36047dc29d8de15cfeedad2577e26a10c04a1f9",
+ "training_date": "2026-11-04T12:25:49+00:00",
+ "config_file": "configs/experiments/E18_final_A2-NonVPN.yaml",
  "source_run": "E08-lgbm_oversample-A2-NonVPN-15s",
  "model": "lgbm",
  "class_balancing": "oversample",
  "pipeline_steps": "RandomOverSampler -> LGBMClassifier",
  "trained_on": "train + validation rows of the seed-42 split (7389 rows), data version v1",
  "data_sha256": "0adb0bd4c973999bb51497458f7b58aabbad6490e482195b772f65e917317919",
- "calibration": "none",
- "confidence": "the model's probability of the predicted class",
+ "calibration": "isotonic",
+ "confidence": "calibrated (isotonic, E18, post-hoc) probability of the predicted class",
  "test_macro_f1": 0.9402652350057733,
  "features": [
   {
@@ -119,6 +119,6 @@
   "STREAMING",
   "VOIP"
  ],
- "model_file_bytes": 5157816,
- "model_file_sha256": "df96945dfc5876cdf3231f0a97b29bf15cb9c9b9db2d2e6cc737310277e59f8f"
+ "model_file_bytes": 5162585,
+ "model_file_sha256": "95cd0461517e83e7681243d0e75d703b4cc00c2b5db13c596388b40745851d85"
 }

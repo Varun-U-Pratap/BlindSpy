@@ -481,6 +481,7 @@ def appendix() -> None:
         "holds every parameter, metric and tag of each run. One line per run, in start order. "
         f"{len(runs):,} runs: " + ", ".join(f"{k} {v:,}" for k, v in n.items()) + ". "
         "Scores are macro F1 rounded to 4 decimals; a test score exists only for the 30 E12 runs "
+        "and the 2 E18 runs (post-hoc calibration of A2-NonVPN and B: same labels and scores) "
         "(E16 scores on the Kaggle split are in its own tables).",
         "",
         R.md(runs),

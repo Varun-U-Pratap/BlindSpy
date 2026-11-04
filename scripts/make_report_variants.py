@@ -265,6 +265,23 @@ kept with the project's files.
 HASH = r"[0-9a-f]{7}"
 # Commit and push wording in the experiment log, applied in this order (regex, replacement).
 LOG_RULES = [
+    # E18 (Phase 6), before the generic rules below
+    (
+        rf"Clone\s+of\s+commit\s+{HASH}\s+\(pushed,\s+clean\s+tree\),\s+data\s+v1\s+rebuilt\s+there\s+"
+        r"with\s+the\s+same\s+combined\s+hash\s+\(2725f36b\.\.\.\),",
+        "A scratch copy of the saved code (no unsaved changes), data v1 rebuilt there "
+        "byte-identical,",
+    ),
+    (rf"An\s+earlier\s+rehearsal\s+at\s+{HASH}\s+\(before", "An earlier rehearsal (before"),
+    (
+        rf"2\s+official\s+runs\s+from\s+commit\s+{HASH},\s+pushed,\s+clean\s+tree\)",
+        "2 official runs from saved, shared code)",
+    ),
+    (
+        rf"only\s+by\s+the\s+Phase\s+5\s+commit\s+{HASH}\s+\(Streamlit",
+        "only by the Phase 5 change that added the demo (Streamlit",
+    ),
+    (r";\s+the\s+old\s+picks\s+stay\s+in\s+git\s+at\s+v1\.0\.4-final\)", ")"),
     (
         rf",\s+commit\s+{HASH}\s+\(merged\s+as\s+{HASH}\);\s+all\s+8\s+runs\s+then\s+came\s+from\s+that\s+commit\.",
         "; all 8 runs then came from the corrected code.",

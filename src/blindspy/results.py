@@ -324,8 +324,8 @@ def complexity(b: pd.DataFrame) -> pd.DataFrame:
 def appendix_runs(path: Path = ROOT / "reports" / "history.csv") -> pd.DataFrame:
     """Every run of the official store, one line each in start order, for the report's appendix:
     the cross-validation (or paper-protocol 10-fold) macro F1, the validation macro F1 and, only
-    for the 30 E12 runs, the test macro F1. E16 scores on the Kaggle split are not test scores
-    of ours and stay in its own tables."""
+    for the 30 E12 runs and the 2 post-hoc E18 runs, the test macro F1. E16 scores on the
+    Kaggle split are not test scores of ours and stay in its own tables."""
     h = pd.read_csv(path, low_memory=False).sort_values("start_time", kind="mergesort")
     cv = h["metrics.cv_f1_macro_mean"].fillna(h["metrics.bench_f1_macro"])
     return pd.DataFrame({
