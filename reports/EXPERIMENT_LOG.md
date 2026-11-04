@@ -135,6 +135,36 @@ four headline models report a calibrated confidence. A post-hoc change made afte
 opened: no label, F1 score, interval, test or E12 verdict changes, and the raw values above stay
 reported beside the calibrated ones.
 
+### After the swap: final models, predict.py, demo and SHAP (2026-11-04)
+
+`scripts/save_final_models.py` now saves A2-NonVPN and B from the E18 runs (A1 and A2-VPN from
+E12, their files byte-identical). Each new file reproduces its E18 run's test predictions (label and
+confidence) before it is written; sizes 4.92 MiB (A2-NonVPN) and 4.61 MiB (B), JSON
+`calibration: isotonic`. `predict.py` and the demo now report a calibrated confidence for all four
+tasks (checked in the running demo for A1, A2-NonVPN, B and the malformed sample).
+
+SHAP (`scripts/explain_final.py`, rerun): the explained model is the calibrator's base model, the
+same plain fit as before, so `shap_importance.csv`, `shap_class_top.csv`, `shap_groups.csv` and all
+beeswarm figures came out byte-identical. The worked examples are picked by confidence
+(`explain.pick_examples`), so they changed for A2-NonVPN and B and stayed identical for A1 and
+A2-VPN (`reports/shap_examples.csv`; the old picks stay in git at v1.0.4-final):
+
+| task | example | before (E12 raw confidence) | after (E18 calibrated) |
+|---|---|---|---|
+| A2-NonVPN | most confident correct | row 1570, BROWSING, 1.0000 | row 2522, CHAT, 0.9974 |
+| A2-NonVPN | least confident correct | row 4393, FT, 0.4821 | row 4393, FT, 0.2605 (same row) |
+| A2-NonVPN | most confident error | row 4356, FT predicted MAIL, 1.0000 | row 4578, MAIL predicted FT, 0.9963 |
+| A2-NonVPN | weakest class, median confidence | row 5721, STREAMING, 1.0000 | row 5856, STREAMING, 0.9850 |
+| B | most confident correct | row 3045, VOIP, 1.0000 | row 10695, VPN-VOIP, 1.0000 |
+| B | least confident correct | row 2091, MAIL, 0.2948 | row 2091, MAIL, 0.2471 (same row) |
+| B | most confident error | row 7408, VPN-P2P predicted VPN-FT, 0.9986 | row 7408, 0.9916 (same row) |
+| B | weakest class, median confidence | row 9737, VPN-MAIL, 0.9845 | row 9693, VPN-MAIL, 0.9630 |
+
+Why: the most confident rows were tied at 1.0 (or within rounding of it) under the raw
+probabilities and the tie went to the first row; the calibrated confidence orders them
+differently. Flow 4,356 (FT predicted MAIL, the example that showed the problem) now gets 0.9791
+instead of 0.99999992.
+
 ### E17 — Equal tuning budget for every method type (2026-10-28, utsav-s-r)
 
 Why this experiment exists (decided 28 Oct after E10, agreed by the team; plan item "Decided 28 Oct, after
