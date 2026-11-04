@@ -1,8 +1,10 @@
-"""Save the 4 headline models of E12 to models/final/<task>.joblib + <task>.json (committed).
+"""Save the 4 headline models to models/final/<task>.joblib + <task>.json (committed).
 
-Each model is the one trained in its official E12-final-<task> run (on train + validation),
-loaded from that run's MLflow artifact. Before saving, the model must reproduce the run's saved
-test predictions (label and confidence) exactly. A file over 50 MB (GitHub's warning size)
+Each model is the one trained in its official final run (on train + validation), loaded from
+that run's MLflow artifact: E12-final-<task> for A1 and A2-VPN, and the post-hoc calibrated
+E18-final-<task> for A2-NonVPN and B (E18, 4 Nov; same labels as E12, calibrated confidence).
+Before saving, the model must reproduce the run's saved test predictions (label and confidence)
+exactly. A file over 50 MB (GitHub's warning size)
 stops the script: such a model needs a decision on how to ship it (release asset or Git LFS).
 
 Usage: uv run python scripts/save_final_models.py
@@ -27,8 +29,11 @@ def main() -> int:
     runner = base["official_runner"]
     h = R.load_history()
     e = R.e12_runs(h)
+    e18 = h[(h["tags.experiment_id"] == "E18") & (h["tags.protocol"] == R.E18_PROTOCOL)]
     for task in data.CORE_TASKS:
         r = e[(e["params.task"] == task) & (e["params.role"] == "headline")].iloc[0]
+        if task in set(e18["params.task"]):
+            r = e18[e18["params.task"] == task].iloc[0]
         art = ROOT / "mlruns" / runner / "artifacts" / r["run_id"] / "artifacts"
         model = joblib.load(art / "model" / "model.joblib")  # the project's own run artifact
         test = data.load_task(task, 15, data_version=r["tags.data_version"])[2]
@@ -59,7 +64,9 @@ def main() -> int:
             "data_sha256": r["tags.data_sha256"],
             "calibration": r["params.calibrate"],
             "confidence": (
-                "calibrated (isotonic, E15) probability of the predicted class"
+                "calibrated (isotonic, "
+                + ("E18, post-hoc" if r["tags.experiment_id"] == "E18" else "E15")
+                + ") probability of the predicted class"
                 if r["params.calibrate"] == "isotonic"
                 else "the model's probability of the predicted class"
             ),

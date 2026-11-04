@@ -2,7 +2,7 @@
 """Write the two reader editions of the report from the master drafts in reports/report/drafts/.
 
 Both editions get the same reading aids: a "How to read this report" page with a key to the
-experiment IDs (E00-E17), a note that the IDs are not in the order the work was done, the plain
+experiment IDs (E00-E18), a note that the IDs are not in the order the work was done, the plain
 name of an ID at its first mention in each section, and the real order of the work at the top of
 Section 4.
 
@@ -44,11 +44,12 @@ EXPERIMENTS = {
     "E15": ("calibration", "Calibration of the final models' confidence, on validation", "16", "4.20", "done"),
     "E16": ("reproducing Isnan et al.", "Reproducing Isnan et al. (2026) on the Kaggle copy, then correcting it", "15", "4.18", "done"),
     "E17": ("equal tuning budget", "The same tuning budget for every method type", "9", "4.12", "done"),
+    "E18": ("post-hoc calibration of A2-NonVPN and B", "Post-hoc calibration of A2-NonVPN and B, after the test set (labels and scores unchanged)", "18", "4.22, 5.4", "done"),
 }  # fmt: skip
 
 HOW_TO_READ = """# How to read this report
 
-Every experiment in this project has an ID, E00 to E17, and the report uses these IDs throughout:
+Every experiment in this project has an ID, E00 to E18, and the report uses these IDs throughout:
 in headings ("4.6 E04: KNN with a signed log transform"), in the text ("E04 lifted KNN by ..."),
 in table rows and in run names such as E07-xgb-B-15s, which reads "experiment E07, XGBoost, task
 B, 15 s files". The table below says what each ID is, in which order the experiments were run and
@@ -59,8 +60,8 @@ where the report describes them.
 {rows}
 
 **The IDs are not in the order the work was done.** Each ID was given when the experiment was
-planned. The plan changed as results came in: E17 was added after E10, and the analyses E09, E13
-and E14 had to wait until the final models were chosen. The real order was:
+planned. The plan changed as results came in: E17 was added after E10, the analyses E09, E13
+and E14 had to wait until the final models were chosen, and E18 was added after the final test. The real order was:
 
 {order}
 
@@ -87,6 +88,7 @@ ORDER = [
     "E16 (reproducing Isnan et al.)",
     "E15 (calibration, on validation, before the test set)",
     "E12 (final test: the test set opened once)",
+    "E18 (post-hoc calibration of A2-NonVPN and B, after the test set)",
 ]
 
 SECTION4_ORDER = """**The order in which the experiments were run** (this section is ordered by ID; see the key
@@ -219,8 +221,8 @@ STANDALONE = {
     ],
     "08_conclusion.md": [
         ("and `scripts/predict.py` and the Streamlit demo", "and the command-line predictor and the Streamlit demo"),
-        ("2,013 MLflow runs exported to `reports/history.csv`, one log entry per experiment (`reports/EXPERIMENT_LOG.md`), a changelog per data version (`reports/DATA_CHANGELOG.md`) and a git tag at each milestone (Appendix).",
-         "2,013 MLflow runs in one exported history table, one log entry per experiment, a changelog per data version, and a saved copy of the exact code at each milestone (Appendix)."),
+        ("2,015 MLflow runs exported to `reports/history.csv`, one log entry per experiment (`reports/EXPERIMENT_LOG.md`), a changelog per data version (`reports/DATA_CHANGELOG.md`) and a git tag at each milestone (Appendix).",
+         "2,015 MLflow runs in one exported history table, one log entry per experiment, a changelog per data version, and a saved copy of the exact code at each milestone (Appendix)."),
     ],
     "04_experiments.md#4": [("fixed (configs/final/B.yaml)", "fixed (final task-B settings)")],
 }  # fmt: skip
@@ -234,8 +236,8 @@ https://github.com/Varun-U-Pratap/BlindSpy.
 
 ## A.2 MLflow screenshots
 
-The official MLflow store holds all 2,013 runs (A.5). Below: the run list of the `blindspy`
-experiment (newest first: the 30 E12 runs), and one final run, E12-final-B, with its test metrics
+The official MLflow store holds all 2,015 runs (A.5). Below, as captured on 31 Oct (before E18):
+the run list of the `blindspy` experiment (newest first: the 30 E12 runs), and one final run, E12-final-B, with its test metrics
 and the tags every run carries (runner, machine, code version, lock-file hash, package versions,
 data version and data hashes). The demo is shown in Section 5.11.
 
@@ -265,6 +267,23 @@ kept with the project's files.
 HASH = r"[0-9a-f]{7}"
 # Commit and push wording in the experiment log, applied in this order (regex, replacement).
 LOG_RULES = [
+    # E18 (Phase 6), before the generic rules below
+    (
+        rf"Clone\s+of\s+commit\s+{HASH}\s+\(pushed,\s+clean\s+tree\),\s+data\s+v1\s+rebuilt\s+there\s+"
+        r"with\s+the\s+same\s+combined\s+hash\s+\(2725f36b\.\.\.\),",
+        "A scratch copy of the saved code (no unsaved changes), data v1 rebuilt there "
+        "byte-identical,",
+    ),
+    (rf"An\s+earlier\s+rehearsal\s+at\s+{HASH}\s+\(before", "An earlier rehearsal (before"),
+    (
+        rf"2\s+official\s+runs\s+from\s+commit\s+{HASH},\s+pushed,\s+clean\s+tree\)",
+        "2 official runs from saved, shared code)",
+    ),
+    (
+        rf"only\s+by\s+the\s+Phase\s+5\s+commit\s+{HASH}\s+\(Streamlit",
+        "only by the Phase 5 change that added the demo (Streamlit",
+    ),
+    (r";\s+the\s+old\s+picks\s+stay\s+in\s+git\s+at\s+v1\.0\.4-final\)", ")"),
     (
         rf",\s+commit\s+{HASH}\s+\(merged\s+as\s+{HASH}\);\s+all\s+8\s+runs\s+then\s+came\s+from\s+that\s+commit\.",
         "; all 8 runs then came from the corrected code.",

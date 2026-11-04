@@ -23,12 +23,14 @@ Draper-Gil et al. (ICISSP 2016):
   with its checklist and result, team rules and risks.
 - **Final results** (test set scored once, 95% bootstrap intervals): test macro F1 A1 0.9434,
   A2-VPN 0.8652, A2-NonVPN 0.9403, B 0.8480 (`reports/phase4_tables.md`, experiment E12).
+  All four final models report a calibrated confidence: A1 and A2-VPN since E15/E12,
+  A2-NonVPN and B since E18 (a post-hoc change after the test set; labels and scores unchanged).
 - **Demo:** `app/demo.py` (how to run it below) and a 1-minute video of it,
   `reports/demo/demo_video.mp4` (made by `scripts/record_demo.py`; `reports/demo/video_script.md`).
 - **Final models:** `models/final/<task>.joblib` with `<task>.json` (feature names, order and
   units, class labels, the MLflow run and git commit they came from).
 - **History:** `reports/EXPERIMENT_LOG.md` (one entry per experiment, failures included),
-  `reports/history.csv` (all 2,013 MLflow runs, every parameter, metric and tag),
+  `reports/history.csv` (all 2,015 MLflow runs, every parameter, metric and tag),
   `reports/run_artifacts_text.tar.gz` (every text file saved with a run),
   `reports/DATA_CHANGELOG.md` (data versions), and the git tags below.
 
@@ -42,6 +44,7 @@ Draper-Gil et al. (ICISSP 2016):
 | `v1.0.2-final` | The two reader editions of the report (standalone and full, with a key to the experiment IDs); no result changed |
 | `v1.0.3-final` | The project plan as `reports/PLAN.md`; no result changed |
 | `v1.0.4-final` | Wording: decisions read as agreed by the team; the experiment log and the three reports rebuilt; no result changed |
+| `v1.1-final` | E18: A2-NonVPN and B calibrated as well (post-hoc, after the test set; labels and scores unchanged), final models, report and notebooks updated (`reports/phase6_evidence.md`) |
 
 ## Run it on any laptop
 
@@ -126,14 +129,19 @@ cp configs/local.example.yaml configs/local.yaml
 
 Edit `configs/local.yaml` to say `runner: <your name>` (Windows: `copy` instead of `cp`). Then
 retrain the 30 final models on training + validation rows and score each once on the test rows
-(about 20 minutes on a laptop):
+(about 20 minutes on a laptop), then the 2 post-hoc calibrated models of E18 (A2-NonVPN and B,
+a few minutes):
 
 ```bash
 uv run python scripts/run_experiment.py configs/experiments/E12_*.yaml
 ```
 
+```bash
+uv run python scripts/run_experiment.py configs/experiments/E18_*.yaml
+```
+
 (Windows PowerShell, not yet tested: `uv run python scripts/run_experiment.py
-(Get-ChildItem configs/experiments/E12_*.yaml).FullName`.) `run_experiment.py` prints a warning
+(Get-ChildItem configs/experiments/E12_*.yaml).FullName`, and the same with `E18_*.yaml`.) `run_experiment.py` prints a warning
 because your runner is not the official one; the runs still complete. Compare with the official
 scores:
 
@@ -141,9 +149,11 @@ scores:
 uv run python scripts/check_final_scores.py --runner <your name>
 ```
 
-It prints each run's test macro F1 and accuracy next to the official ones from
-`reports/history.csv` and ends with how many of the 30 are identical and how many agree to 4
-decimals (exit code 0 only if all 30 agree).
+It prints each run's test macro F1, accuracy and ECE next to the official ones from
+`reports/history.csv`, checks each run's predicted label on every test row against the official
+test predictions in `reports/run_artifacts_text.tar.gz`, and ends with how many of the 32 runs
+are identical, how many agree to 4 decimals and how many predict the same labels (exit code 0
+only if all 32 agree and have the same labels).
 
 Note: adding Streamlit for the demo changed `uv.lock` after the final runs, so the lock-file hash
 logged with your runs differs from the official ones (only Streamlit and five packages it needs

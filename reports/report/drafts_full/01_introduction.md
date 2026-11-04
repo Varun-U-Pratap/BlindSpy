@@ -97,6 +97,7 @@ the A2 feature set (`total_fiat` and `total_biat` in place of the paper's `std_f
    tests fixed in advance: test macro F1 A1 0.9434, A2-VPN 0.8652, A2-NonVPN 0.9403, B 0.8480.
    [E12 (final test), Section 5]
 8. A command-line predictor (`scripts/predict.py`) and a Streamlit demo that classify a new flow
-   file with the final models, report a confidence (calibrated for A1 and A2-VPN, E15 (calibration)) and show
+   file with the final models, report a calibrated confidence (A1 and A2-VPN from E15 (calibration), A2-NonVPN
+   and B from the post-hoc E18 (post-hoc calibration of A2-NonVPN and B)) and show
    the features behind each prediction, and reject a malformed file. [Sections 5.10-5.11]
 9. A full history: every run, data version and experiment, traceable to a commit.

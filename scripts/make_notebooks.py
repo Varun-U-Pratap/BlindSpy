@@ -1,5 +1,5 @@
 """Write notebooks/03_models.ipynb (E04-E06), 04_tuning.ipynb (E07-E17), 05_explain.ipynb (SHAP)
-and 06_final_results.ipynb (E12, E15).
+and 06_final_results.ipynb (E12, E15, E18).
 
 The notebooks only READ results: reports/history.csv (every MLflow run, exported by
 scripts/export_history.py), the generated CSVs in reports/ and, for E10, the confusion matrices
@@ -433,9 +433,10 @@ SHAP TreeExplainer on the 4 final models (`models/final/<task>.joblib`, trained 
 validation in E12), on each task's test rows: the only rows these models never trained on. No
 score is computed and nothing is chosen here; the test scores are E12's. The values are in the
 model's raw output units (log-odds; softmax margins for the 7- and 14-class models). For the
-calibrated A1 and A2-VPN models the explained model is the base model, whose class is the one
-reported (E15). Many of the 23 features are correlated (E00, notebook 01), so the values describe
-how a model uses the features, not what causes the traffic patterns.
+calibrated models (all four: A1 and A2-VPN since E15, A2-NonVPN and B since the post-hoc E18) the
+explained model is the base model, whose class is the one reported. Many of the 23 features are
+correlated (E00, notebook 01), so the values describe how a model uses the features, not what
+causes the traffic patterns.
 
 The numbers and figures are written by `scripts/explain_final.py` (reports/shap_*.csv,
 reports/figures/shap_*.png); this notebook reads and shows them. E09 (feature-group ablation) is
@@ -493,8 +494,8 @@ display(Image(FIG / "shap_groups_vs_e09.png"))""",
 Picked by a rule fixed before looking at them (`blindspy.explain.pick_examples`): the most and
 the least confident correct prediction, the most confident wrong prediction, and the correct
 prediction of the task's weakest class (lowest test F1) with the median confidence. Confidence is
-the probability reported by predict.py (calibrated for A1 and A2-VPN). Times are microseconds,
-rates per second, -1 = not measurable.""",
+the probability reported by predict.py (calibrated in all four tasks, E15 and E18). Times are
+microseconds, rates per second, -1 = not measurable.""",
     ),
     (
         "code",
@@ -523,13 +524,15 @@ predict("A2-VPN", sample).head(8)""",
 NB06 = [
     (
         "markdown",
-        """# 06 Final results (E12, E15) on the test set
+        """# 06 Final results (E12, E15, E18) on the test set
 
 The 4 headline models and the 26 other final models (comparison set and old-rule picks) were
 each fitted on train + validation and scored ONCE on the seed-42 test rows (E12; 30 runs from
 one commit, rehearsal on validation first). Calibration was settled on validation before that
-(E15). This notebook reads the results (reports/history.csv, the runs' saved test predictions,
-models/final/) and shows every final table and graph; it trains nothing and scores nothing new.
+(E15). After the test set, E18 calibrated A2-NonVPN and B as well (post-hoc; same labels and
+scores, section 5b). This notebook reads the results (reports/history.csv, the runs' saved test
+predictions, models/final/) and shows every final table and graph; it trains nothing and scores
+nothing new.
 Intervals: 10,000 stratified paired resamples per task, seed 42, 95% percentile intervals,
 conditional on the test class counts.""",
     ),
@@ -597,6 +600,20 @@ display(Image(FIG / "e15_reliability.png"))
 display(R.e12_headline_details(h))""",
     ),
     ("markdown", "F06_CALIBRATION"),
+    (
+        "markdown",
+        "## 5b. Post-hoc calibration of A2-NonVPN and B (E18, decided after the test set)",
+    ),
+    (
+        "code",
+        """t18 = R.e18_table(h, RUNNER)
+display(t18.drop(columns=[c for c in t18.columns if c.startswith("_")]))
+display(Image(FIG / "e18_reliability_test.png"))
+v18 = R.e18_verdicts(t18)
+display(pd.DataFrame([{"check": k, "supported": x.get("supported", "reported only")}
+                      for k, x in v18.items()]))""",
+    ),
+    ("markdown", "F06_E18"),
     ("markdown", "## 6. Accuracy against cost, and the timeout effect"),
     (
         "code",
@@ -803,17 +820,21 @@ F1).**
 - No group alone comes close to all 23 features (E09: -0.0604 to -0.6345).""",
     "F05_EXAMPLES": """**Findings (worked examples).**
 
-- Confident correct flows are driven by one strong timing signal, for example B VOIP by its long
-  duration (1.499e7 microseconds, SHAP 3.854) and A2-VPN VOIP by min_biat and its low byte rate.
+- Confident correct flows are driven by one or two strong timing signals, for example A2-NonVPN
+  CHAT by its byte rate (2,323 bytes/s, SHAP 5.168), B VPN-VOIP by its minimum gaps (min_flowiat
+  38,498 microseconds, SHAP 2.645) and A2-VPN VOIP by min_biat and its low byte rate.
 - The least confident correct flows are very short: B MAIL with duration 96 microseconds
-  (confidence 0.295) and A2-VPN FT with gaps of 52 microseconds (0.226), where several classes
+  (confidence 0.247) and A2-VPN FT with gaps of 52 microseconds (0.226), where several classes
   look alike.
-- The most confident errors come from a byte rate typical of another class: A1 Non-VPN -> VPN at
+- The most confident errors come from a rate typical of another class: A1 Non-VPN -> VPN at
   130.9 bytes/s (confidence 0.996), A2-VPN VPN-BROWSING -> VPN-STREAMING at 1.32e6 bytes/s (0.979),
-  B VPN-P2P -> VPN-FT at 365.1 bytes/s (0.999); A2-NonVPN FT -> MAIL is a 79-microsecond flow
-  (1.000). High confidence alone does not show that a prediction is right.
-- The weakest classes are recognised through duration and the minimum gaps (VPN-MAIL in A2-VPN and
-  B), the byte rate (STREAMING in A2-NonVPN) and min_flowiat (Non-VPN in A1).""",
+  B VPN-P2P -> VPN-FT at 365.1 bytes/s (0.992), A2-NonVPN MAIL -> FT at 5,698 packets/s (0.996).
+  High confidence alone does not show that a prediction is right.
+- The weakest classes are recognised through duration and the minimum gaps (VPN-MAIL in A2-VPN),
+  the byte rate (VPN-MAIL in B, STREAMING in A2-NonVPN) and min_flowiat (Non-VPN in A1).
+- Since E18 every confidence here is the calibrated one, so the A2-NonVPN and B picks differ from
+  the ones made with the raw probabilities (tag v1.0.4-final); the SHAP values themselves did not
+  change (same base model).""",
     "F06_PROGRESS": """**Findings.** Every task improved on the E02 decision-tree baseline
 in steps: E04 (signed-log KNN), E05 (Random Forest) and E06 (boosting) raised all four; E07
 (tuning) raised A2-VPN, A2-NonVPN and B; E08 (balancing) raised the two A2 tasks; E17 (equal
@@ -847,6 +868,12 @@ VPN-BROWSING (28 + 17 flows), the largest confusion between a VPN and a non-VPN 
 calibration, adopted for A1 and A2-VPN by the rule fixed in advance, lowers their test ECE from
 0.0442 to 0.0090 and from 0.0709 to 0.0169; the uncalibrated A2-NonVPN and B models have test ECE
 0.0339 and 0.0420. Calibration never changes the predicted class.""",
+    "F06_E18": """**Findings.** A post-hoc change, decided on 4 Nov after the test ECE was seen:
+the 0.05 adoption rule had left A2-NonVPN (20 of its 20 demo rows at confidence 0.99 or higher)
+and B uncalibrated. E18 refitted both with the same isotonic calibrator as A1 and A2-VPN. The
+labels equal E12's on every test row and the test macro F1 is unchanged (0.9403, 0.8480); the test
+ECE falls from 0.0339 to 0.0132 (A2-NonVPN) and from 0.0420 to 0.0158 (B), and the share of test
+rows at 0.99 or higher from 0.9571 to 0.2176 and from 0.5579 to 0.4425.""",
     "F06_COST": """**Findings.** The top scores come from the boosted models (training 0.19-35.2
 s), Random Forest (1.5-34.0 s) and the tuned SVM (SVM runs 0.15-2.9 s); KNN trains in 0.005-0.033
 s at somewhat lower macro F1, and logistic regression and the untuned SVM stay far below. The

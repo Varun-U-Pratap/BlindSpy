@@ -1,19 +1,19 @@
 {
  "task": "B",
  "timeout": 15,
- "mlflow_run_name": "E12-final-B",
- "mlflow_run_id": "2e4f4b82251f434b813f54934f73e14e",
- "git_commit": "87181d20ac570ebb247a3588fca3ab3b73d58c6b",
- "training_date": "2026-10-30T20:29:23+00:00",
- "config_file": "configs/experiments/E12_final_B.yaml",
+ "mlflow_run_name": "E18-final-B",
+ "mlflow_run_id": "ee5f3e99447a4fdb94d29bde28381ddd",
+ "git_commit": "c36047dc29d8de15cfeedad2577e26a10c04a1f9",
+ "training_date": "2026-11-04T12:27:01+00:00",
+ "config_file": "configs/experiments/E18_final_B.yaml",
  "source_run": "E07-xgb-B-15s",
  "model": "xgb",
  "class_balancing": "none",
  "pipeline_steps": "XGBLabelled",
  "trained_on": "train + validation rows of the seed-42 split (15362 rows), data version v1",
  "data_sha256": "17de245d7e8730edee8aa99f247e976b7fa657d44250c2a86f334f456acba991",
- "calibration": "none",
- "confidence": "the model's probability of the predicted class",
+ "calibration": "isotonic",
+ "confidence": "calibrated (isotonic, E18, post-hoc) probability of the predicted class",
  "test_macro_f1": 0.8480041400637294,
  "features": [
   {
@@ -126,6 +126,6 @@
   "VPN-STREAMING",
   "VPN-VOIP"
  ],
- "model_file_bytes": 4825448,
- "model_file_sha256": "5b84f8663f95553b8ba6edca152964097f0015c54a4a488db4abb85915254382"
+ "model_file_bytes": 4830931,
+ "model_file_sha256": "1c7946817e70c24733a955d45ab66fa6ea84c759e6215f92dc42c73cf0eacb89"
 }

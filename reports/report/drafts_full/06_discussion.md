@@ -49,8 +49,12 @@ E16 (c)).
 **Calibration where it was needed.** All four headline models were overconfident on validation.
 Isotonic calibration, adopted by a rule fixed in advance for A1 and A2-VPN, lowered the test ECE
 from 0.0442 to 0.0090 and from 0.0709 to 0.0169 without changing a single prediction (E15 (calibration), E12,
-Section 5.4). The confidence that `predict.py` and the demo show is therefore close to the share
-of correct predictions at that confidence, for those two tasks.
+Section 5.4). The rule left A2-NonVPN and B uncalibrated although they were overconfident too;
+after the test set, E18 (post-hoc calibration of A2-NonVPN and B) calibrated them in the same way as a post-hoc change, lowering their test
+ECE from 0.0339 to 0.0132 and from 0.042 to 0.0158, again without changing a prediction. The
+confidence that `predict.py` and the demo show is therefore close to the share of correct
+predictions at that confidence in all four tasks. A fixed cut-off such as 0.05 was the weak part:
+calibration costs nothing in F1 here, so it could have been applied to every model from the start.
 
 ## 6.2 What did not work
 
@@ -99,7 +103,7 @@ They agree on most points (Section 5.6):
 
 The worked examples show the limit of a confidence score: the most confident errors are flows
 whose byte rate is typical of another class (a VPN-P2P flow at 365.1 bytes per second predicted as
-VPN-FT with confidence 0.9986, Section 5.6). Neither SHAP nor the ablation explains what causes a
+VPN-FT with confidence 0.9916, Section 5.6). Neither SHAP nor the ablation explains what causes a
 traffic pattern; both describe these models on these files.
 
 ## 6.4 Reproduced, improved, and what limits both

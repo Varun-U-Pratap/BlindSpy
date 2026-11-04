@@ -50,6 +50,12 @@
   after E10 (one model or two steps for task B) and before the test set was opened, and the old rule's picks were scored too, so its
   cost is shown (Section 5.3), but it is still a change of plan after some validation results were
   known.
+- **A post-hoc change after the test set (E18, post-hoc calibration of A2-NonVPN and B).** The calibration rule fixed before the test set
+  (adopt only where the uncalibrated validation ECE is above 0.05, a rule of thumb no project data
+  chose) left A2-NonVPN and B uncalibrated. After the test set had been opened and its ECE seen,
+  both were calibrated with the same isotonic method (Sections 3.8, 4.22). No label or score
+  changed, but the decision was informed by test results, and the test rows of these two tasks were
+  used a second time.
 
 ## 7.3 The results
 
@@ -74,7 +80,8 @@
   (C = 985) stops at the fixed limit of 1,000 iterations (E17, equal tuning budget). Its score may be slightly below what
   a converged model would reach; it was not rerun after the result was seen.
 - **Calibration is checked on one test set.** The test ECE (Section 5.4) is a single measurement
-  with 15 bins and no interval.
+  with 15 bins and no interval. For A2-NonVPN and B the calibrated test ECE comes from the second
+  use of the test rows (E18), so it is not an untouched estimate like A1's and A2-VPN's.
 - **"Timing only" needs the byte rate.** Without flowBytesPerSecond, which depends on packet
   sizes, validation macro F1 drops by 0.015-0.044 (E09 (c)). The models read no payload, but they
   do use the amount of data per second.

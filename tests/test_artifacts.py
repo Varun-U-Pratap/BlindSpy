@@ -24,4 +24,4 @@ def test_archive_matches_index_and_history():
     names = dict(zip(hist["run_id"], hist["run_name"], strict=True))
     assert all(names[r] == n for r, n in zip(index["run_id"], index["run_name"], strict=True))
     preds = index[index.index.str.endswith("predictions/test_predictions.csv")]
-    assert set(preds["experiment_id"]) == {"E12"} and len(preds) == 30
+    assert preds["experiment_id"].value_counts().to_dict() == {"E12": 30, "E18": 2}

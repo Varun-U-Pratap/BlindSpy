@@ -125,7 +125,7 @@ def test_committed_models_on_committed_samples(task):
     model, meta = P.load_final(task)
     X = sample.drop(columns="label")
     assert (out["label"] == calibration.base_model(model).predict(X)).all()
-    assert meta["calibration"] == ("isotonic" if task in ("A1", "A2-VPN") else "none")
+    assert meta["calibration"] == "isotonic"  # all four since E18
     assert out["confidence"].between(0, 1).all() and len(out) == 20
     assert meta["model_file_bytes"] < 50 * 10**6
 
