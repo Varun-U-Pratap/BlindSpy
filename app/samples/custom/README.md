@@ -26,9 +26,9 @@ do not (an `_A2-NonVPN` file uploaded under A2-VPN shows 0 correct).
 `scripts/check_pcap_to_csv.py` converts the dataset's own captures (`datasets/PCAPs/`) and looks
 for every flow in the dataset's ARFF files: `reports/pcap_to_csv_check.txt` (15 s timeout) and
 `reports/pcap_to_csv_check_120s.txt` (120 s). Of the flows with 3 or more packets whose duration
-occurs in the A2 15 s file, about 95% are reproduced on all 23 values; some flows of a few
-captures are not in the files at all, and the rest differ by a few packets the original tool did
-not count.
+occurs in the A2 15 s file, 94.9% are reproduced on all 23 values (90.9% at 120 s). Many flows of
+a few captures are not in the files at all. In the differing flows checked by hand, the converter
+counted a few backward packets that the original tool did not.
 
 The converter follows the dataset's tool (ISCXFlowMeter): IPv4 TCP and UDP only (other packets,
 including IPv6, are skipped); two-way flows, the first packet's sender is forward; packets in file

@@ -1,0 +1,41 @@
+Captures: 33 (<= 30 MB) of datasets/PCAPs/, timeout 120 s, 115 s
+Flows: 17121; with >= 3 packets: 3841
+Flows >= 3 packets whose duration occurs in the A2 file: 1305
+Of those, reproduced exactly (all 23 values): A2 layout 1186 (90.9%), B layout 1177 (90.2%)
+Of all flows >= 3 packets: A2 30.9%, B 30.6% (the rest have no row with that duration in the file: see the per-capture table)
+Flows of 1-2 packets found in A2: 2746 of 13280
+
+capture	A2 file	flows	flows >= 3 packets	duration in A2	found in A2	found in B
+datasets/PCAPs/NonVPN-PCAPs-01/AIMchat1.pcapng	A2-NonVPN	52	31	15	14	14
+datasets/PCAPs/NonVPN-PCAPs-01/AIMchat2.pcapng	A2-NonVPN	43	18	6	6	6
+datasets/PCAPs/NonVPN-PCAPs-01/aim_chat_3a.pcap	A2-NonVPN	72	30	19	18	16
+datasets/PCAPs/NonVPN-PCAPs-01/aim_chat_3b.pcap	A2-NonVPN	361	38	21	21	21
+datasets/PCAPs/NonVPN-PCAPs-01/email1a.pcap	A2-NonVPN	2694	418	56	50	50
+datasets/PCAPs/NonVPN-PCAPs-01/email1b.pcap	A2-NonVPN	2715	432	75	75	75
+datasets/PCAPs/NonVPN-PCAPs-01/email2a.pcap	A2-NonVPN	517	223	3	0	0
+datasets/PCAPs/NonVPN-PCAPs-01/email2b.pcap	A2-NonVPN	498	225	2	0	0
+datasets/PCAPs/NonVPN-PCAPs-01/facebook_audio1a.pcap	A2-NonVPN	242	67	15	14	14
+datasets/PCAPs/NonVPN-PCAPs-01/facebook_audio1b.pcapng	A2-NonVPN	104	52	17	15	15
+datasets/PCAPs/NonVPN-PCAPs-01/facebook_audio2a.pcap	A2-NonVPN	372	104	38	33	33
+datasets/PCAPs/NonVPN-PCAPs-01/facebook_audio2b.pcapng	A2-NonVPN	127	89	28	24	24
+datasets/PCAPs/NonVPN-PCAPs-01/facebook_chat_4a.pcap	A2-NonVPN	111	32	15	14	14
+datasets/PCAPs/NonVPN-PCAPs-01/facebook_chat_4b.pcap	A2-NonVPN	387	36	15	7	7
+datasets/PCAPs/NonVPN-PCAPs-01/facebookchat1.pcapng	A2-NonVPN	38	33	5	4	4
+datasets/PCAPs/NonVPN-PCAPs-01/facebookchat2.pcapng	A2-NonVPN	31	22	6	5	5
+datasets/PCAPs/NonVPN-PCAPs-01/facebookchat3.pcapng	A2-NonVPN	92	70	7	6	6
+datasets/PCAPs/VPN-PCAPS-01/vpn_aim_chat1a.pcap	A2-VPN	53	23	9	9	9
+datasets/PCAPs/VPN-PCAPS-01/vpn_aim_chat1b.pcap	A2-VPN	38	27	26	25	23
+datasets/PCAPs/VPN-PCAPS-01/vpn_email2a.pcap	A2-VPN	284	111	97	95	95
+datasets/PCAPs/VPN-PCAPS-01/vpn_email2b.pcap	A2-VPN	313	105	87	87	87
+datasets/PCAPs/VPN-PCAPS-01/vpn_facebook_audio2.pcap	A2-VPN	1762	348	7	0	0
+datasets/PCAPs/VPN-PCAPS-01/vpn_facebook_chat1a.pcap	A2-VPN	714	120	78	61	61
+datasets/PCAPs/VPN-PCAPS-01/vpn_facebook_chat1b.pcap	A2-VPN	592	22	17	15	15
+datasets/PCAPs/VPN-PCAPS-01/vpn_hangouts_chat1a.pcap	A2-VPN	1437	164	104	83	83
+datasets/PCAPs/VPN-PCAPS-01/vpn_hangouts_chat1b.pcap	A2-VPN	1560	108	79	54	49
+datasets/PCAPs/VPN-PCAPs-02/vpn_icq_chat1a.pcap	A2-VPN	70	36	12	12	12
+datasets/PCAPs/VPN-PCAPs-02/vpn_icq_chat1b.pcap	A2-VPN	16	12	12	12	12
+datasets/PCAPs/VPN-PCAPs-02/vpn_sftp_B.pcap	A2-VPN	26	11	8	8	8
+datasets/PCAPs/VPN-PCAPs-02/vpn_skype_chat1a.pcap	A2-VPN	78	49	26	26	26
+datasets/PCAPs/VPN-PCAPs-02/vpn_skype_chat1b.pcap	A2-VPN	69	57	57	57	57
+datasets/PCAPs/VPN-PCAPs-02/vpn_skype_files1a.pcap	A2-VPN	745	352	150	149	149
+datasets/PCAPs/VPN-PCAPs-02/vpn_skype_files1b.pcap	A2-VPN	908	376	193	187	187
