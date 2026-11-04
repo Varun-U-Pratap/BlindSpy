@@ -395,6 +395,8 @@ def final_run(
 
     fit_desc = "train" if name == "rehearsal" else "train + validation"
     score_desc = "validation (rehearsal)" if name == "rehearsal" else "test, once"
+    if name == "test" and "protocol" in cfg:  # E18: the test rows were scored before, in E12
+        score_desc = "test, again after E12 (post-hoc; confidence only)"
     params = {
         **_base_params(cfg, pipe, X_fit, seed, compress),
         "protocol": f"final: {cv_folds}-fold stratified CV and fit on {fit_desc}, "

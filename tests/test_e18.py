@@ -27,6 +27,8 @@ def test_calibration_keeps_labels_and_f1_and_lowers_nothing_else(tmp_path):
     cal, p_cal = _fit(tmp_path / "cal", "isotonic", R.E18_PROTOCOL)
     assert plain["tags"]["protocol"] == "final_test"  # E12 path unchanged
     assert cal["tags"]["protocol"] == R.E18_PROTOCOL
+    assert plain["params"]["protocol"].endswith("score test, once")
+    assert "again after E12 (post-hoc" in cal["params"]["protocol"]
     assert (p_cal["predicted"] == p_plain["predicted"]).all()
     assert cal["metrics"]["test_f1_macro"] == plain["metrics"]["test_f1_macro"]
     assert cal["metrics"]["test_ece_uncalibrated"] == plain["metrics"]["test_ece_used"]
