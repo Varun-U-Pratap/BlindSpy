@@ -10,3 +10,4 @@ about/related/
 .pytest_cache/
 .ruff_cache/
 backups/
+captures/

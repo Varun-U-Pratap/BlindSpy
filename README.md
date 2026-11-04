@@ -103,6 +103,10 @@ uv run streamlit run app/demo.py
 Choose a task, pick a sample file (or upload a CSV), and click a row of the predictions table to
 see the features behind that prediction.
 
+Flow files made from the team's own traffic captures go in `app/samples/custom/`; upload them
+with **Upload a CSV**. Its `README.md` says how they are made (`scripts/pcap_to_csv.py`) and which
+task each file is for.
+
 **4. Get the dataset** (only for rebuilding the data and reproducing scores). Download the
 ISCXVPN2016 dataset from https://www.unb.ca/cic/datasets/vpn.html and put its `CSVs` folder (it
 holds the ARFF files, in `Scenario A1-ARFF`, `Scenario A2-ARFF` and `Scenario B-ARFF`) at
