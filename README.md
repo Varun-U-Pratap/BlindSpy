@@ -15,7 +15,7 @@ Draper-Gil et al. (ICISSP 2016):
   its experiment ID.
 - **Two reader editions of the same report**, built by `scripts/make_report_variants.py` and
   `scripts/build_report.py --tag final --edition standalone|full`: both start with a key to the
-  experiment IDs (E00-E17), what each is and the order they were run in (the IDs are not in run
+  experiment IDs (E00-E18), what each is and the order they were run in (the IDs are not in run
   order). `reports/report/BlindSpy_report_full.pdf` (and `.docx`) keeps everything else as it is;
   `reports/report/BlindSpy_report_standalone.pdf` (and `.docx`) also leaves out git details and
   file paths, so it reads without this repository. No number differs between the three.

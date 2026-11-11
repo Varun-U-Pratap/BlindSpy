@@ -195,6 +195,9 @@ calibrated confidence and the features behind it, and reject a malformed file.
 
 # Results
 
+[[wide]]
+![Best validation macro F1 so far per task and experiment, with the final model's test score (star).](../figures/progress_chart.png)
+
 ## Reproducing the original paper
 
 Under the paper's protocol (10-fold cross-validation on the full files, Weka defaults [16]) our
@@ -202,6 +205,9 @@ C4.5 approximation matches all 16 A1 precision and recall values of the paper wi
 1-NN matches 15 of 16. Contrary to our hypothesis, removing duplicates did not lower these
 scores: the removed rows are near-empty flows (median 0-2 packets), and 39-92% of them have a
 twin with the same features and another label, so keeping them adds errors no model can avoid.
+
+[[wide]]
+![Test macro F1 with 95% intervals (filled) and validation macro F1 (open) of every final model; the final model of each task is in red.](../figures/e12_comparison_test.png)
 
 ## Model development on validation
 
@@ -224,28 +230,24 @@ Table: Best 15 s validation macro F1 after each step (majority-class floor: 0.34
 | XGBoost, default | 0.9271 | 0.8758 | 0.9015 | 0.8303 |
 | Final choice | 0.9308 | 0.8830 | 0.9075 | 0.8428 |
 
-[[wide]]
-![Best validation macro F1 so far per task and experiment, with the final model's test score (star).](../figures/progress_chart.png)
-
 ## Final test scores
 
-Table III gives the final models on the test rows. Three tasks score above validation and one
-below. One pre-stated check failed: the A2-NonVPN test score is 0.0328 above validation, more
+Table III gives the final models on the test rows (their validation scores are the last row of
+Table II). Three tasks score above validation and one below. One pre-stated check failed: the A2-NonVPN test score is 0.0328 above validation, more
 than the 0.03 we allowed. A split-seed experiment run before the test set was opened had already
 shown that its official validation rows are harder than any of 10 resplits (0.9075 against
 0.9257-0.9468). The two other checks held: the final model scored above the old rule's pick in
 all four tasks, and the order of the seven method types by test score followed their order by
 validation score (Spearman [22] 0.9643, 0.8214, 0.9286 and 0.9643).
 
-[[wide]]
-Table: Final models on the test rows (macro F1 with 95% interval; ECE after calibration)
+Table: Final models on the test rows (macro F1 with 95% interval; Acc. = accuracy; ECE after calibration)
 
-| Task | Model | Val F1 | Test F1 | 95% interval | Accuracy | ECE |
-|---|---|---|---|---|---|---|
-| A1 | LightGBM, tuned | 0.9308 | 0.9434 | 0.9348-0.9519 | 0.9435 | 0.0090 |
-| A2-VPN | LightGBM, class weights | 0.8830 | 0.8652 | 0.8431-0.8866 | 0.8955 | 0.0169 |
-| A2-NonVPN | LightGBM, oversampling | 0.9075 | 0.9403 | 0.9216-0.9573 | 0.9609 | 0.0132 |
-| B | XGBoost, tuned | 0.8428 | 0.8480 | 0.8305-0.8651 | 0.8798 | 0.0158 |
+| Task | Model | Test F1 | 95% interval | Acc. | ECE |
+|---|---|---|---|---|---|
+| A1 | LightGBM, tuned | 0.9434 | 0.9348-0.9519 | 0.9435 | 0.0090 |
+| A2-VPN | LightGBM, class weights | 0.8652 | 0.8431-0.8866 | 0.8955 | 0.0169 |
+| A2-NonVPN | LightGBM, oversampling | 0.9403 | 0.9216-0.9573 | 0.9609 | 0.0132 |
+| B | XGBoost, tuned | 0.8480 | 0.8305-0.8651 | 0.8798 | 0.0158 |
 
 The voice classes are the easiest (VPN-VOIP F1 0.9941, VOIP 0.9964 and 0.9917), and the weakest
 are VPN-MAIL (0.7132 in A2-VPN, 0.7259 in B) and STREAMING in A2-NonVPN (0.8955). In task B the
@@ -265,7 +267,6 @@ seen. Two tests sit on the Holm line (Holm p 0.0504, Monte Carlo band about 0.03
 as not clear. The old rule's picks scored 0.0322 (A1, clear), 0.0211, 0.0242 (clear) and 0.0069
 below the final models.
 
-[[wide]]
 Table: Test macro F1 of the seven method types (bold: final model)
 
 | Task | Tree | KNN | LogReg | SVM | RF | XGB | LGBM |
@@ -274,9 +275,6 @@ Table: Test macro F1 of the seven method types (bold: final model)
 | A2-VPN | 0.8308 | 0.8431 | 0.7179 | 0.8670 | 0.8594 | 0.8577 | **0.8652** |
 | A2-NonVPN | 0.8825 | 0.9160 | 0.8053 | 0.9244 | 0.9067 | 0.9346 | **0.9403** |
 | B | 0.7886 | 0.8253 | 0.6089 | 0.8411 | 0.8403 | **0.8480** | 0.8567 |
-
-[[wide]]
-![Test macro F1 with 95% intervals (filled) and validation macro F1 (open) of every final model; the final model of each task is in red.](../figures/e12_comparison_test.png)
 
 ## Calibration, stability and training size
 

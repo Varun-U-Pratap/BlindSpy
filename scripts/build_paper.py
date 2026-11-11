@@ -145,7 +145,8 @@ def build_spec(source: str) -> dict:
         def new(m):
             return "[" + ", ".join(str(order[int(n)]) for n in m.group(1).split(", ")) + "]"
 
-        return CITE.sub(new, s)
+        # a non-breaking hyphen keeps "Section V-G" on one line
+        return re.sub(r"(Section [IVX]+)-([A-Z])", "\\1\u2011\\2", CITE.sub(new, s))
 
     def fix(b):
         if b["t"] in ("p", "h"):
