@@ -1,12 +1,14 @@
 // Write the research-paper DOCX from the spec made by scripts/build_paper.py.
 // Layout in the style of an IEEE conference paper: US Letter, title block across the page, then
-// two columns; tables and figures marked wide span both columns (continuous section breaks).
+// two columns; tables and figures marked wide span both columns.
+// Wide blocks float: each sits in a borderless floating table anchored to the top margin of its
+// page, so both columns flow underneath (like a LaTeX [t] float) instead of leaving a gap.
 // Usage (called by build_paper.py): NODE_PATH=<dir>/node_modules node paper_docx.js spec.json out.docx
 const fs = require("fs");
 const {
-  AlignmentType, BorderStyle, Document, Footer, ImageRun, LevelFormat, Packer, PageNumber,
-  Paragraph, SectionType, Table, TableCell, TableLayoutType, TableRow, TabStopType, TextRun,
-  WidthType,
+  AlignmentType, BorderStyle, Document, Footer, ImageRun, LevelFormat, OverlapType, Packer,
+  PageNumber, Paragraph, RelativeHorizontalPosition, RelativeVerticalPosition, SectionType, Table,
+  TableAnchorType, TableCell, TableLayoutType, TableRow, TabStopType, TextRun, WidthType,
 } = require("docx");
 
 const [specPath, outPath] = process.argv.slice(2);
@@ -19,6 +21,7 @@ const GAP = 360; // space between the two columns
 const FULL = PAGE.width - MARGIN.left - MARGIN.right; // 10080
 const COLUMN = (FULL - GAP) / 2; // 4860
 const DXA_PER_PX = 15; // 1440 DXA per inch, 96 px per inch
+const MAX_IMG_HEIGHT_PX = 336; // 3.5 in, so a figure plus text below it fill a page
 
 function runs(list, size, extra = {}) {
   return list.map((r) => new TextRun({
@@ -39,10 +42,15 @@ function body(children, opts = {}) {
 function tableBlock(b, width) {
   const plain = b.rows.map((row) => row.map((c) => c.map((r) => r.text).join("")));
   const ncol = plain[0].length;
-  // width per column: its longest data cell, or the longest word of its header (headers wrap)
-  const longestWord = (t) => Math.max(...t.split(/\s+/).map((w) => w.length));
-  const chars = [...Array(ncol).keys()].map((j) => 3 + Math.max(5, longestWord(plain[0][j] || ""),
-    ...plain.slice(1).map((r) => (r[j] || "").length)));
+  // width per column: its longest number, or the longest word of its header and text cells
+  // (headers and text such as "LightGBM, class weights" wrap; numbers must not)
+  // text width in "characters": capitals are about 1.35 times as wide as other characters in Times
+  const len = (t) => [...t].reduce((n, c) => n + (/[A-Z]/.test(c) ? 1.35 : 1), 0);
+  const longestWord = (t) => Math.max(...t.split(/\s+/).map(len));
+  const cellWidth = (t) => (/\s/.test(t) ? Math.max(longestWord(t), len(t) / 2) : len(t) + 1);
+  const chars = [...Array(ncol).keys()].map((j) => 2 + Math.max(4, longestWord(plain[0][j] || ""),
+    ...plain.slice(1).map((r) => cellWidth(r[j] || ""))));
+  const size = ncol >= 7 ? 14 : 15; // half-points: 7 pt for the widest tables
   const total = chars.reduce((s, c) => s + c, 0);
   const widths = chars.map((c) => Math.floor((width * c) / total));
   widths[ncol - 1] += width - widths.reduce((s, w) => s + w, 0);
@@ -59,10 +67,10 @@ function tableBlock(b, width) {
         bottom: i === 0 || i === last ? rule : none,
         left: none, right: none,
       },
-      margins: { top: 20, bottom: 20, left: 50, right: 50 },
+      margins: { top: 20, bottom: 20, left: size === 14 ? 30 : 50, right: size === 14 ? 30 : 50 },
       children: [new Paragraph({
         alignment: j === 0 ? AlignmentType.LEFT : AlignmentType.CENTER,
-        children: runs(row[j] || [], 15, { bold: i === 0 }),
+        children: runs(row[j] || [], size, { bold: i === 0 }),
       })],
     })),
   }));
@@ -79,7 +87,7 @@ function tableBlock(b, width) {
 
 function imageBlock(b, width) {
   const maxPx = width / DXA_PER_PX;
-  const scale = Math.min(1, maxPx / b.w);
+  const scale = Math.min(1, maxPx / b.w, MAX_IMG_HEIGHT_PX / b.h);
   return [
     new Paragraph({ alignment: AlignmentType.CENTER, keepNext: true, spacing: { before: 160, after: 60 },
       children: [new ImageRun({ type: "png", data: fs.readFileSync(b.path),
@@ -92,6 +100,26 @@ function imageBlock(b, width) {
   ];
 }
 
+function floatTop(children) {
+  const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+  return new Table({
+    width: { size: FULL, type: WidthType.DXA }, columnWidths: [FULL], layout: TableLayoutType.FIXED,
+    float: {
+      horizontalAnchor: TableAnchorType.MARGIN, verticalAnchor: TableAnchorType.MARGIN,
+      relativeHorizontalPosition: RelativeHorizontalPosition.CENTER,
+      relativeVerticalPosition: RelativeVerticalPosition.TOP,
+      bottomFromText: 240,
+      overlap: OverlapType.NEVER,
+    },
+    rows: [new TableRow({ cantSplit: true, children: [new TableCell({
+      width: { size: FULL, type: WidthType.DXA },
+      borders: { top: none, bottom: none, left: none, right: none },
+      margins: { top: 0, bottom: 0, left: 0, right: 0 },
+      children,
+    })] })],
+  });
+}
+
 // Title block (one column)
 const titleBlock = [
   new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 200 },
@@ -102,7 +130,7 @@ const titleBlock = [
     children: [new TextRun({ text: spec.affiliation, size: 18, italics: true, font: FONT })] }),
 ];
 
-// Two-column body; wide tables/figures get a one-column section of their own
+// Two-column body; wide tables and figures float to the top of their page (floatTop)
 const sections = [{ columns: 1, children: titleBlock }];
 let current = [];
 const flush = () => { if (current.length) sections.push({ columns: 2, children: current }); current = []; };
@@ -142,8 +170,7 @@ for (const b of spec.blocks) {
   } else if (b.t === "table" || b.t === "img") {
     const make = b.t === "table" ? tableBlock : imageBlock;
     if (b.wide) {
-      flush();
-      sections.push({ columns: 1, children: make(b, FULL) });
+      current.push(floatTop(make(b, FULL)));
     } else {
       current.push(...make(b, COLUMN));
     }
@@ -162,6 +189,8 @@ for (const r of spec.references) {
   }));
 }
 flush();
+// an empty continuous section at the end makes Word balance the two columns on the last page
+sections.push({ columns: 1, children: [new Paragraph({ children: [] })] });
 
 const footer = new Footer({ children: [new Paragraph({ alignment: AlignmentType.CENTER,
   children: [new TextRun({ children: [PageNumber.CURRENT], size: 16, font: FONT })] })] });

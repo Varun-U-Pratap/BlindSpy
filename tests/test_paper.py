@@ -34,8 +34,8 @@ def test_every_number_in_the_paper_comes_from_a_source_file():
 def test_paper_builds_with_valid_cross_references_and_citations():
     built = paper.build_spec(SOURCE.read_text())  # asserts every Section/Table/Fig. reference
     labels = [b["label"] for b in built["blocks"] if b["t"] in ("table", "img")]
-    assert labels == [f"TABLE {r}" for r in ("I", "II")] + ["Fig. 1."] + [
-        "TABLE III", "TABLE IV", "Fig. 2.", "TABLE V", "Fig. 3.", "TABLE VI"]  # fmt: skip
+    assert labels == ["TABLE I", "Fig. 1.", "Fig. 2.", "TABLE II", "TABLE III", "TABLE IV",
+                      "TABLE V", "Fig. 3.", "TABLE VI"]  # fmt: skip
     numbers = [r["n"] for r in built["references"]]
     assert numbers == list(range(1, len(paper.references()) + 1))  # every reference cited once
 
