@@ -19,6 +19,11 @@ Draper-Gil et al. (ICISSP 2016):
   order). `reports/report/BlindSpy_report_full.pdf` (and `.docx`) keeps everything else as it is;
   `reports/report/BlindSpy_report_standalone.pdf` (and `.docx`) also leaves out git details and
   file paths, so it reads without this repository. No number differs between the three.
+- **Research paper:** `reports/paper/BlindSpy_paper.docx`, a short version of the report in the
+  layout of a two-column conference paper (abstract, eight sections, six tables, three figures,
+  references), built by `scripts/build_paper.py` from `reports/paper/BlindSpy_paper.md`. It adds
+  no result: every number in it is also in the report or a generated table
+  (`tests/test_paper.py` checks this).
 - **Plan:** `reports/PLAN.md`, the project plan: tasks, tools, tracking, metrics, every phase
   with its checklist and result, team rules and risks.
 - **Final results** (test set scored once, 95% bootstrap intervals): test macro F1 A1 0.9434,
@@ -387,6 +392,12 @@ uv run python scripts/build_report.py --tag final --node-modules ~/blindspy-repo
 milestone's report (`--tag v0.2-tuned`, `--tag v1.0-final`) is rebuilt only from a checkout of that
 tag (`git checkout v0.2-tuned` first); at a later commit it would overwrite the milestone's file
 with the later drafts.
+
+The research paper is built the same way, with the same `docx` folder:
+
+```bash
+uv run python scripts/build_paper.py --node-modules ~/blindspy-report-node
+```
 
 ## Phase 4: final models, explanation and the final report
 
