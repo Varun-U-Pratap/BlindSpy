@@ -65,7 +65,44 @@ def load_final(task: str, folder: Path = FINAL_DIR) -> tuple[object, dict]:
     path = Path(folder) / f"{task}.joblib"
     if hashlib.sha256(path.read_bytes()).hexdigest() != meta["model_file_sha256"]:
         raise InputError(f"{path} does not match the SHA-256 in {task}.json; not loading it")
-    return joblib.load(path), meta
+    try:
+        return joblib.load(path), meta
+    except Exception as err:  # XGBoost on Windows rejects the macOS snapshot's Config part
+        if type(err).__name__ != "XGBoostError":
+            raise
+        return _load_xgb_model_only(path), meta
+
+
+_UBJ_MODEL_KEY = b"L\x00\x00\x00\x00\x00\x00\x00\x05Model"
+
+
+def _load_xgb_model_only(path: Path):
+    """Reload a joblib file whose XGBoost Booster snapshot ({Config, Model} in UBJSON) fails to
+    unserialize on this platform: rebuild each Booster from its Model part alone. The trees,
+    objective and class count live in Model; Config holds only training settings, so
+    predictions are unchanged."""
+    import ctypes
+
+    import xgboost.core as xc
+
+    original = xc.Booster.__setstate__
+
+    def setstate(self, state):
+        state = dict(state)
+        raw = bytes(state.pop("handle"))
+        self.__dict__.update(state)
+        start = raw.rindex(_UBJ_MODEL_KEY) + len(_UBJ_MODEL_KEY)
+        self.handle = ctypes.c_void_p()
+        xc._check_call(
+            xc._LIB.XGBoosterCreate(None, xc.c_bst_ulong(0), ctypes.byref(self.handle))
+        )
+        self.load_model(bytearray(raw[start:-1]))  # drop the outer object's closing brace
+
+    xc.Booster.__setstate__ = setstate
+    try:
+        return joblib.load(path)
+    finally:
+        xc.Booster.__setstate__ = original
 
 
 def validate(df: pd.DataFrame, meta: dict) -> pd.DataFrame:

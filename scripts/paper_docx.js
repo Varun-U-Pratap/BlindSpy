@@ -141,7 +141,7 @@ current.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { afte
   ...runs(spec.abstract, 18, { bold: true }),
 ] }));
 current.push(new Paragraph({ alignment: AlignmentType.JUSTIFIED, spacing: { after: 200 }, children: [
-  new TextRun({ text: "Index Terms", bold: true, italics: true, size: 18, font: FONT }),
+  new TextRun({ text: spec.index_label || "Index Terms", bold: true, italics: true, size: 18, font: FONT }),
   new TextRun({ text: `—${spec.index_terms}`, bold: true, size: 18, font: FONT }),
 ] }));
 

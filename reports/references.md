@@ -29,11 +29,11 @@
     pp. 108–126, 2017, doi: 10.1080/23742917.2017.1321891.
 13. W. Isnan, Y. Fatmi, R. Darni, and V. Aulia, "Flow-Based Encrypted Network Traffic
     Classification Using Random Forest for Network Access Control," *Intechno Journal:
-    Information Technology Journal*, vol. 8, no. 1, 2026,
+    Information Technology Journal*, vol. 8, no. 1, pp. 82–91, 2026,
     doi: 10.24076/intechnojournal.2026v8i1.2922.
 14. S. Jorgensen et al., "Extensible Machine Learning for Encrypted Network Traffic
     Application Labeling via Uncertainty Quantification," *IEEE Transactions on
-    Artificial Intelligence*, 2023, doi: 10.1109/TAI.2023.3244168 (arXiv:2205.05628).
+    Artificial Intelligence*, vol. 5, no. 1, pp. 420–433, 2024, doi: 10.1109/TAI.2023.3244168.
 15. G. Draper-Gil, A. H. Lashkari, M. S. I. Mamun, and A. A. Ghorbani, "Characterization
     of Encrypted and VPN Traffic Using Time-Related Features" (poster), UNB Research
     Expo, 2016. [Online]. Available: https://www.cs.unb.ca/research-expo/expos/2016/
@@ -58,3 +58,27 @@
     Journal of Psychology*, vol. 15, no. 1, pp. 72–101, 1904.
 23. Snowflake Inc., "Streamlit: a faster way to build and share data apps" (open-source Python
     library, Apache 2.0 licence). [Online]. Available: https://streamlit.io
+24. M. Lotfollahi, M. Jafari Siavoshani, R. Shirali Hossein Zade, and M. Saberian, "Deep packet:
+    a novel approach for encrypted traffic classification using deep learning," *Soft
+    Computing*, vol. 24, no. 3, pp. 1999–2012, 2020, doi: 10.1007/s00500-019-04030-2.
+25. W. Wang, M. Zhu, J. Wang, X. Zeng, and Z. Yang, "End-to-end encrypted traffic
+    classification with one-dimensional convolution neural networks," in *Proc. IEEE Int. Conf.
+    on Intelligence and Security Informatics (ISI)*, 2017, pp. 43–48,
+    doi: 10.1109/ISI.2017.8004872.
+26. X. Lin, G. Xiong, G. Gou, Z. Li, J. Shi, and J. Yu, "ET-BERT: A Contextualized Datagram
+    Representation with Pre-training Transformers for Encrypted Traffic Classification," in
+    *Proc. ACM Web Conference (WWW)*, 2022, pp. 633–642, doi: 10.1145/3485447.3512217.
+27. S. Rezaei and X. Liu, "Deep Learning for Encrypted Traffic Classification: An Overview,"
+    *IEEE Communications Magazine*, vol. 57, no. 5, pp. 76–81, 2019,
+    doi: 10.1109/MCOM.2019.1800819.
+28. A. H. Lashkari, G. Draper-Gil, M. S. I. Mamun, and A. A. Ghorbani, "Characterization of Tor
+    Traffic using Time based Features," in *Proc. 3rd Int. Conf. on Information Systems Security
+    and Privacy (ICISSP)*, 2017, pp. 253–262, doi: 10.5220/0006105602530262.
+29. D. Arp et al., "Dos and Don'ts of Machine Learning in Computer Security," in *Proc. 31st
+    USENIX Security Symposium*, 2022, pp. 3971–3988.
+30. S. Kapoor and A. Narayanan, "Leakage and the reproducibility crisis in machine-learning-based
+    science," *Patterns*, vol. 4, no. 9, Art. no. 100804, 2023,
+    doi: 10.1016/j.patter.2023.100804.
+31. G. Engelen, V. Rimmer, and W. Joosen, "Troubleshooting an Intrusion Detection Dataset: the
+    CICIDS2017 Case Study," in *Proc. IEEE Security and Privacy Workshops (SPW)*, 2021,
+    pp. 7–12, doi: 10.1109/SPW53761.2021.00009.

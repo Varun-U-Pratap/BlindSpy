@@ -8,7 +8,6 @@ import io
 import json
 import multiprocessing
 import os
-import resource
 import subprocess
 import sys
 import time
@@ -66,7 +65,15 @@ def _predict_ms_per_1000(pipe, X, repeats: int = 3) -> float:
 
 def _fit_rss(pipe, X, y) -> int:
     """Runs in a fresh child process: bytes the process's peak RSS rose above its RSS just
-    before the fit. Unlike tracemalloc this sees C/C++ memory (XGBoost, LightGBM, libsvm)."""
+    before the fit. Unlike tracemalloc this sees C/C++ memory (XGBoost, LightGBM, libsvm).
+
+    Not measurable on Windows (no `resource` module, no `ps`): the fit still runs and NaN is
+    returned, so the memory metric is logged as missing instead of crashing the import."""
+    if sys.platform == "win32":
+        pipe.fit(X, y)
+        return float("nan")
+    import resource  # Unix-only
+
     out = subprocess.run(["ps", "-o", "rss=", "-p", str(os.getpid())], capture_output=True,
                          text=True, check=True).stdout  # fmt: skip
     before = int(out) * 1024  # ps reports KB

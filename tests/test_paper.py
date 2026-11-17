@@ -26,20 +26,30 @@ def values(text: str) -> set[float]:
 
 def test_every_number_in_the_paper_comes_from_a_source_file():
     corpus = values("\n".join(p.read_text() for p in CORPUS))
-    body = SOURCE.read_text().split("\n", 3)[3]  # skip the title block (it holds a URL)
+    body = SOURCE.read_text(encoding="utf-8").split("\n", 3)[3]  # skip the title block (it holds a URL)
     missing = sorted(v for v in values(body) if v not in corpus)
     assert missing == []
 
 
 def test_paper_builds_with_valid_cross_references_and_citations():
-    built = paper.build_spec(SOURCE.read_text())  # asserts every Section/Table/Fig. reference
+    built = paper.build_spec(SOURCE.read_text(encoding="utf-8"))  # asserts every Section/Table/Fig. reference
     labels = [b["label"] for b in built["blocks"] if b["t"] in ("table", "img")]
     assert labels == ["TABLE I", "Fig. 1.", "Fig. 2.", "TABLE II", "TABLE III", "TABLE IV",
                       "TABLE V", "Fig. 3.", "TABLE VI"]  # fmt: skip
     numbers = [r["n"] for r in built["references"]]
-    assert numbers == list(range(1, len(paper.references()) + 1))  # every reference cited once
+    assert numbers == list(range(1, len(numbers) + 1))  # cited references numbered 1..n
+
+
+def test_revised_paper_builds_and_cites_every_reference():
+    source = paper.ROOT / "reports" / "paper" / "BlindSpy_paper_v2.md"
+    built = paper.build_spec(source.read_text(encoding="utf-8"))
+    sections = [b["label"] for b in built["blocks"] if b["t"] == "h" and b["level"] == 1]
+    assert sections == ["I", "II", "III", "IV", "V", "VI"]
+    assert built["index_label"] == "Keywords"
+    numbers = [r["n"] for r in built["references"]]
+    assert numbers == list(range(1, len(paper.references()) + 1))  # every reference cited
 
 
 def test_paper_is_written_in_the_team_voice():
-    text = SOURCE.read_text()
+    text = SOURCE.read_text(encoding="utf-8")
     assert re.findall(r"(?i)\buser\b|\buser OK\b|\bthe session\b", text) == []

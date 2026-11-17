@@ -47,7 +47,7 @@ def text_of(runs: list[dict]) -> str:
 def references() -> dict[int, str]:
     """reports/references.md -> {number: text}."""
     refs, cur = {}, None
-    for line in REFERENCES.read_text().splitlines():
+    for line in REFERENCES.read_text(encoding="utf-8").splitlines():
         if m := re.match(r"^(\d+)\. (.*)$", line):
             cur = int(m.group(1))
             refs[cur] = m.group(2).strip()
@@ -69,7 +69,7 @@ def build_spec(source: str) -> dict:
     # Abstract and index terms: everything before the first level-1 heading
     first = next(i for i, b in enumerate(blocks) if b["t"] == "h" and b["level"] == 1)
     front = [b for b in blocks[:first] if b["t"] == "p"]
-    is_terms = [text_of(b["runs"]).startswith("Index Terms") for b in front]
+    is_terms = [text_of(b["runs"]).startswith(("Index Terms", "Keywords")) for b in front]
     abstract = [b["runs"] for b, terms in zip(front, is_terms, strict=True) if not terms]
     index_terms = [text_of(b["runs"]) for b, terms in zip(front, is_terms, strict=True) if terms]
     assert len(abstract) == 1 and len(index_terms) == 1, "one abstract and one Index Terms line"
@@ -167,6 +167,7 @@ def build_spec(source: str) -> dict:
         "affiliation": affiliation,
         "abstract": map_runs(abstract[0], renumber),
         "index_terms": index_terms[0].split("—", 1)[1].strip(),
+        "index_label": index_terms[0].split("—", 1)[0].strip(),
         "blocks": [fix(b) for b in out],
         "references": ref_list,
     }
@@ -175,15 +176,18 @@ def build_spec(source: str) -> dict:
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--node-modules", required=True, help="folder that holds node_modules/docx")
+    ap.add_argument("--source", type=Path, default=SOURCE, help="paper markdown (default: v1)")
+    ap.add_argument("--out", type=Path, default=OUT, help="DOCX to write")
     a = ap.parse_args()
-    spec = build_spec(SOURCE.read_text())
+    out = a.out.resolve()
+    spec = build_spec(a.source.read_text(encoding="utf-8"))
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp) / "paper.json"
         path.write_text(json.dumps(spec))
         env = {**os.environ, "NODE_PATH": str(Path(a.node_modules) / "node_modules")}
-        subprocess.run(["node", str(ROOT / "scripts" / "paper_docx.js"), str(path), str(OUT)],
+        subprocess.run(["node", str(ROOT / "scripts" / "paper_docx.js"), str(path), str(out)],
                        check=True, env=env)  # fmt: skip
-    print(f"wrote {OUT.relative_to(ROOT)}: {len(spec['references'])} references")
+    print(f"wrote {out.relative_to(ROOT)}: {len(spec['references'])} references")
 
 
 if __name__ == "__main__":
