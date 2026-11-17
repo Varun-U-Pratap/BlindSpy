@@ -1,6 +1,6 @@
-% Timing Is Enough? A Leakage-Controlled Benchmark of VPN Detection and Encrypted Traffic Characterization on ISCXVPN2016
+% VPN Detection and Encrypted Traffic Classification Using Flow Timing Features
 % [Author 1], [Author 2], [Author 3], [Author 4]
-% [Department], [Institution], [City], [Country]. Corresponding author: [e-mail]. Code and run history: https://github.com/Varun-U-Pratap/BlindSpy
+% [Department], [Institution], [City], [Country]. Corresponding author: [e-mail].
 
 ## Abstract
 
@@ -11,11 +11,11 @@ the most widely used public benchmarks for this idea, but reported accuracies on
 designed to prevent leakage. The audit shows that 9 of the 12 published A1 and B attribute files
 label their inter-arrival columns one position off, and that the A2 files store total gaps where
 standard deviations are declared; both findings follow from arithmetic identities that hold on
-every row. After removing exact duplicates before a stratified 70/15/15 split, we compare seven
+every row. After removing exact duplicates ahead of a class-stratified 70/15/15 partition, we compare seven
 model families with an equal tuning budget, freeze all choices on validation data, and open the
 test partition once. Gradient-boosted trees using only the 23 timing statistics obtain test
 macro F1 scores of 0.9434 (VPN vs. non-VPN), 0.8652 and 0.9403 (seven application types inside
-VPN and non-VPN traffic) and 0.8480 (14 joint classes), each with a 95% stratified bootstrap
+VPN and non-VPN traffic), and 0.8480 when all 14 classes are predicted jointly, each with a 95% stratified bootstrap
 interval. Of 26 pairwise comparisons declared in advance, 14 remain significant after Holm
 correction; no task shows a significant
 difference between the best model and a tuned RBF-kernel SVM. After isotonic calibration, the expected calibration error on the test data falls to
@@ -33,15 +33,15 @@ Network operators classify traffic to enforce quality-of-service policies, to ap
 rules and to spot misuse. For two decades the dependable way to do so was deep packet
 inspection, which matches signatures in packet contents. Transport encryption and VPN tunnelling
 have removed most of that visibility: the payload is opaque, and inside a tunnel even the
-original ports and addresses disappear. What remains observable is the shape of a flow in time.
+original ports and addresses disappear. Only the timing of a flow stays visible.
 An interactive voice call produces small packets at a near-constant cadence; a video player
 fetches content in bursts separated by pauses; a bulk download saturates the link with almost no
-idle periods. Whether such shapes are distinctive enough to recover the traffic type, and whether
-they still betray the presence of a VPN, is the question this paper revisits.
+idle periods. We ask whether these patterns identify the traffic type, and whether they still
+reveal that a VPN is in use.
 
 Draper-Gil et al. [1] made the question measurable by releasing ISCXVPN2016 [2]. Every flow in
 it is summarized by 23 time-related statistics, and the same traffic was exported four times,
-with flow timeouts of 15, 30, 60 and 120 s (a timeout ends an idle flow; it does not set a flow's
+using a flow timeout of 15 s, 30 s, 60 s or 120 s (a timeout ends an idle flow; it does not set a flow's
 length). Three tasks are defined on the release, and we keep them separate throughout: A1 decides whether a
 flow is tunnelled; A2 assigns one of seven application types (browsing, chat, e-mail, file
 transfer, P2P, streaming and VoIP), with one model for VPN flows and another for non-VPN flows;
@@ -52,16 +52,16 @@ Since then the dataset has become a default benchmark, but results are hard to c
 differ in which files they load, in whether duplicate rows survive into both training and test
 partitions, in the class grouping they score and in whether flows produced with different
 timeouts are pooled. Each of these choices can raise a headline number without any real gain in
-generalization, which is exactly the kind of pitfall catalogued for security-oriented machine
-learning by Arp et al. [29] and for empirical science more widely by Kapoor and Narayanan [30].
+generalization. Arp et al. [29] list such choices among the common pitfalls of machine learning
+in security, and Kapoor and Narayanan [30] report the same problem across empirical science.
 
-This paper contributes the following:
+We make five contributions:
 
 1. An audit of the released attribute files showing column names displaced by one attribute pair
    in nine of the twelve A1/B files and a substituted feature pair in all A2 files, with every correction
-   backed by arithmetic relations that every row satisfies (Section III-B).
-2. A faithful reproduction of the original C4.5 and nearest-neighbour results under the original
-   protocol, which anchors our later numbers to the published ones (Section IV-A).
+   backed by arithmetic relations that every row satisfies (Section III-A).
+2. A re-run of the original C4.5 and nearest-neighbour experiments under the published
+   set-up, which anchors our later numbers to the published ones (Section IV-A).
 3. A leakage-controlled benchmark: deduplication before splitting, an equal hyperparameter
    budget for seven model families, a single opening of the test partition, bootstrap
    intervals, and 26 Holm-corrected comparisons declared before testing (Sections III and IV).
@@ -82,7 +82,7 @@ The benchmark was introduced together with ISCXFlowMeter and a feature set built
 timing: forward, backward and bidirectional inter-arrival statistics, active and idle periods,
 duration, and byte and packet rates [1]. At the 15 s timeout the authors reported C4.5
 precision of 0.89 for VPN and 0.906 for non-VPN flows, found that shorter timeouts tended to help,
-and obtained an average precision near 0.783 (C4.5) and 0.711 (KNN) for the 14-class task. The
+and obtained an average precision near 0.783 with C4.5 and 0.711 with KNN on the 14-class task. The
 same group later applied time-based features to anonymity traffic in ISCXTor2016 [28]. Bagui et
 al. [12] compared a broader set of supervised learners, including ensembles, on the VPN timing
 features. Isnan et al. [13] recently fitted a Random Forest of 300 trees to a public CSV derived from
@@ -98,8 +98,8 @@ the ISCX VPN-nonVPN captures, Deep Packet [24] combined stacked autoencoders and
 networks on packet contents, and ET-BERT [26] pre-trained a transformer on large unlabelled
 traffic corpora before fine-tuning on benchmarks that include this one. Rezaei and Liu [27]
 survey these architectures. Such models often report very high accuracy, but they see
-information, including bytes inside the first packets, that a timing-only model never touches;
-their scores are therefore not a fair yardstick for flow-statistics classifiers, and we do not
+information, including bytes inside the first packets, that a timing-only model never touches,
+so their scores are not a fair yardstick for flow-statistics classifiers, and we do not
 compare against them numerically.
 
 ## Dataset quality and evaluation practice
@@ -125,16 +125,6 @@ Fig. 1 summarizes the pipeline. All steps are implemented in Python with scikit-
 XGBoost [4], LightGBM [5], imbalanced-learn [9] and Optuna [7], and every run is tracked in MLflow
 [8].
 
-## Dataset
-
-The release consists of 20 ARFF files: four for A1, eight for A2 (VPN and non-VPN at each
-timeout), four for B, and four seven-class "AllinOne" files that correspond to no task and are
-not used. Each record holds 23 numeric attributes, with times in microseconds and rates per
-second, plus a class label. No payload, address, port, timestamp or capture identifier is
-included. Matching rows across files shows that A1, A2 and B describe the same flows at a given
-timeout: every A1 row has an A2 counterpart agreeing on seven integer-valued attributes, and B
-equals A1 cell for cell apart from one damaged column.
-
 ## Column audit
 
 A plausibility check exposed the first problem. The opening record of the A1 15 s file lists a
@@ -143,7 +133,7 @@ true. The original paper and the authors' poster [15] describe each gap family b
 mean, maximum and standard deviation, whereas 17 of the 20 file headers announce a total and no
 standard deviation.
 
-We therefore parsed each file under both candidate name orders and tested relations that every
+We parsed each file under both candidate name orders and tested relations that every
 genuine flow must satisfy: minimum ≤ mean ≤ maximum; 0 ≤ standard deviation ≤ maximum − minimum;
 and mean bidirectional gap × (packets − 1) ≈ duration within 1%, with a 0.5% allowance for values
 stored to three significant figures. Read with the header names, the ordering relation is satisfied by
@@ -152,7 +142,7 @@ used by the paper, every relation holds for 100% of rows. The A2 headers are in 
 but the two columns declared as standard deviations of the forward and backward gaps contain
 sums: together with the mean gaps they reproduce the packet count on every row, while the
 standard-deviation bound holds on none. Interpreting a total as a packet count instead fits no file on
-more than 2% of its rows, so that reading was rejected. Each task is therefore trained on its own files
+more than 2% of its rows, so that reading was rejected. Each task is trained on its own files
 through an explicit column map, and the nine shifted files are renamed. In the A1 120 s file the
 packet-rate column disagrees with the matching A2 rows on 99.97% of pairs; we restore it from the
 B file, which is otherwise identical, changing 10,288 of 10,782 values.
@@ -168,17 +158,7 @@ commas), leaving 167,909 records. Records that share all attributes but carry di
 real traffic. The sentinel −1, which the flow meter writes when a statistic cannot be computed,
 is preserved, as are single-packet flows and negative minimum gaps caused by out-of-order
 timestamps. No scaling, feature selection, outlier filtering or resampling is applied to the
-stored data. Table I lists the 15 s data used by the final models.
-
-[[wide]]
-Table: Data at the 15 s timeout after cleaning
-
-| Task | Raw rows | Duplicates removed | Final rows | Classes | Train / validation / test |
-|---|---|---|---|---|---|
-| A1 | 18,758 | 720 | 18,038 | 2 | 12,626 / 2,706 / 2,706 |
-| A2-VPN | 9,793 | 413 | 9,380 | 7 | 6,566 / 1,407 / 1,407 |
-| A2-NonVPN | 8,965 | 271 | 8,694 | 7 | 6,085 / 1,304 / 1,305 |
-| B | 18,758 | 684 | 18,074 | 14 | 12,651 / 2,711 / 2,712 |
+stored data.
 
 ## Evaluation protocol
 
@@ -204,7 +184,7 @@ family, an identical budget for all seven families; class weighting, random over
 SMOTE [10]; and a hierarchical variant of task B that first decides VPN versus non-VPN and then
 applies one seven-class model per branch. A configuration was re-run at the other timeouts only
 if it improved the 15 s validation score by at least 0.03, a margin above the largest
-cross-validation standard deviation seen among the baselines (0.025).
+standard deviation any baseline showed in cross-validation (at most 0.025).
 
 ## Model selection and comparison set
 
@@ -220,13 +200,13 @@ regression, SVM, Random Forest, XGBoost and LightGBM).
 ## Statistical testing and calibration
 
 Confidence intervals are 2.5th-97.5th percentiles over 10,000 stratified bootstrap resamples of
-the test records [18], drawn within each true class with seed 42; the intervals are therefore
-conditional on the test class counts. Exactly 26 macro-F1 differences were declared before
+the test records [18], drawn within each true class with seed 42, so the intervals treat the
+test class counts as fixed. Exactly 26 macro-F1 differences were declared before
 testing: in each task, the headline model against the six other families, plus, for A1 and A2-VPN only, the
 model the abandoned tie rule would have picked. Each difference is assessed with a two-sided paired bootstrap test and
 the 26 p-values are corrected with Holm's procedure [17] at α = 0.05. The resample count matters
 here: with 1,000 draws the smallest attainable p-value (0.0020) already exceeds Holm's first
-threshold (0.05/26 ≈ 0.0019).
+threshold, which is 0.05 divided by 26, about 0.0019.
 
 Calibration is measured with the expected calibration error (ECE) over 15 equal-width bins
 [20, 21]. Isotonic regression [19] is fitted on out-of-fold scores from a shuffled five-fold
@@ -238,8 +218,8 @@ model, so calibration can only change the reported confidence, never the predict
 Each run records the git commit, a hash of the locked dependency file, the data version with
 its digest, all parameters and metrics, timings and the fitted model; the tracking script will
 not start an official run from code that has not been pushed to the shared repository. The final store holds 2,015 runs. A fresh clone on the
-original platform (macOS, Apple silicon) reproduced the final scores, predictions and calibration
-errors exactly. Feature reliance is analysed with SHAP [6] and with group ablation. For
+original platform (macOS, Apple silicon) gave back identical test scores, identical per-flow predictions
+and identical calibration errors. Feature reliance is analysed with SHAP [6] and with group ablation. For
 deployment we supply a terminal tool and a browser application built with Streamlit [23]; both load the
 four final models after checking their SHA-256 digests, validate the 23 input columns, and return
 for every flow the label, a calibrated confidence and the three attributes that pushed the model
@@ -251,7 +231,7 @@ at least three packets whose duration also appears in the A2 15 s file.
 
 ## Agreement with the original study
 
-Under the original protocol (10-fold cross-validation on the published rows, with Weka [16]
+Using the published set-up (10-fold cross-validation over the released rows, with Weka [16]
 defaults approximated), our tree matches each of the 16 A1 precision and recall figures reported by
 Draper-Gil et al. [1] within ±0.05, with the largest gap 0.021, and 1-NN reproduces 15 of 16. For
 the 14-class task our tree reaches a mean precision of 0.770 at the best timeout against the
@@ -266,8 +246,8 @@ which roughly offsets what leakage would have added.
 
 ## Model development on validation data
 
-Table II and Fig. 2 trace the best 15 s validation score through the experiments. Replacing the single tree
-by a forest of 300 trees improved on the single tree by +0.0302 to +0.0647 depending on the task, and
+Table I and Fig. 2 trace the best 15 s validation score through the experiments. A forest of 300 trees
+beat the single tree by +0.0302 to +0.0647 depending on the task, and
 default gradient boosting added a further small gain. The signed logarithm raised KNN by 0.080
 to 0.104 in every task and was the preferred transform in all logistic-regression and SVM searches
 that were allowed to use it. Under the equal tuning budget, ensembles improved by at most 0.0151, whereas the SVM
@@ -276,7 +256,7 @@ rebalancing never moved macro F1 by more than 0.0064. The hierarchical task-B mo
 below the 0.8428 of the direct model, and made more errors across the VPN boundary (191 against
 180 validation flows).
 
-Table: Best 15 s validation macro F1 after each development step (majority-class floor: 0.341, 0.060, 0.070, 0.019)
+Table: Validation macro F1 at the 15 s timeout as development progressed (a majority-class predictor scores 0.341, 0.060, 0.070 and 0.019)
 
 | Step | A1 | A2-VPN | A2-NonVPN | B |
 |---|---|---|---|---|
@@ -288,9 +268,9 @@ Table: Best 15 s validation macro F1 after each development step (majority-class
 
 ## Test performance of the final models
 
-Table III reports the four headline models on their test partitions. Three tasks score above
-their validation estimate and one below. One of the three pre-declared checks failed: the
-A2-NonVPN test score exceeds validation by 0.0328, slightly beyond the 0.03 tolerance. A
+Table II reports the four headline models on their test partitions. Three tasks score above
+their validation estimate and one below. One of the three pre-declared checks failed, for
+A2-NonVPN, whose test score exceeds validation by 0.0328, slightly beyond the 0.03 tolerance. A
 re-splitting experiment run before testing had already shown that this task's official
 validation partition is unusually hard (0.9075 against 0.9257-0.9468 over ten re-splits), which
 explains the gap. The other two checks passed: each headline model beat the old rule's choice in
@@ -307,19 +287,19 @@ Table: Final models on the test partition (macro F1 with 95% bootstrap interval,
 | B | XGBoost, tuned | 0.8480 | 0.8305-0.8651 | 0.8798 | 0.0158 |
 
 Voice traffic is the easiest category (F1 of 0.9941 for VPN-VOIP in A2-VPN; 0.9964 and 0.9917
-for VOIP in A2-NonVPN and B). At the other end sit e-mail over VPN, with F1 of 0.7132 (A2-VPN)
+for VOIP in A2-NonVPN and B). The weakest classes are e-mail over VPN, with F1 of 0.7132 (A2-VPN)
 and 0.7259 (B), and non-VPN streaming at 0.8955 (A2-NonVPN). Within the joint task the commonest
 mistake turns plain browsing into VPN browsing (28 test flows), with 17 flows mislabelled the
 opposite way, and on validation 55.05% of the direct model's errors put a flow on the wrong side
-of the VPN/non-VPN divide. For the joint task, therefore, deciding whether
-a browsing flow was tunnelled is harder than deciding that it is browsing.
+of the VPN/non-VPN divide. In the joint task, telling whether a browsing flow was
+tunnelled is harder than recognising it as browsing.
 
 [[wide]]
-![Test macro F1 with 95% intervals (filled markers) and validation macro F1 (open markers) for every model in the comparison set; the headline model of each task is shown in red.](../figures/e12_comparison_test.png)
+![Comparison-set models: test score as a filled marker with its 95% bootstrap interval, validation score as an open marker; red marks each task's headline model.](../figures/e12_comparison_test.png)
 
 ## Comparison of model families
 
-Table IV and Fig. 3 evaluate all comparison-set models on identical test records. After Holm
+Table III and Fig. 3 evaluate all comparison-set models on identical test records. After Holm
 correction, 14 of the 26 pre-declared differences are significant. Logistic regression is beaten
 significantly in all four tasks, and the decision tree in three of them (every task except
 A2-VPN). Against the tuned SVM no task shows a significant gap, and among the remaining ensembles
@@ -339,9 +319,8 @@ Table: Test macro F1 of the best variant of each model family (bold: headline mo
 | A2-NonVPN | 0.8825 | 0.9160 | 0.8053 | 0.9244 | 0.9067 | 0.9346 | **0.9403** |
 | B | 0.7886 | 0.8253 | 0.6089 | 0.8411 | 0.8403 | **0.8480** | 0.8567 |
 
-The practical reading is that, once tuning is equalized, several nonlinear families converge to
-within about two points of macro F1, and the remaining differences are mostly inside the
-bootstrap noise. Most of the improvement over the original C4.5 and KNN comes from ensembling and
+With equal tuning, several nonlinear families end up within about two macro-F1 points of each
+other, and most of the remaining differences fall inside the bootstrap noise. Most of the improvement over the original C4.5 and KNN comes from ensembling and
 boosting, while tuning mattered chiefly for the SVM, which rose from near the bottom of the
 ranking to near the top. Neither rebalancing nor the hierarchical task-B design paid off: the weak
 classes are weak not because they are rare but because their flows resemble those of other
@@ -351,11 +330,11 @@ stage, where an error cannot be recovered.
 ## Calibration, stability and training-set size
 
 On validation data every headline model reported higher confidence than its accuracy justified. A rule fixed before testing
-applied isotonic calibration only where the raw validation ECE exceeded 0.05, which selected A1
-and A2-VPN. After the test partition had been opened, the team extended the same calibration to
+applied isotonic calibration only where the raw validation ECE exceeded 0.05, so only A1
+and A2-VPN qualified. Once the test partition had been opened, the team extended the same calibration to
 A2-NonVPN and B, whose mean test confidence (0.9942 and 0.9213) clearly exceeded their accuracy.
 This is a post-hoc decision; it left every label and F1 score unchanged, and both the raw and the
-calibrated values are reported in Table V.
+calibrated values are reported in Table IV.
 
 Table: Expected calibration error before and after isotonic calibration
 
@@ -367,8 +346,8 @@ Table: Expected calibration error before and after isotonic calibration
 | B | 0.0350 | 0.0099 | 0.0420 | 0.0158 | after test |
 
 Re-splitting the training and validation records ten times changes the validation macro F1 of
-the chosen setups with a standard deviation of 0.0042-0.0114, so the ranking in Table IV
-is not an artefact of one split. The learning curves are still rising between 80% and 100% of the
+the chosen setups with a standard deviation of 0.0042-0.0114, so the ranking in Table III
+is not an artefact of one split. The learning curves still climb from 80% to the full set of
 training records in every task, most steeply in B (0.8297 to 0.8428), which suggests that more
 labelled traffic would still pay off.
 
@@ -390,25 +369,25 @@ byte rate typical of file transfer. A well-calibrated confidence is informative 
 it does not certify any single decision.
 
 [[wide]]
-![Share of mean absolute SHAP value per feature group on the test records (left) and the change in validation macro F1 when that group is removed (right).](../figures/shap_groups_vs_e09.png)
+![Share of mean absolute SHAP value per feature group on the test records (left) and validation macro-F1 loss after deleting the group (right).](../figures/shap_groups_vs_e09.png)
 
-## Reproducing and correcting a published result
+## Re-examining a recent 88.01% result
 
-The public CSV used by Isnan et al. [13] turns out to be all eight A2 files, covering every timeout,
+The public CSV used by Isnan et al. [13] is all eight A2 files, covering every timeout,
 concatenated: as a multiset, its 59,706 rows are exactly the rows of those files. Of these,
 7,093 distinct flows recur across two, three or four timeout exports, against just 3,676 rows that
-repeat inside one file. Most of the 18,719 removed "duplicates" are therefore the same flow exported at
+repeat inside one file. So most of the 18,719 removed "duplicates" are one flow exported at
 different timeouts, and splitting the combined file at random places versions of one flow, built
 with different flow-meter settings, on both sides of the split.
 
 Repeating their duplicate removal, their 80:20 partition and their grid search, our Random Forest reaches 0.8796
-accuracy against the published 0.8801 (Table VI). Training and testing the same method within a
+accuracy against the published 0.8801 (Table V). Training and testing the same method within a
 single timeout gives 0.8206-0.8658 (mean 0.8430). Because stacking gives 2.3 to 4.3 times more
 training records, we repeated the mixed-timeout experiment with training sets subsampled to each
 single-timeout size: the mean accuracy falls to 0.8395, no better than the per-timeout models.
-The combined file's advantage is therefore explained by training-set size rather than by mixing
+The combined file's advantage is explained by training-set size rather than by mixing
 timeouts as such, but its score is still not comparable with single-timeout results. Our tuned
-task-B XGBoost exceeds the forest at every timeout (mean 0.8647).
+task-B XGBoost beats that forest at all four timeouts, averaging 0.8647.
 
 Table: Isnan et al. reproduced on the stacked file (test accuracy, 14 classes)
 
@@ -437,13 +416,13 @@ because it requires the full dataset rebuild.
 
 ## Threats to validity
 
-The traffic was recorded in a laboratory in 2016 with a fixed set of applications and a single
+The traffic was recorded in a laboratory in 2016, using a fixed list of applications and one
 VPN configuration, and the captures carry documented quality problems [14]; any label noise in
 the source affects our training and test records alike. Because the files contain no session or
-capture identifier, a session-aware split was not possible. When contiguous blocks of the
-file-ordered training records are held out instead of shuffled records, out-of-fold accuracy
-drops by 0.07-0.26, which indicates that neighbouring flows, probably from the same capture,
-resemble one another; random-split scores may therefore overstate performance on traffic from
+capture identifier, a session-aware split was not possible. When we hold out consecutive runs of
+training records in file order rather than shuffled records, out-of-fold accuracy drops by
+0.07-0.26, which suggests that neighbouring flows, likely recorded in the same session, look
+alike; random-split scores may overstate performance on traffic from
 unseen captures. The 60 s export holds VoIP and file-transfer flows unlike those of the other
 exports, and class proportions vary between timeouts, so we do not interpret score differences
 across timeouts as a timeout effect. Our tree only approximates C4.5. Two departures from
@@ -461,13 +440,13 @@ non-VPN traffic, and 0.8480 for the joint 14-class problem on ISCXVPN2016. Each 
 95% interval and comes from a protocol in which duplicates are dropped before partitioning and the
 test data are opened a single time. Trustworthy numbers first required correcting mislabelled
 columns in most of the released files, and comparing with prior work required reproducing that work under its own conditions.
-Three lessons carry beyond this dataset: equal tuning budgets erase much of the apparent gap
+Three points apply beyond this dataset: equal tuning budgets erase much of the apparent gap
 between model families; deduplication must be considered together with the flow-building
 settings, since the same flow can reappear under a different timeout; and calibrated confidence
 is worth reporting but does not replace per-decision scrutiny. The models are not yet ready for
-production networks: the next steps are a session-aware evaluation on data that carries capture
-identifiers and a test on traffic recorded independently of ISCXVPN2016, for which the released
-capture converter provides a starting point.
+production networks. Two steps come next: evaluating on data that records which session each
+flow came from, so that whole sessions can be held out, and testing on traffic captured outside
+ISCXVPN2016, where the released capture converter gives a starting point.
 
 # Declarations
 
