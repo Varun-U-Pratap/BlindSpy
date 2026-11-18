@@ -1,6 +1,6 @@
 % VPN Detection and Encrypted Traffic Classification Using Flow Timing Features
-% [Author 1], [Author 2], [Author 3], [Author 4]
-% [Department], [Institution], [City], [Country]. Corresponding author: [e-mail].
+% Varun U Pratap, Utsav S R, Suhas Vankadari, Viswanatha Sai Pranav
+% Department of Computer Science and Engineering, M S Ramaiah Institute of Technology, Bengaluru, India. E-mail: varunupratap@gmail.com, utsavsr07@gmail.com, suhasv910@gmail.com, saipranavviswanatha2006@gmail.com
 
 ## Abstract
 
