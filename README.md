@@ -15,10 +15,15 @@ Draper-Gil et al. (ICISSP 2016):
   its experiment ID.
 - **Two reader editions of the same report**, built by `scripts/make_report_variants.py` and
   `scripts/build_report.py --tag final --edition standalone|full`: both start with a key to the
-  experiment IDs (E00-E17), what each is and the order they were run in (the IDs are not in run
+  experiment IDs (E00-E18), what each is and the order they were run in (the IDs are not in run
   order). `reports/report/BlindSpy_report_full.pdf` (and `.docx`) keeps everything else as it is;
   `reports/report/BlindSpy_report_standalone.pdf` (and `.docx`) also leaves out git details and
   file paths, so it reads without this repository. No number differs between the three.
+- **Research paper:** `reports/paper/BlindSpy_paper.docx`, a short version of the report in the
+  layout of a two-column conference paper (abstract, eight sections, six tables, three figures,
+  references), built by `scripts/build_paper.py` from `reports/paper/BlindSpy_paper.md`. It adds
+  no result: every number in it is also in the report or a generated table
+  (`tests/test_paper.py` checks this).
 - **Plan:** `reports/PLAN.md`, the project plan: tasks, tools, tracking, metrics, every phase
   with its checklist and result, team rules and risks.
 - **Final results** (test set scored once, 95% bootstrap intervals): test macro F1 A1 0.9434,
@@ -104,8 +109,9 @@ Choose a task, pick a sample file (or upload a CSV), and click a row of the pred
 see the features behind that prediction.
 
 Flow files made from the team's own traffic captures go in `app/samples/custom/`; upload them
-with **Upload a CSV**. Its `README.md` says how they are made (`scripts/pcap_to_csv.py`) and which
-task each file is for.
+with **Upload a CSV**. Its `README.md` says which task each file is for; the section *Capture
+your own traffic and turn it into a flow file* below gives the commands for macOS, Ubuntu and
+Windows.
 
 **4. Get the dataset** (only for rebuilding the data and reproducing scores). Download the
 ISCXVPN2016 dataset from https://www.unb.ca/cic/datasets/vpn.html and put its `CSVs` folder (it
@@ -163,6 +169,83 @@ Note: adding Streamlit for the demo changed `uv.lock` after the final runs, so t
 logged with your runs differs from the official ones (only Streamlit and five packages it needs
 were added; no version changed). For the exact environment of the final runs, use
 `git checkout v1.0-final` before `uv sync` (that tag has no demo).
+
+## Capture your own traffic and turn it into a flow file (demo only)
+
+Record traffic on your own laptop (your own network only), turn it into a CSV with the final
+models' 23 features, and upload it in the demo with **Upload a CSV**. These files are never used
+for training or any reported score. Which activity gives which class and how to name the files:
+`app/samples/custom/README.md`. Run everything from the repository folder; `captures/` is
+git-ignored (a capture holds addresses and site names), only the CSVs are committed.
+
+Interface to record: VPN off = Wi-Fi; VPN on = the VPN's own interface (the one that appears in
+`tshark -D` only after the VPN connects), because the dataset's VPN captures hold the traffic
+inside the tunnel. Each recording stops by itself after 300 s (or press Ctrl+C).
+
+Tested on macOS (install check, interface list, converting). Recording, and the Linux and
+Windows commands, are **not yet tested**.
+
+### macOS
+
+Install Wireshark from https://www.wireshark.org/download.html and also run its *Install ChmodBPF*
+package (lets you record without `sudo`; restart the Mac if recording is refused). Then:
+
+```bash
+export PATH="/Applications/Wireshark.app/Contents/MacOS:$PATH"
+tshark -D
+mkdir -p captures/raw
+tshark -i en0 -a duration:300 -w captures/raw/youtube_novpn_2026-11-05.pcapng
+```
+
+(`en0` = Wi-Fi; with the VPN on use the new `utun…` interface.)
+
+### Linux (Ubuntu)
+
+Answer **Yes** to "Should non-superusers be able to capture packets?", then log out and in again
+after `usermod`:
+
+```bash
+sudo apt install tshark
+sudo usermod -aG wireshark $USER
+```
+
+```bash
+tshark -D
+mkdir -p captures/raw
+tshark -i wlp2s0 -a duration:300 -w captures/raw/youtube_novpn_2026-11-05.pcapng
+```
+
+(Use your Wi-Fi name from `tshark -D`, e.g. `wlp2s0` or `wlan0`; with the VPN on use `tun0`
+(OpenVPN), `wg0` (WireGuard) or the VPN app's interface. If recording is refused, `groups` must
+list `wireshark`; answered No? run `sudo dpkg-reconfigure wireshark-common`.)
+
+### Windows (PowerShell)
+
+Install Wireshark from https://www.wireshark.org/download.html with Npcap (the installer offers
+it). Then:
+
+```powershell
+$env:Path += ";C:\Program Files\Wireshark"
+tshark -D
+mkdir captures\raw
+tshark -i Wi-Fi -a duration:300 -w captures/raw/youtube_novpn_2026-11-05.pcapng
+```
+
+(With the VPN on use the VPN's adapter from `tshark -D`, by name or number. If no new adapter
+appears when the VPN connects, that VPN cannot be recorded this way.)
+
+### Convert and try it (all systems)
+
+```bash
+uv run python scripts/pcap_to_csv.py captures/raw/youtube_novpn_2026-11-05.pcapng --task A1 --label Non-VPN --output app/samples/custom/youtube_novpn_A1.csv
+uv run python scripts/pcap_to_csv.py captures/raw/youtube_novpn_2026-11-05.pcapng --task B --label STREAMING --output app/samples/custom/youtube_novpn_B.csv
+uv run python scripts/pcap_to_csv.py captures/raw/youtube_novpn_2026-11-05.pcapng --task A2-NonVPN --label STREAMING --output app/samples/custom/youtube_novpn_A2-NonVPN.csv
+```
+
+For a VPN-on capture use `--task A1 --label VPN`, `--task B --label VPN-STREAMING` and
+`--task A2-VPN --label VPN-STREAMING`. Then `uv run streamlit run app/demo.py`, open
+http://localhost:8501, choose the task the file name ends with and upload the file. Expect lower
+accuracy than in the report: the models learned from 2016 captures.
 
 ## Setup for development
 
@@ -309,6 +392,12 @@ uv run python scripts/build_report.py --tag final --node-modules ~/blindspy-repo
 milestone's report (`--tag v0.2-tuned`, `--tag v1.0-final`) is rebuilt only from a checkout of that
 tag (`git checkout v0.2-tuned` first); at a later commit it would overwrite the milestone's file
 with the later drafts.
+
+The research paper is built the same way, with the same `docx` folder:
+
+```bash
+uv run python scripts/build_paper.py --node-modules ~/blindspy-report-node
+```
 
 ## Phase 4: final models, explanation and the final report
 
